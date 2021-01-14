@@ -13,7 +13,7 @@ struct UserData: Model {
     let token: String?
     let profileId: Int64?
     let firstName: String?
-    let lastName: String?
+    var lastName: String?
     let userName: String?
     let email: String?
     
@@ -34,5 +34,20 @@ struct ProfileData: Codable {
     var creationOptions: Int
     var asyncState: String?
     var isFaulted: Bool
+    
+}
+
+struct ProfileData2: Model {
+    
+    var token: String?
+    var profileId: Int64?
+    var firstName: String?
+    var lastName: String?
+    var userName: String
+    var email: String
+    var phone: String?
+    var avatar: String?
+    var success: Bool
+    //var isFaulted: Bool
     
 }

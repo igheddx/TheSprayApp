@@ -13,15 +13,24 @@ import Contacts
 class SelectAttendeeToSprayViewController: UIViewController, UITableViewDelegate, UITableViewDataSource {
    
     
-
+    let defaults = UserDefaults.standard
     
+    @IBOutlet weak var sprayIncrementTextField: UITextField!
     @IBOutlet weak var eventNameLabel: UILabel!
     @IBOutlet weak var eventDateTimeLabel: UILabel!
     @IBOutlet weak var eventCodeLabel: UILabel!
     
+    @IBOutlet weak var generalMessageLabel: UILabel!
+    @IBOutlet weak var eventTypeImage: UIImageView!
     @IBOutlet weak var searchBar: UISearchBar!
     @IBOutlet weak var tableView: UITableView!
     
+    @IBOutlet weak var eventSettingBtn: MyCustomButton!
+    
+    var customtextfield = CustomTextField()
+    
+    var db:DBHelper = DBHelper()
+    var senderspraybalance: [SenderSprayBalance] = []
     
     var message: String = ""
     var eventName: String = ""
@@ -29,22 +38,82 @@ class SelectAttendeeToSprayViewController: UIViewController, UITableViewDelegate
     var eventCode: String = ""
     var profileId: Int64?
     var eventId: Int64?
+    var ownerId: Int64?
     var token: String = ""
+    var paymentClientToken: String?
+    var eventTypeIcon: String = ""
     
+    var gifterBalanceAfterSpray: Int = 0
+    var receiverBalanceAfterSpray: Int = 0
+    var theReceiverId: Int64?
+    var giftReceiverId: Int64?
     var attendeeNameSelected: String = ""
     var attendeePhoneSelected: String = ""
-    
+    var gifterData: Data?
+    var gifterTotalTransAmount: Int = 0
+   
+    var isAutoReplenishFlag: Bool?
+    var autoReplenishAmount: Int?
+    var notificationAmount: Int?
+    var paymentMethod: Int?
+    var sprayIncrementAmt: String = "$1.00"
+    var currencyImageSide1: String = ""
+    var currencyImageSide2: String = ""
     
     var contactStore = CNContactStore()
     var service = [CNContactStore]()
     var contacts = [Contact]()
     var contact = [Contact]()
+    var rsvpAttendees = [RSVPAttendees]()
+    var rsvpAttendees2 = [RSVPAttendees]()
+    
+    var balance: Int = 0
+    var balanceFromPref: Int?
+    var refreshScreen: Bool = false
+    var eventSettingRefresh: Bool = false
+    
+    var refreshscreendelegate: RefreshScreenDelegate?
+    var  testDelegate: GetClearEventDataDelegate?
+   
     
     //@IBOutlet weak var messageLabel: UILabel!
     
     var searchCountry = [String]()
     var searching = false
+  
     override func viewDidLoad() {
+        super.viewDidLoad()
+        eventSettingBtn.isHidden = true
+        //print("gifterBalanceAfterSpray \(gifterBalanceAfterSpray)")
+        senderspraybalance = db.readSenderSprayBalanceById(eventId: eventId!, senderId: Int64(profileId!))
+       
+        
+        //set default value
+        sprayIncrementTextField.text = sprayIncrementAmt
+        searchBar.text = ""
+        customtextfield.borderForTextField(textField: sprayIncrementTextField, validationFlag: false)
+        let imageName = getCurrencyImage(currencyValue: sprayIncrementAmt)
+        currencyImageSide1 = imageName.0
+        currencyImageSide2 = imageName.1
+
+//        if senderspraybalance.count > 0 {
+//            for s in senderspraybalance {
+//                balance = s.senderAmountRemaining
+//                print("sender amount remaining when not getting getEventPreference = \(s.senderAmountRemaining)")
+//            }
+//        }
+        
+//        rsvpAttendees.removeAll()
+//        rsvpAttendees2.removeAll()
+        
+        //getEventPreference(spraybalance: senderspraybalance)
+        getGifterTotalTransBalance()
+       
+        
+       // getGifterData()
+       
+        //gifterTotalTransAmount = getGifterTotalTransBalance(gifterTotalTransData: gifterData!)!
+        print("gifterTotalTransAmount = \(gifterTotalTransAmount )")
         
         tableView.delegate = self
         tableView.dataSource = self
@@ -57,57 +126,517 @@ class SelectAttendeeToSprayViewController: UIViewController, UITableViewDelegate
                 print("Authorize")
             }
         }
-        contact.removeAll()
-        contacts.removeAll()
-       
-        fetchContacts()
-       
-       
         
+       
+        //fetchContacts()
+
         eventNameLabel?.text = eventName
         eventDateTimeLabel?.text = eventDateTime
         eventCodeLabel?.text = eventCode
-        
+        eventTypeImage.image = UIImage(named: eventTypeIcon)
         //messageLabel?.text = message
         //print(messageLabel.text!)
-        super.viewDidLoad()
+       
 
         // Do any additional setup after loading the view.
     }
     
-    func fetchContacts() {
-        let key = [CNContactGivenNameKey, CNContactFamilyNameKey, CNContactPhoneNumbersKey] as [CNKeyDescriptor]
-        let request = CNContactFetchRequest(keysToFetch: key)
+    override func viewDidAppear(_ animated: Bool) {
+        print("View did appear gifterBalanceAfterSpray \(gifterBalanceAfterSpray)")
+        print("View did appear receiverBalanceAfterSpray \(receiverBalanceAfterSpray) refresh = \(refreshScreen)")
         
-        var x: Int = 0
-        do {
-            x = x + 1
-            try contactStore.enumerateContacts(with: request, usingBlock: { (contact, stoppingPointer) in
-                let name = contact.givenName
-                let familynName = contact.familyName
-                let number = contact.phoneNumbers.first?.value.stringValue
+       
+        let isEditEventSettingRefresh = defaults.bool(forKey: "isEditEventSettingRefresh")
+        //refresh screen when coming from other screen
+        print("eventSettingRefresh=\(eventSettingRefresh)")
+        if isEditEventSettingRefresh == true {
+            //receiverBalanceAfterSpray = 0 may indicate
+            //that i may not be coming from sprayscreen
+            print("eventSettingRefresh=\(eventSettingRefresh)")
+            //if receiverBalanceAfterSpray == 0 {
+                //we will set the gifterbalanceAfterSpray to 0
+                //because we want to force a refresh of the balance
+                //inside the getEventPref3() method
+                print("eventSettingRefresh=\(eventSettingRefresh)")
+                gifterBalanceAfterSpray = 0
+                getGifterTotalTransBalance()
+            //}
+            //reset the value to false
+            defaults.set(false, forKey: "isEditEventSettingRefresh")
+        }
+//            rsvpAttendees.removeAll()
+//            rsvpAttendees2.removeAll()
+//            //updateSprayTransaction()
+//            getEventPref3()
+////            getIt {
+////                fetchRSVPAttendees(eventId: eventId!)
+////            }
+//
+//
+//            tableView.reloadData()
+//        }
+        tableView.reloadData()
+        AppUtility.lockOrientation(.portrait)
+        // Or to rotate and lock
+        // AppUtility.lockOrientation(.portrait, andRotateTo: .portrait)
+    }
+    
+    func getCurrencyImage(currencyValue: String) -> (String, String) {
+        print("currencyValue \(currencyValue)")
+        switch currencyValue {
             
-                let contactToAppend = Contact(name: name + " " + familynName, phone: number!)
-            //print("CONCAT = \(contactToAppend)")
-                //let contactToAppend2 = Contact(name: name + " " + familynName + " " + number!)
-                //self.contact.append(contactToAppend2)
-                self.contacts.append(contactToAppend)
-                //print(self.contacts)
-        
-            })
-        } catch let err {
-            print("failed to enumerate contacts", err)
+            case "1":
+                let currencyImage1 = "currencySide1B"
+                let currencyImage2 = "currencySide2B"
+                
+                return (currencyImage1, currencyImage2)
+            case "5":
+    
+                let currencyImage1 = "5dollarSide1"
+                let currencyImage2 = "5dollarSide2"
+                
+                return (currencyImage1, currencyImage2)
+            case "10":
+                let currencyImage1 = "10dollarSide1"
+                let currencyImage2 = "10dollarSide2"
+                
+                return (currencyImage1, currencyImage2)
+            case "20":
+                let currencyImage1 = "20dollarSide1"
+                let currencyImage2 = "20dollarSide2"
+                
+                return (currencyImage1, currencyImage2)
+            case "50":
+                let currencyImage1 = "50dollarSide1"
+                let currencyImage2 = "50dollarSide2"
+                
+                return (currencyImage1, currencyImage2)
+            case "100":
+                let currencyImage1 = "100dollarSide1"
+                let currencyImage2 = "100dollarSide2"
+                
+                return (currencyImage1, currencyImage2)
+            
+        default:
+            let currencyImage1 = "currencySide1B"
+            let currencyImage2 = "currencySide2B"
+            
+            return (currencyImage1, currencyImage2)
         }
         
-    
-       // tableView.reloadData()
-        
-        print(contacts)
     }
+    func getIntOnlyFromTextField(value: String) -> String {
+        
+        let index = value.firstIndex(of: ".") ?? value.endIndex
+        let result: String = String(value[..<index])
+        //remove currency symbol from string
+        let range = result.index(result.startIndex, offsetBy: 1)..<result.endIndex
+        let output = value[range]
+        let finalResult = String(output)
+        
+        print(finalResult)
+        return finalResult
+    }
+    @IBAction func increaseSprayIncrementBtnPressed(_ sender: Any) {
+        //based on country selected provide bills option - hold for now
+        //U.S $1, $5,$10, $20, $50, $100
+        let value = getIntOnlyFromTextField(value: sprayIncrementTextField.text!)
+        print("The Value \(value)")
+        switch value {
+        case "1":
+            sprayIncrementAmt = "$5.00"; sprayIncrementTextField.text! =  sprayIncrementAmt
+            let imageName = getCurrencyImage(currencyValue: getIntOnlyFromTextField(value: sprayIncrementAmt))
+            currencyImageSide1 = imageName.0
+            currencyImageSide2 = imageName.1
+        case "5":
+            sprayIncrementAmt = "$10.00"; sprayIncrementTextField.text! =  sprayIncrementAmt
+            let imageName = getCurrencyImage(currencyValue: getIntOnlyFromTextField(value: sprayIncrementAmt))
+            currencyImageSide1 = imageName.0
+            currencyImageSide2 = imageName.1
+            
+            print("currencyImageSide1 =\(currencyImageSide1)")
+            print("currencyImageSide2 =\(currencyImageSide2)")
+        case "10":
+            sprayIncrementAmt = "$20.00"; sprayIncrementTextField.text! =  sprayIncrementAmt
+            let imageName = getCurrencyImage(currencyValue: getIntOnlyFromTextField(value: sprayIncrementAmt))
+            currencyImageSide1 = imageName.0
+            currencyImageSide2 = imageName.1
+        case "20":
+            sprayIncrementAmt = "$50.00"; sprayIncrementTextField.text! =  sprayIncrementAmt
+            let imageName = getCurrencyImage(currencyValue: getIntOnlyFromTextField(value: sprayIncrementAmt))
+            currencyImageSide1 = imageName.0
+            currencyImageSide2 = imageName.1
+        case "50":
+            sprayIncrementAmt = "$100.00"; sprayIncrementTextField.text! =  sprayIncrementAmt
+            let imageName = getCurrencyImage(currencyValue: getIntOnlyFromTextField(value: sprayIncrementAmt))
+            currencyImageSide1 = imageName.0
+            currencyImageSide2 = imageName.1
+        default:
+            sprayIncrementAmt = "$1.00"; sprayIncrementTextField.text! =  sprayIncrementAmt
+            let imageName = getCurrencyImage(currencyValue: getIntOnlyFromTextField(value: sprayIncrementAmt))
+            currencyImageSide1 = imageName.0
+            currencyImageSide2 = imageName.1
+        }
+       
+       
+    }
+    @IBAction func decreaseSprayIncrementBtnPressed(_ sender: Any) {
+        //based on country selected provide bills option - hold for now
+        //U.S $1, $5,$10, $20, $50, $100
+        let value = getIntOnlyFromTextField(value: sprayIncrementTextField.text!)
+        print("The Value \(value)")
+        switch value {
+        case "100":
+            sprayIncrementAmt = "$50.00"; sprayIncrementTextField.text! =  sprayIncrementAmt
+            let imageName = getCurrencyImage(currencyValue: getIntOnlyFromTextField(value: sprayIncrementAmt))
+            currencyImageSide1 = imageName.0
+            currencyImageSide2 = imageName.1
+        case "50":
+            sprayIncrementAmt = "$20.00"; sprayIncrementTextField.text! =  sprayIncrementAmt
+            let imageName = getCurrencyImage(currencyValue: getIntOnlyFromTextField(value: sprayIncrementAmt))
+            currencyImageSide1 = imageName.0
+            currencyImageSide2 = imageName.1
+        case "20":
+            sprayIncrementAmt = "$10.00"; sprayIncrementTextField.text! =  sprayIncrementAmt
+            let imageName = getCurrencyImage(currencyValue: getIntOnlyFromTextField(value: sprayIncrementAmt))
+            currencyImageSide1 = imageName.0
+            currencyImageSide2 = imageName.1
+        case "10":
+            sprayIncrementAmt = "$5.00"; sprayIncrementTextField.text! =  sprayIncrementAmt
+            let imageName = getCurrencyImage(currencyValue: getIntOnlyFromTextField(value: sprayIncrementAmt))
+            currencyImageSide1 = imageName.0
+            currencyImageSide2 = imageName.1
+        case "5":
+            sprayIncrementAmt = "$1.00"; sprayIncrementTextField.text! =  sprayIncrementAmt
+            let imageName = getCurrencyImage(currencyValue: getIntOnlyFromTextField(value: sprayIncrementAmt))
+            currencyImageSide1 = imageName.0
+            currencyImageSide2 = imageName.1
+        default:
+            sprayIncrementAmt = "$1.00"; sprayIncrementTextField.text! =  sprayIncrementAmt
+            let imageName = getCurrencyImage(currencyValue: getIntOnlyFromTextField(value: sprayIncrementAmt))
+            currencyImageSide1 = imageName.0
+            currencyImageSide2 = imageName.1
+        }
+       
+    }
+    
+    @IBAction func goToEditEventSetting(_ sender: Any) {
+        let nextVC = storyboard?.instantiateViewController(withIdentifier: "EventContainer") as! EventSettingContainerViewController
+        //nextVC.selectionDelegate = self
+       
+        
+        //user data flag to determine when to refresh teh selectAttendeeViewController
+        //after coming back from the EditEventSettings ViewController
+        defaults.set(true, forKey: "isEditEventSettingRefresh")
+        
+        nextVC.refreshscreendelegate = self
+ 
+        nextVC.eventName = eventName
+        nextVC.eventDateTime = eventDateTime
+        nextVC.eventCode = eventCode
+        nextVC.eventId = eventId
+        nextVC.profileId = profileId
+        nextVC.ownerId = ownerId
+        nextVC.token = token
+        nextVC.paymentClientToken  =  paymentClientToken
+        //nextVC.ownerId = 31
+        
+        nextVC.isAttendingEventId = 1 //1 is a default value to indicate that RSVP is true
+        nextVC.screenIdentifier = "Spray"
+        
+        nextVC.eventTypeIcon = eventTypeIcon
+        
+       self.navigationController?.pushViewController(nextVC , animated: true)
+    }
+ 
+    func getIt(myClosure:() -> Void) {
+        updateSprayTransaction()
+        myClosure()
+        return
+        
+    }
+    
+    
+    override func viewWillDisappear(_ animated : Bool) {
+           super.viewWillDisappear(animated)
+        
+        // Don't forget to reset when view is being removed
+        AppUtility.lockOrientation(.all)
+    }
+    
+    func getGifterData()  {
+
+        let request = Request(path: "/api/Event/transactiontotal/\(profileId!)/\(eventId!)", token: token)
+               
+        Network.shared.send(request) { [self] (result: Result<Data, Error>)  in
+            switch result {
+            case .success(let gifterBalance):
+                    //return paymentmethod1
+                self.gifterData = gifterBalance
+                //self.getEventPref2(paymenttypeData: paymentmethod1)
+            case .failure(let error):
+                    print(" DOMINIC IGHEDOSA ERROR 2 \(error.localizedDescription)")
+            }
+        }
+        
+    }
+    func getGifterTotalTransBalance()   {
+        //var theGifterTotalTransBalance: Int = 0
+        let request = Request(path: "/api/Event/transactiontotal/\(profileId!)/\(eventId!)", token: token)
+               
+        Network.shared.send(request) { [self] (result: Result<Data, Error>)  in
+            switch result {
+            case .success(let gifterBalance):
+                
+                    //return paymentmethod1
+                self.gifterData = gifterBalance
+                let decoder = JSONDecoder()
+                do {
+                   let gifterBalanceJson: GifterTransactionTotal = try decoder.decode(GifterTransactionTotal.self, from: gifterBalance)
+                   
+                    //for gifter in gifterBalanceJson {
+                    if  gifterBalanceJson.eventId == eventId &&  gifterBalanceJson.profileId == profileId {
+                           //theGifterTotalTransBalance = gifter.totalAmountAllTransactions
+                        self.gifterTotalTransAmount =  gifterBalanceJson.totalAmountAllTransactions
+                        print("self.gifterTotalTransAmount = \(gifterBalanceJson.totalAmountAllTransactions)")
+                        
+                        self.getEventPref3()
+                    }
+                   //}
+                      
+               } catch {
+                   print(error)
+               }
+                //self.getEventPref2(paymenttypeData: paymentmethod1)
+            case .failure(let error):
+                    print(" DOMINIC IGHEDOSA ERROR 2 \(error.localizedDescription)")
+            }
+        }
+
+    }
+    
+    
+    func updateSprayTransaction() {
+        let AddSprayTrans = SprayTransactionModel(eventId: eventId!, senderId: profileId!, recipientId:giftReceiverId!, amount: receiverBalanceAfterSpray, success: true, errorCode: "", errorMessage: "")
+        
+        print("AddSprayTrans \(AddSprayTrans)")
+        let request = PostRequest(path: "/api/SprayTransaction/add", model: AddSprayTrans , token: token)
+
+        Network.shared.send(request) { (result: Result<Data, Error>)  in
+            switch result {
+            case .success( _):
+                
+                //call these functions after spray transaction is complete
+                //these func will get updated balance
+                
+               // getGifterData()
+              
+                break
+            case .failure(let error):
+                print(error.localizedDescription)
+            }
+        }
+    }
+    func getEventPref3() {
+        //var eventprefdate:  [EventPreferenceData] = [] //paymentmethod1
+        let request = Request(path: "/api/Event/prefs/\(profileId!)/\(eventId!)", token: token)
+        
+        Network.shared.send(request) { (result: Result<Data, Error>)   in
+            switch result {
+                case .success(let eventPreferenceData):
+                    let decoder = JSONDecoder()
+                    do {
+                        let eventPreferenceJson: [EventPreferenceData2] = try decoder.decode([EventPreferenceData2].self, from: eventPreferenceData)
+                        for eventPrefData in eventPreferenceJson {
+                            if eventPrefData.eventId == self.eventId && eventPrefData.profileId == self.profileId {
+                                
+                                //
+                                if self.gifterBalanceAfterSpray > 0 {
+                                    self.balance = self.gifterBalanceAfterSpray
+                                    print("Balance is from self.gifterBalanceAfterSpray = \(self.balance)")
+                                } else if self.gifterTotalTransAmount > 0 {
+                                    self.balance = eventPrefData.maxSprayAmount - self.gifterTotalTransAmount
+                                    print("Balance is from self.balance = eventPrefData.maxSprayAmount - self.gifterTotalTransAmount = \(self.balance)")
+                                } else {
+                                    print("self.balance = \(self.balance)  before balance value is set")
+                                    self.balance = eventPrefData.maxSprayAmount
+                                    print("Balance is from self.balance = eventPrefData.maxSprayAmount = \(self.balance)")
+                                    
+                                }
+                                    
+                               
+                                
+                                //display message when balance is 0
+                                if self.balance <= 0 {
+                                    self.eventSettingBtn.isHidden = false
+                                    self.generalMessageLabel.text = "You Are Out of Funds. Select Edit Event Settings button to update your funds."
+                                } else {
+                                    self.eventSettingBtn.isHidden = true
+                                    self.generalMessageLabel.text = ""
+                                    self.tableView.reloadData()
+                                }
+                                //self.balance = eventPrefData.maxSprayAmount
+                                self.isAutoReplenishFlag = eventPrefData.isAutoReplenish
+                                self.autoReplenishAmount = eventPrefData.replenishAmount
+                                self.notificationAmount = eventPrefData.notificationAmount
+                                self.paymentMethod = eventPrefData.paymentMethod
+                                
+                                
+                            }
+//                            if self.senderspraybalance.count > 0 {
+//                                print("there is senders amount remainng...")
+//                                for s in self.senderspraybalance {
+//                                    self.balance = s.senderAmountRemaining
+//                                    print("there is senders amount remainng... \(self.balance ?? 0)")
+//
+//                                    print("eventId = \(s.eventId)")
+//                                    print("senderId = \(s.senderId)")
+//                                    print("paymentType = \(s.paymentType)")
+//                                    print("paymentType = \(s.senderAmountRemaining)")
+//                                    print("autoReplenis = \(s.isAutoReplenish)")
+//                                    print("transaction datea = \(s.transactionDateTime)")
+//
+//
+//
+//                                    self.balance = s.senderAmountRemaining
+//                                    print("asasdd there is senders amount remainng... \(self.balance ?? 0)")
+//                                }
+//                            } else {
+//                               // if eventPrefData.maxSprayAmount == 0 || eventPrefData.maxSprayAmount.
+//                                self.balance = eventPrefData.maxSprayAmount
+//                            }
+                            
+                           
+                        }
+                        print("FETCHING DATA")
+                        self.rsvpAttendees.removeAll()
+                        self.rsvpAttendees2.removeAll()
+                        self.fetchRSVPAttendees(eventId: self.eventId!)
+                        self.tableView.reloadData()
+                                
+                    } catch {
+                        print(error)
+                    }
+                case .failure(let error):
+                print(" DOMINIC IGHEDOSA 1 ERROR \(error.localizedDescription)")
+            }
+        }
+    }
+    
+    
+    func getEventPreference(spraybalance: [SenderSprayBalance]) {
+       let request = Request(path: "/api/Event/prefs/\(profileId!)/\(eventId!)", token: token)
+       Network.shared.send(request) { (result: Result<Data, Error>)  in
+        switch result {
+           case .success(let eventPreferenceData):
+           //self.parse(json: event)
+           let decoder = JSONDecoder()
+           do {
+                             
+               let eventPreferenceJson: [EventPreferenceData] = try decoder.decode([EventPreferenceData].self, from: eventPreferenceData)
+             
+               for eventPrefData in eventPreferenceJson {
+                    
+//                    if self.senderspraybalance.count > 0 {
+//                        print("there is senders amount remainng...")
+//                        for s in self.senderspraybalance {
+//                            self.balance = s.senderAmountRemaining
+//                            print("there is senders amount remainng... \(self.balance)")
+//                        }
+//                    } else {
+//                       // if eventPrefData.maxSprayAmount == 0 || eventPrefData.maxSprayAmount.
+//                        self.balance = eventPrefData.maxSprayAmount
+//                    }
+                
+                
+                    self.balance = eventPrefData.maxSprayAmount
+                    self.isAutoReplenishFlag = eventPrefData.isAutoReplenish
+                    self.autoReplenishAmount = eventPrefData.replenishAmount
+                    self.notificationAmount = eventPrefData.notificationAmount
+                    self.paymentMethod = eventPrefData.paymentMethod
+                   
+                  }
+               } catch {
+                   print(error)
+               }
+           case .failure(let error):
+               print(" DOMINIC IGHEDOSA ERROR \(error.localizedDescription)")
+            }
+        }
+    }
+       
+//    func fetchContacts() {
+//        let key = [CNContactGivenNameKey, CNContactFamilyNameKey, CNContactPhoneNumbersKey] as [CNKeyDescriptor]
+//        let request = CNContactFetchRequest(keysToFetch: key)
+//        
+//        var x: Int = 0
+//        do {
+//            x = x + 1
+//            try contactStore.enumerateContacts(with: request, usingBlock: { (contact, stoppingPointer) in
+//                let name = contact.givenName
+//                let familynName = contact.familyName
+//                let number = contact.phoneNumbers.first?.value.stringValue
+//            
+//                let contactToAppend = Contact(name: name + " " + familynName, phone: number!, isRSVP: isRSVP, isInvited: isInvited)
+//            //print("CONCAT = \(contactToAppend)")
+//                //let contactToAppend2 = Contact(name: name + " " + familynName + " " + number!)
+//                //self.contact.append(contactToAppend2)
+//                self.contacts.append(contactToAppend)
+//                //print(self.contacts)
+//        
+//            })
+//        } catch let err {
+//            print("failed to enumerate contacts", err)
+//        }
+//        
+//    
+//       // tableView.reloadData()
+//        
+//        print(contacts)
+//    }
+//    
+    
+    func fetchRSVPAttendees(eventId: Int64) {
+        let request = Request(path: "/api/Event/attendees?eventId=\(eventId)", token: token)
+        Network.shared.send(request) { (result: Result<Data, Error>)  in
+            switch result {
+                case .success(let rsvpattendees):
+                     let decoder = JSONDecoder()
+                     do {
+                        let attendeesJson: [RSVPAttendees] = try decoder.decode([RSVPAttendees].self, from: rsvpattendees)
+                        for data in attendeesJson {
+                            
+                            //add rsp attendeese except the current profile
+                            //you don't want to spray yourself
+                            if data.profileId != self.profileId! {
+                                let dataOutPut = RSVPAttendees(profileId: data.profileId, firstName: data.firstName + " " + data.lastName, lastName: data.lastName, email: data.email, phone: data.phone, eventId: data.eventId, isAttending: data.isAttending)
+                                self.rsvpAttendees.append(dataOutPut)
+                            }
+                            
+                            //self.tableView.reloadData()
+                        }
+                        print("FETCHING DATA = \(self.rsvpAttendees)")
+                        self.tableView.reloadData()
+                    } catch {
+                        print(error)
+                    }
+                   
+                     print("rsvpattendees =\(self.rsvpAttendees)")
+                case .failure(let error):
+                    //self.textLabel.text = error.localizedDescription
+                    print(" DOMINIC IGHEDOSA ERROR \(error.localizedDescription)")
+            }
+        }
+    }
+    
+
     
     struct Invitees {
         var name: String
-       var phone: String
+//        var firstName: String
+//        var lastName: String
+//        var email: String
+        var phone: String
         var sentInvite: Bool
     }
     
@@ -130,7 +659,9 @@ class SelectAttendeeToSprayViewController: UIViewController, UITableViewDelegate
             
             Network.shared.send(request) { (result: Result<Data, Error>)  in
                 switch result {
-                case .success( _): break
+                case .success( _):
+                    
+                    break
                 case .failure(let error):
                     print(error.localizedDescription)
                 }
@@ -148,13 +679,19 @@ class SelectAttendeeToSprayViewController: UIViewController, UITableViewDelegate
    
     }
     func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
+//        if searching {
+//            return contact.count
+//        } else {
+//            return contacts.count
+//        }
         if searching {
-            return contact.count
+            return rsvpAttendees2.count
+            print("rsvpAttendees2.count \(rsvpAttendees2.count)")
         } else {
-            return contacts.count
+            return rsvpAttendees.count
+            print("rsvpAttendees.count \(rsvpAttendees.count)")
         }
-        
-       }
+    }
   
     
     func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
@@ -163,17 +700,38 @@ class SelectAttendeeToSprayViewController: UIViewController, UITableViewDelegate
        
         //let contactToDisplay = contact[indexPath.row]
        
+        
+        if balance > 0 {
+            print("balance =\(balance)")
+           cell.accessoryType = .disclosureIndicator
+            tableView.allowsSelection = true
+        } else {
+            print("balance =\(balance) no .disclosure indicatore")
+            tableView.allowsSelection = false
+        }
         if searching {
-            cell.textLabel?.text = contact[indexPath.row].name
-            cell.detailTextLabel?.text = contact[indexPath.row].phone
-            attendeeNameSelected = contact[indexPath.row].name
-               } else {
-            cell.textLabel?.text = contacts[indexPath.row].name
-            attendeeNameSelected = contacts[indexPath.row].name
-            cell.detailTextLabel?.text = contacts[indexPath.row].phone
+            cell.textLabel?.text = rsvpAttendees2[indexPath.row].firstName + " \(rsvpAttendees2[indexPath.row].profileId)"
+            cell.detailTextLabel?.text = rsvpAttendees2[indexPath.row].lastName
+            attendeeNameSelected = rsvpAttendees2[indexPath.row].firstName
+            giftReceiverId = rsvpAttendees2[indexPath.row].profileId
+        } else {
+            cell.textLabel?.text = rsvpAttendees[indexPath.row].firstName + " \(rsvpAttendees[indexPath.row].profileId)"
+            cell.detailTextLabel?.text = rsvpAttendees[indexPath.row].lastName
+            attendeeNameSelected = rsvpAttendees[indexPath.row].firstName
+            giftReceiverId = rsvpAttendees[indexPath.row].profileId
+            
+//            cell.textLabel?.text = contact[indexPath.row].name
+//            cell.detailTextLabel?.text = contact[indexPath.row].phone
+//            attendeeNameSelected = contact[indexPath.row].name
+//               } else {
+//            cell.textLabel?.text = contacts[indexPath.row].name
+//            attendeeNameSelected = contacts[indexPath.row].name
+//            cell.detailTextLabel?.text = contacts[indexPath.row].phone
+            
+             //cell.accessoryType = .disclosureIndicator
              //contactToDisplay.givenName + "  " + contactToDisplay.familyName
                    //cell.detailTextLabel?.text = contactToDisplay.number
-               }
+        }
 //        let switchView = UISwitch(frame: .zero)
 //        switchView.setOn(false, animated: true)
 //        switchView.tag = indexPath.row
@@ -185,8 +743,13 @@ class SelectAttendeeToSprayViewController: UIViewController, UITableViewDelegate
     
     func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath) {
         
-        performSegue(withIdentifier: "goToSpray", sender: self)
+        if balance > 0 {
+            print("balance =\(balance)")
+            performSegue(withIdentifier: "goToSpray", sender: self)
               self.dismiss(animated: true, completion: nil)
+        } else {
+            print("balance =\(balance)")
+        }
 //         if searching {
 //        if tableView.cellForRow(at: indexPath)?.accessoryType == UITableViewCell.AccessoryType.checkmark {
 //            tableView.cellForRow(at: indexPath)?.accessoryType = UITableViewCell.AccessoryType.none
@@ -247,7 +810,7 @@ class SelectAttendeeToSprayViewController: UIViewController, UITableViewDelegate
         return 60
     }
     
-   func tableView(_ tableView: UITableView, viewForFooterInSection section: Int) -> UIView? {
+   //func tableView(_ tableView: UITableView, viewForFooterInSection section: Int) -> UIView? {
     // return getfooterView()
 //        if searching {
 //             return getfooterView()
@@ -270,10 +833,10 @@ class SelectAttendeeToSprayViewController: UIViewController, UITableViewDelegate
 //        footerView.addSubview(doneButton)
 //         contentView.addSubview(doneButton)
 //        return footerView
-        return nil
-    }
+     //   return nil
+   // }
     
-    func getfooterView() -> UIView
+   /* func getfooterView() -> UIView
     {
         let Header = UIView(frame: CGRect(x: 0, y: 0, width: Double(self.tableView.frame.size.width), height: 45))
        Header.backgroundColor = UIColor(named: "#2AF8AC")
@@ -292,14 +855,14 @@ class SelectAttendeeToSprayViewController: UIViewController, UITableViewDelegate
         Header.addSubview(button)
        Header.bringSubviewToFront(button)
         return Header
-    }
+    } */
     
     @objc func SubmitAction()  {
     print("Hello");
         let selectedRows = self.tableView.indexPathsForSelectedRows
         if selectedRows != nil {
             for var selectionIndex in selectedRows! {
-                while selectionIndex.item >= contacts.count {
+                while selectionIndex.item >= rsvpAttendees.count {
                     selectionIndex.item -= 1
                     print("Dominic IGhedoas")
                 }
@@ -325,40 +888,74 @@ class SelectAttendeeToSprayViewController: UIViewController, UITableViewDelegate
     }
     */
     
-     override func prepare(for segue: UIStoryboardSegue, sender: Any?) {
-                
-                if segue.identifier == "goToSpray" {
-                    //if let indexPath = self.tableVi
-                    if let indexPath = self.tableView.indexPathForSelectedRow {
-                        let NextVC = segue.destination as! SprayViewController
-                        if searching {
-                            NextVC.incomingGiftReceiverName =   contact[indexPath.row].name
-                        } else {
-                            NextVC.incomingGiftReceiverName =   contacts[indexPath.row].name
-                        }
-                         
-                        NextVC.gifterBalance = 10
-                    }
-                    
-                    
-                    //MARK: send this values back to the LoginViewController
-                    
-                   
-                    //NextVC.gifterBalance = 10
-                    //NextVC.passwordStored = passwordTextField.text!
-                    
-                   
+    override func prepare(for segue: UIStoryboardSegue, sender: Any?) {
+    
+        if segue.identifier == "goToSpray" {
+            //if let indexPath = self.tableVi
+            if let indexPath = self.tableView.indexPathForSelectedRow {
+                let NextVC = segue.destination as! SprayViewController
+                if searching {
+                    print("BALANCE AT SEGUE 1 = \(balance)")
+                    NextVC.incomingGiftReceiverName =   rsvpAttendees2[indexPath.row].firstName //contact[indexPath.row].name
+                    NextVC.eventName = eventName
+                    NextVC.eventDateTime = eventDateTime
+                    NextVC.eventCode = eventCode
+                    NextVC.paymentClientToken = paymentClientToken!
+                    NextVC.eventTypeIcon = eventTypeIcon
+                    //nextVC.paymentClientToken  =  paymentClientToken
+                    NextVC.gifterBalance = balance
+                    NextVC.sprayDelegate = self
+                    NextVC.eventId = eventId!
+                    NextVC.profileId = profileId!
+                    NextVC.giftReceiverId = rsvpAttendees2[indexPath.row].profileId
+                    NextVC.gifterTotalTransAmount = gifterTotalTransAmount
+                    NextVC.token = token
+                    NextVC.isAutoReplenishFlag = isAutoReplenishFlag
+                    NextVC.autoReplenishAmount = autoReplenishAmount
+                    NextVC.notificationAmount = notificationAmount
+                    NextVC.sprayIncrementAmt = sprayIncrementAmt
+                    NextVC.currencyImageSide1 = currencyImageSide1
+                    NextVC.currencyImageSide2 = currencyImageSide2
+                    NextVC.paymentMethod = paymentMethod
+                } else {
+                    print("BALANCE AT SEGUE 2 = \(balance)")
+                    NextVC.eventName = eventName
+                    NextVC.eventDateTime = eventDateTime
+                    NextVC.eventCode = eventCode
+                    NextVC.paymentClientToken = paymentClientToken!
+                    NextVC.eventTypeIcon = eventTypeIcon
+                    NextVC.incomingGiftReceiverName =  rsvpAttendees[indexPath.row].firstName // contacts[indexPath.row].name
+                    NextVC.gifterBalance = balance
+                    NextVC.gifterTotalTransAmount = gifterTotalTransAmount
+                    NextVC.sprayDelegate = self
+                    NextVC.eventId = eventId!
+                    NextVC.profileId = profileId!
+                    NextVC.giftReceiverId = rsvpAttendees[indexPath.row].profileId //giftReceiverId!
+                    NextVC.token = token
+                    NextVC.isAutoReplenishFlag = isAutoReplenishFlag
+                    NextVC.autoReplenishAmount = autoReplenishAmount
+                    NextVC.notificationAmount = notificationAmount
+                    NextVC.sprayIncrementAmt = sprayIncrementAmt
+                    NextVC.currencyImageSide1 = currencyImageSide1
+                    NextVC.currencyImageSide2 = currencyImageSide2
+                    NextVC.paymentMethod = paymentMethod
                 }
-                
-
-                }
-
+            }
+        }
+    }
 }
 
 extension SelectAttendeeToSprayViewController: UISearchBarDelegate {
-    
+    func searchBarSearchButtonClicked(_ searchBar: UISearchBar)
+    {
+            //searchActive = false
+        self.searchBar.endEditing(true)
+    }
     func searchBar(_ searchBar: UISearchBar, textDidChange searchText: String) {
-        contact = contacts.filter({$0.name.prefix(searchText.count) == searchText})
+        //contact = contacts.filter({$0.name.prefix(searchText.count) == searchText})
+        rsvpAttendees2 =  rsvpAttendees.filter({$0.firstName.lowercased().prefix(searchText.count) == searchText.lowercased()})
+        
+        print("rsvpAttendees2 func searchbar = \(rsvpAttendees2)")
        // contacts = contacts.filter({$0.lowercased().prefix(searchText.count) == searchText.lowercased()})
 //            //= //countryNameARr.fitler({$0.lowercased().prefix(searchText.count) == searchText.lowercased()})
 //        contact = contacts.filter {
@@ -383,8 +980,113 @@ extension SelectAttendeeToSprayViewController: UISearchBarDelegate {
     func searchBarCancelButtonClicked(_ searchBar: UISearchBar) {
         searching = false
         searchBar.text = ""
-        contact.removeAll()
-        contacts.removeAll()
+        rsvpAttendees.removeAll()
+        rsvpAttendees2.removeAll()
         tableView.reloadData()
     }
+}
+
+
+extension SelectAttendeeToSprayViewController: SprayTransactionDelegate {
+    func processSprayTransaction(eventId: Int, senderId: Int,  receiverId: Int, senderAmountRemaining: Int, receiverBalanceAfterSpray: Int, isAutoReplenish: Bool, paymentMethod: Int) {
+        refreshScreen = true
+        
+        print("The Receiver ID = \(receiverId)")
+        //only do this if an attendee receives a gift
+        if receiverBalanceAfterSpray > 0 {
+            let AddSprayTrans = SprayTransactionModel(eventId: Int64(eventId), senderId: Int64(senderId), recipientId: Int64(receiverId), amount: receiverBalanceAfterSpray, success: true, errorCode: "", errorMessage: "")
+            
+            print("AddSprayTrans \(AddSprayTrans)")
+            let request = PostRequest(path: "/api/SprayTransaction/add", model: AddSprayTrans , token: token)
+
+            Network.shared.send(request) { (result: Result<Data, Error>)  in
+                switch result {
+                case .success( _):
+                    self.getGifterTotalTransBalance()
+                    //call these functions after spray transaction is complete
+                    //these func will get updated balance
+                    
+                   // getGifterData()
+                  
+                    break
+                case .failure(let error):
+                    print(error.localizedDescription)
+                }
+            }
+        }
+       
+        
+        
+         let df = DateFormatter()
+        df.dateFormat = "MM-dd-yyyy HH:mm"
+        let transactionDateTime = df.string(from: Date())
+        
+//        senderspraybalance = db.readSenderSprayBalanceById(eventId: Int64(Int(eventId)), senderId: Int64(Int(senderId)))
+//        if senderspraybalance.count == 0 {
+//            print("GO AHEAD AND INSERT INTO senderspraybalance")
+//
+//            db.insertSenderSprayBalanceTable(eventId: eventId, senderId: senderId, senderAmountRemaining: senderAmountRemaining, isAutoReplenish:1,  transactionDateTime: transactionDateTime, paymentType: paymentMethod)
+//
+//            senderspraybalance = db.readSenderSprayBalanceById(eventId: Int64(Int(eventId)), senderId: Int64(Int(senderId)))
+//            if senderspraybalance.count > 0 {
+//                for s in senderspraybalance {
+//                    print("sender amount remaining after insert =\(s.senderAmountRemaining)")
+//                    balance = s.senderAmountRemaining
+//                }
+//            }
+//
+//        } else {
+//            print("GO AHEAD AND UPDATE")
+//            db.updateSprayBalanceById(eventId: Int64(eventId), senderId: Int64(senderId), senderAmountRemaining: senderAmountRemaining, isAutoReplenish: isAutoReplenish)
+//
+//            senderspraybalance = db.readSenderSprayBalanceById(eventId: Int64(Int(eventId)), senderId: Int64(Int(senderId)))
+//            if senderspraybalance.count > 0 {
+//                for s in senderspraybalance {
+//                   balance = s.senderAmountRemaining
+//
+//                    print("sender amount remaining after update  = \(s.senderAmountRemaining)")
+//                }
+//            }
+//
+//
+//
+//        }
+    }
+    
+    func sprayGifterBalance(balance: Int) {
+        gifterBalanceAfterSpray = balance
+        print(" AWELE IGHEDOSA = \(gifterBalanceAfterSpray)")
+    }
+    
+    func sprayReceiverBalance(balance: Int) {
+        receiverBalanceAfterSpray = balance
+         print(" NAYLA IGHEDOSA = \(receiverBalanceAfterSpray)")
+    }
+    
+    func sprayReceiverId(receiverId: Int64) {
+        theReceiverId = receiverId
+        
+    }
+    
+    func sprayEventSettingRefresh(isEventSettingRefresh: Bool) {
+        eventSettingRefresh = isEventSettingRefresh
+        print("I WAS CALLED")
+    }
+    
+    
+    
+}
+
+extension SelectAttendeeToSprayViewController:  RefreshScreenDelegate {
+    func refreshScreen(isRefreshScreen: Bool) {
+        print("refreshData function was called")
+        refreshScreen = isRefreshScreen
+    }
+////
+////        func refreshScreen(isRefreshScreen: Bool) {
+////
+////
+////
+////            //print("refreshHomeScreenDate = \(isShowScreen)")
+////        }
 }

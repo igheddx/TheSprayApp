@@ -62,5 +62,23 @@ struct AuthenticateUser: Model {
     let password: String
 }
 
+struct RSVPAttendees: Decodable {
+    let profileId: Int64
+    let firstName: String
+    let lastName: String
+    let email: String
+    let phone: String
+    let eventId: Int64
+    let isAttending: Bool
+}
+
+struct InvitedGuest: Decodable {
+    
+    let firstName: String?
+    let lastName: String?
+    let email: String?
+    let phone: String?
+    let profileId: Int64?
+}
 
 

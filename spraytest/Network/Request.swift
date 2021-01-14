@@ -75,6 +75,60 @@ struct Request: Requestable {
     }
 }
 
+
+struct RequestQR: Requestable {
+    let path: String
+    let method: String
+    let token: String
+    //let model: Model
+    
+    init(path: String, method: String = "GET", token: String) {
+        self.path = path
+        self.method = method
+        self.token = token
+        //self.model = model
+    }
+
+    func urlRequest() -> URLRequest {
+        guard let url = URL(string: "https://chart.googleapis.com/")?.appendingPathComponent(path) else {
+        //let url = URL(string: "https://projectxapiapp.azurewebsites.net")
+        //let urlWithPath = url.flatMap { URL(string: $0.absoluteString + path) }
+        
+        //guard let url2 = urlWithPath else {
+        //}
+//        guard let url = URL(string: "https://projectxapiapp.azurewebsites.net")?.appendingPathComponent(path) else {
+//
+            Log.assertFailure("Failed to create base url")
+            return URLRequest(url: URL(fileURLWithPath: ""))
+        }
+
+        var accessToken: String?
+//
+               if accessToken == "" && token != "" {
+                    accessToken = token
+               } else {
+                   accessToken = ""
+               }
+              
+        var urlRequest = URLRequest(url: url)
+        urlRequest.httpMethod = method
+        urlRequest.setValue("application/json", forHTTPHeaderField: "Accept")
+        urlRequest.setValue("application/json", forHTTPHeaderField: "Content-Type")
+        urlRequest.setValue("Bearer " + token, forHTTPHeaderField: "Authorization")
+//
+//        do {
+//                   let encoder = JSONEncoder()
+//                   let data = try encoder.encode(model)
+                   //urlRequest.httpBody = data
+//                   urlRequest.setValue("application/json", forHTTPHeaderField: "Content-Type")
+//               } catch let error {
+//                   Log.assertFailure("Post request model parsing failed: \(error.localizedDescription)")
+//               }
+        
+        return urlRequest
+    }
+}
+
 /**
  A request which includes post data. This should be the form of an encodeable model.
  */
@@ -110,6 +164,7 @@ struct PostRequest<Model: Encodable>: Requestable {
             let data = try encoder.encode(model)
             urlRequest.httpBody = data
             urlRequest.setValue("application/json", forHTTPHeaderField: "Content-Type")
+           
         } catch let error {
             Log.assertFailure("Post request model parsing failed: \(error.localizedDescription)")
         }

@@ -7,3 +7,26 @@
 //
 
 import Foundation
+
+
+struct SprayTransaction {
+    var id: Int
+    var eventId: Int64
+    var senderId: Int64
+    var receiverId: Int64
+    var senderAmountRemaining: Int
+    var receiverAmountReceived: Int
+    var transactionDateTime: String
+    var paymentType: Int
+}
+
+
+struct SenderSprayBalance {
+    var id: Int
+    var eventId: Int64
+    var senderId: Int64
+    var senderAmountRemaining: Int
+    var isAutoReplenish: Int
+    var transactionDateTime: String
+    var paymentType: Int
+}

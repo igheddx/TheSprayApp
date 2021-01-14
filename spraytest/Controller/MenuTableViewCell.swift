@@ -10,13 +10,8 @@ import UIKit
 
 class MenuTableViewCell: UITableViewCell {
 
-    @IBOutlet weak var menuItemLabel: UILabel!
-    
-    func setMenuList(menuitem: MenuList){
-        
-        menuItemLabel.text = menuitem.title
-    
-       }
+    @IBOutlet weak var menuName: UILabel!
+    @IBOutlet weak var menuImage: UIImageView!
     
     override func awakeFromNib() {
         super.awakeFromNib()

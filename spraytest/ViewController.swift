@@ -42,7 +42,19 @@ class ViewController: UIViewController, WeatherManagerDelegate {
         weatherManager.delegate = self
         // Do any additional setup after loading the view.
     }
-
+    
+    override func viewDidAppear(_ animated: Bool) {
+        AppUtility.lockOrientation(.portrait)
+        // Or to rotate and lock
+        // AppUtility.lockOrientation(.portrait, andRotateTo: .portrait)
+    }
+    
+    override func viewWillDisappear(_ animated : Bool) {
+           super.viewWillDisappear(animated)
+        
+        // Don't forget to reset when view is being removed
+        AppUtility.lockOrientation(.all)
+    }
     func didUpdateWeather(weather: WeatherModel){
           print(weather)
       }
