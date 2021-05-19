@@ -18,6 +18,22 @@ protocol SprayTransactionDelegate {
     func processSprayTransaction(eventId: Int, senderId: Int, receiverId: Int, senderAmountRemaining: Int, receiverBalanceAfterSpray: Int, isAutoReplenish: Bool, paymentMethod: Int)
 }
 
+protocol UpdatedGiftAmountDelegate {
+    func sendLatestGiftAmount(latestGiftAmount: Int, latestIsAutoReplenishFlag: Bool, latestAutoReplenishAmount: Int)
+}
+
+protocol SprayReceiverDelegate {
+    func sendReceiverInfo(receiverProfileId: Int64, receivername: String, eventId: Int64, profileId: Int64)
+}
+
+protocol ProcessSprayTransDelegate {
+    func updateSprayTransaction(receiverProfileId: Int64, gifterProfileId: Int64, eventId: Int64, giftAmount: Int, hasPaymentMethod: Bool)
+}
+
+protocol HasPaymentMethodDelegate {
+    func hasPaymentMethod(hasPaymentMethod: Bool, paymentMethodId: Int)
+}
+
 protocol RefreshScreenDelegate {
     func refreshScreen(isRefreshScreen: Bool)
 }
@@ -32,12 +48,14 @@ protocol EventSettingBackToHomeDelegate {
 
 
 protocol MyCustomCellDelegator {
-    func callSegueFromCell(eventName: String, eventDateTime: String, eventCode: String, isActiveFlag: Bool, eventId: Int64, profileId: Int64, ownerId: Int64,  token: String, paymentClientToken: String, screenIdentifier: String, isAttendingEventId: Int64, eventTypeIcon: String)
+    func callSegueFromCell(eventName: String, eventDateTime: String, eventCode: String, isActiveFlag: Bool, eventType: String, eventId: Int64, profileId: Int64, ownerId: Int64,  token: String, ApiKey: String, paymentClientToken: String, screenIdentifier: String, isAttendingEventId: Int64, eventTypeIcon: String, hasPaymentMethod:  Bool,  isRsvprequired: Bool, isSingleReceiver: Bool, defaultEventPaymentMethod: Int, defaultEventPaymentCustomName: String)
+    
+    func infoBoard(completionAction:String)
 }
 
 
 protocol MyInvitationCustomCellDelegate {
-    func callEventSettingFromCell(eventName: String, eventDateTime: String, eventCode: String, isActiveFlag: Bool, eventId: Int64, profileId: Int64, ownerId: Int64, token: String, paymentClientToken: String, screenIdentifier: String, eventTypeIcon: String)
+    func callEventSettingFromCell(eventName: String, eventDateTime: String, eventCode: String, isActiveFlag: Bool, eventType: String, eventId: Int64, profileId: Int64, ownerId: Int64, token: String, ApiKey: String, paymentClientToken: String, screenIdentifier: String, eventTypeIcon: String, profileData: [MyProfile],  isRsvprequired: Bool, isSingleReceiver: Bool, defaultEventPaymentMethod: Int, defaultEventPaymentCustomName: String)
 }
 
 protocol MyEventsCustomCellDelegate {
@@ -49,6 +67,7 @@ protocol MyEventsCustomCellDelegate {
                                    profileId: Int64,
                                    ownerId: Int64,
                                    token: String,
+                                   ApiKey: String,
                                    paymentClientToken: String,
                                    screenIdentifier: String,
                                    eventTypeIcon: String,
@@ -59,7 +78,9 @@ protocol MyEventsCustomCellDelegate {
                                    zipCode: String,
                                    country: String,
                                    eventState: Int,
-                                   eventType: Int
+                                   eventType: Int,
+                                   eventType2: String,  isRsvprequired: Bool, isSingleReceiver: Bool, defaultEventPaymentMethod: Int, defaultEventPaymentCustomName: String
+                                   
                                    
     
     )
@@ -92,3 +113,10 @@ protocol FromEditEventToHomeDelegate {
 }
 
 
+protocol MyDeepLink {
+    func deepLink(deeplink: DeepLink)
+}
+
+protocol SetupPaymentMethodDelegate {
+    func passData(eventId: Int64, profileId: Int64, token: String, ApiKey: String, eventName: String, eventDateTime: String, eventTypeIcon: String, paymentClientToken: String, isSingleReceiverEvent: Bool, eventOwnerName: String, eventOwnerId: Int64)
+}

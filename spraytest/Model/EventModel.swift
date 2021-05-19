@@ -8,6 +8,14 @@
 
 import Foundation
 
+struct EventCloseModel: Model {
+    let profileId: Int64
+    let eventId: Int64
+}
+
+struct EventCloseResult: Model {
+    let isClosed: Bool
+}
 struct EventModel: Model {
     let ownerId: Int64
     let name: String
@@ -19,6 +27,8 @@ struct EventModel: Model {
     let country: String
     let state: String
     let eventType: Int?
+    let isRsvprequired: Bool
+    let isSingleReceiver: Bool
     let eventId: Int64?
     let isActive: Bool?
     let eventState: Int64?
@@ -35,6 +45,8 @@ struct EventModelEdit: Model {
     let country: String?
     let state: String?
     let eventType: Int?
+    let isRsvprequired: Bool
+    let isSingleReceiver: Bool
     let eventId: Int64
     let isActive: Bool
     let eventState: Int64
@@ -96,6 +108,10 @@ struct EventsOwnedModel:  Decodable {
     var eventCode: String
     var isActive: Bool
     var eventType: Int?
+    var isRsvprequired: Bool?
+    var isSingleReceiver: Bool?
+    var defaultEventPaymentMethod: Int?
+    var defaultEventPaymentCustomName: String?
 }
 
 
@@ -114,6 +130,10 @@ struct EventsAttendingModel:  Decodable {
     var eventCode: String?
     var isActive: Bool
     var eventType: Int?
+    var isRsvprequired: Bool?
+    var isSingleReceiver: Bool?
+    var defaultEventPaymentMethod: Int?
+    var defaultEventPaymentCustomName: String?
 }
 
 struct EventsInvitedModel: Decodable  {
@@ -131,6 +151,10 @@ struct EventsInvitedModel: Decodable  {
     var eventCode: String?
     var isActive: Bool
     var eventType: Int?
+    var isRsvprequired: Bool?
+    var isSingleReceiver: Bool?
+    var defaultEventPaymentMethod: Int?
+    var defaultEventPaymentCustomName: String?
 }
 
 struct EventIdAttending: Decodable  {
@@ -145,7 +169,7 @@ struct EventResultModel: Decodable {
 }
 
 struct EventListModel:  Decodable {
-var result: EventResultModel
+    var result: EventResultModel
     
 //    var eventsOwned: [EventsOwnedModel]
 //    var eventsAttending: [EventsAttendingModel]
@@ -177,8 +201,20 @@ struct EventProperty {
     var eventCode: String?
     var isActive: Bool
     var eventType: Int?
+    var isRsvprequired: Bool
+    var isSingleReceiver: Bool
+    var defaultEventPaymentMethod: Int?
+    var defaultEventPaymentCustomName: String?
     var isAttending: Bool?
     var dataCategory: String?
+    var hasPaymentMethod: Bool
+    var outstandingTransferAmt1: String
+    var pendingPayoutAmt1: String
+    var totalGiftedAmt1: String
+    var totalReceivedAmt1: String
+    var currency1: String
+    var paymentCustomerId1: String
+    var paymentConnectedActId1: String
 }
 struct HomeScreenEventDataModel {
     var eventCategory: String?
@@ -219,6 +255,7 @@ struct EventPreference: Model {
     var replenishAmount: Int
     var notificationAmount: Int
     var isAutoReplenish: Bool
+    var currency: String
 }
 
 struct EventPreferenceData:  Model {
@@ -247,6 +284,8 @@ struct EventPreferenceData2:  Model {
     var createDate: String
     var modifiedDate: String
     var paymentMethodDetails: paymentMethodDetails
+//    var defaultEventPaymentMethod: Int
+//    var defaultEventPaymentCustomName: String
     var success: Bool
     var errorCode: String?
     var errorMessage: String?
@@ -315,7 +354,7 @@ struct EventTypeIcon {
             eventTypeIconName = "generalpartyicon" //anniversary
             return eventTypeIconName
         case 7:
-            eventTypeIconName = "weddinganniversaryicon" //wedding anniversary
+            eventTypeIconName = "entertainer" //street entertainer
             return eventTypeIconName
         case 3:
             eventTypeIconName = "weddingicon" //wedding
@@ -340,13 +379,19 @@ struct EventTypeIcon {
             eventTypeIconName = "generalpartyicon" //general party
             return eventTypeIconName
         case 11:
-            eventTypeIconName = "coffeehouseicon" //coffee house
+            eventTypeIconName = "waiter" //waiter
             return eventTypeIconName
         case 12:
             eventTypeIconName = "bandicon" //band
             return eventTypeIconName
         case 13:
             eventTypeIconName = "thanksgivingicon" //band
+            return eventTypeIconName
+        case 14:
+            eventTypeIconName = "waiter" //band
+            return eventTypeIconName
+        case 15:
+            eventTypeIconName = "entertainer" //band
             return eventTypeIconName
         default:
             eventTypeIconName = "generalpartyicon"

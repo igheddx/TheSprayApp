@@ -33,6 +33,9 @@ class EventUpdateViewController: UIViewController  {
     @IBOutlet weak var messageLabel: UILabel!
     var activePickerViewTextField = UITextField()
     
+    @IBOutlet weak var isSingleReceiverSwitch: UISwitch!
+    
+    @IBOutlet weak var isRSVPRequiredSwitch: UISwitch!
     
     @IBOutlet weak var eventNameErrorLabel: UILabel!
     @IBOutlet weak var eventDateTimeErrorLabel: UILabel!
@@ -75,17 +78,28 @@ class EventUpdateViewController: UIViewController  {
     var token: String?
     var isEventEdited: Bool = false
     var refreshscreendelegate: RefreshScreenDelegate?
-    
-    
+    var isRSPRequired: Bool = false
+    var isSingleReceiverEvent: Bool = false
+    var encryptedAPIKey: String = ""
     //testing back button nav
     
     override func viewDidLoad() {
         super.viewDidLoad()
         
+        navigationController?.navigationBar.topItem?.backBarButtonItem = UIBarButtonItem(title: "", style: .plain, target: nil, action: nil)
+        
+        //use to keep keyboard down
+        NotificationCenter.default.addObserver(self, selector: #selector(keyboardWillShow(sender:)), name: UIResponder.keyboardWillShowNotification, object: nil);
+
+        NotificationCenter.default.addObserver(self, selector: #selector(keyboardWillHide(sender:)), name: UIResponder.keyboardWillHideNotification, object: nil);
+        
         messageLabel.text = ""
         closeEventLabel.text = ""
         //code for passing data back to the previous screen
        // navigationController?.delegate = self
+        
+        isSingleReceiverSwitch.isOn = isSingleReceiverEvent
+        isRSVPRequiredSwitch.isOn = isRSPRequired
         
         if eventStatus == true {
             eventStatusSwitch.isOn = true
@@ -190,10 +204,11 @@ class EventUpdateViewController: UIViewController  {
 
            // When you want to send data back to the caller
            // call the method on the delegate
-//           if let refreshscreendelegate = self.refreshscreendelegate {
-//            refreshscreendelegate.refreshScreen(isRefreshScreen: true)
-//            print("ViewWill Disappear")
-//           }
+        
+           if let refreshscreendelegate = self.refreshscreendelegate {
+            refreshscreendelegate.refreshScreen(isRefreshScreen: true)
+            print("ViewWill Disappear")
+           }
         
         // Don't forget to reset when view is being removed
         AppUtility.lockOrientation(.all)
@@ -236,7 +251,13 @@ class EventUpdateViewController: UIViewController  {
 //              sprayDelegate?.processSprayTransaction(eventId: Int(eventId), senderId: Int(profileId), senderAmountRemaining: gifterBalance, receiverAmountReceived: sprayAmount, paymentMethod: 5)
 //              debugPrint("Back Button pressed.")
           //}
-    
+    @objc func keyboardWillShow(sender: NSNotification) {
+         self.view.frame.origin.y = -150 // Move view 150 points upward
+    }
+
+    @objc func keyboardWillHide(sender: NSNotification) {
+         self.view.frame.origin.y = 0 // Move view to original position
+    }
     func enableDisableTextFields(enable: Bool) {
         switch enable {
         case true:
@@ -287,10 +308,10 @@ class EventUpdateViewController: UIViewController  {
     
     func addEventTypeData(){
         //var array: [EventTypeData] = []
-       eventtypeData.append(EventTypeData(id: 0, eventTypeName: "Select Event Type"))
+        eventtypeData.append(EventTypeData(id: 0, eventTypeName: "Select Event Type"))
         eventtypeData.append(EventTypeData(id: 1, eventTypeName: "Birthday"))
         eventtypeData.append(EventTypeData(id: 2, eventTypeName: "Anniversary"))
-        eventtypeData.append(EventTypeData(id: 7, eventTypeName: "Wedding Anniversary"))
+        eventtypeData.append(EventTypeData(id: 7, eventTypeName: "Street Entertainer"))
         eventtypeData.append(EventTypeData(id: 3, eventTypeName: "Wedding"))
         eventtypeData.append(EventTypeData(id: 4, eventTypeName: "Baby Shower"))
         eventtypeData.append(EventTypeData(id: 5, eventTypeName: "Graduation"))
@@ -298,7 +319,7 @@ class EventUpdateViewController: UIViewController  {
         eventtypeData.append(EventTypeData(id: 8, eventTypeName: "Family Reunion"))
         eventtypeData.append(EventTypeData(id: 9, eventTypeName: "Concert"))
         eventtypeData.append(EventTypeData(id: 10, eventTypeName: "General Party"))
-        eventtypeData.append(EventTypeData(id: 11, eventTypeName: "Coffee House"))
+        eventtypeData.append(EventTypeData(id: 11, eventTypeName: "Waiter"))
         eventtypeData.append(EventTypeData(id: 12, eventTypeName: "Cover Band"))
         eventtypeData.append(EventTypeData(id: 13, eventTypeName: "Thanksgiving"))
        // print(eventtypeData )
@@ -595,10 +616,10 @@ class EventUpdateViewController: UIViewController  {
             print("event date time =\(eventDateTime)")
             print("this is the 3rd event name \(eventName)")
             //let newUser = UserModel(id: 2, name: "Peter", username: "Livesey", email: "941ecfff8dc3@medium.com")
-            let eventData = EventModelEdit(ownerId: profileId!, name: eventName, dateTime: formatedEventDateTime, address1: eventAddress1, address2: eventAddress2, city: eventCity, zipCode: eventZipCode, country: eventCountry, state: eventState, eventType: eventTypeId, eventId: eventId!, isActive: eventStatus!, eventState: 1)
+            let eventData = EventModelEdit(ownerId: profileId!, name: eventName, dateTime: formatedEventDateTime, address1: eventAddress1, address2: eventAddress2, city: eventCity, zipCode: eventZipCode, country: eventCountry, state: eventState, eventType: eventTypeId, isRsvprequired: isRSVPRequiredSwitch.isOn, isSingleReceiver: isSingleReceiverSwitch.isOn, eventId: eventId!, isActive: eventStatus!, eventState: 1)
                     
             print(eventData)
-            let request = PostRequest(path: "/api/Event/update", model: eventData, token: token!)
+            let request = PostRequest(path: "/api/Event/update", model: eventData, token: token!, apiKey: encryptedAPIKey, deviceId: "")
             Network.shared.send(request) { (result: Result<Data, Error>) in
                 switch result {
                 case .success(let eventdata1):

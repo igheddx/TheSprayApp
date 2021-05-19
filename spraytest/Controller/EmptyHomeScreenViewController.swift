@@ -13,7 +13,7 @@ class EmptyHomeScreenViewController: UIViewController {
     
     var avCaptureSession: AVCaptureSession!
     var avPreviewLayer: AVCaptureVideoPreviewLayer!
-    
+    var encryptedAPIKey: String = ""
  
     override func viewDidLoad() {
         super.viewDidLoad()

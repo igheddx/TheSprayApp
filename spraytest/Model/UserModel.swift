@@ -9,6 +9,15 @@
 import Foundation
 import Contacts
 
+struct UserUpdateModel: Model {
+    let firstName: String
+    var lastName: String
+    let userName: String
+    var phone: String?
+    let newPassword: String?
+    let oldPassword: String?
+}
+
 struct UserModel: Model {
 //    let token: String?
 //    let profileId: Int64?
@@ -24,7 +33,7 @@ struct UserModel: Model {
    let username: String?
    let password: String?
    let email: String
-   var phone: String = ""
+   var phone: String?
     
 }
 
@@ -72,6 +81,10 @@ struct Contact2 {
 
 struct Attendees: Model {
     let profileId: Int64
+    let firstName: String
+    let lastName: String
+    let email: String
+    let phone: String
     let eventId: Int64
     let isAttending: Bool
 }

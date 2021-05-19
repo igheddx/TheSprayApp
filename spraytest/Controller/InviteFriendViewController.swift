@@ -48,17 +48,20 @@ class InviteFriendViewController: UIViewController, UITableViewDelegate, UITable
     var invitedGuest = [InvitedGuest]()
     var joineventfields: [JoinEventFields] = []
     var joineventlist: [JoinEventFields] = []
-    
-    @IBOutlet weak var messageLabel: UILabel!
+    var paymentClientToken: String = ""
+    //@IBOutlet weak var messageLabel: UILabel!
     
     var searchCountry = [String]()
     var searching = false
+    var encryptedAPIKey: String = ""
     override func viewDidLoad() {
         super.viewDidLoad()
         tableView.delegate = self
         tableView.dataSource = self
         
         searchBar.text = ""
+        
+        navigationController?.navigationBar.topItem?.backBarButtonItem = UIBarButtonItem(title: "", style: .plain, target: nil, action: nil)
         
         //tableView.allowsMultipleSelectionDuringEditing = true self.navigationItem.rightBarButtonItem = editButtonItem
         tableView.allowsMultipleSelection = true
@@ -94,9 +97,9 @@ class InviteFriendViewController: UIViewController, UITableViewDelegate, UITable
         
         eventNameLabel?.text = eventName
         eventDateTimeLabel?.text = eventDateTime
-        eventCodeLabel?.text = eventCode
+        //eventCodeLabel?.text = eventCode
         eventTypeImage.image = UIImage(named: eventTypeIcon)
-        messageLabel?.text = message
+       // messageLabel?.text = message
         //print(messageLabel.text!)
         
         
@@ -142,7 +145,7 @@ class InviteFriendViewController: UIViewController, UITableViewDelegate, UITable
     }
     func getInvitedGuest(eventId: Int64) {
         print("STEP 1")
-        let request = Request(path: "/api/Event/invitations?eventId=\(eventId)", token: token)
+        let request = Request(path: "/api/Event/invitations?eventId=\(eventId)", token: token, apiKey: encryptedAPIKey)
         Network.shared.send(request) { (result: Result<Data, Error>)  in
             switch result {
                 case .success(let invitedGuest):
@@ -179,7 +182,7 @@ class InviteFriendViewController: UIViewController, UITableViewDelegate, UITable
         print("STEP 5")
     }
     func fetchRSVPAttendees(eventId: Int64) {
-        let request = Request(path: "/api/Event/attendees?eventId=\(eventId)", token: token)
+        let request = Request(path: "/api/Event/attendees?eventId=\(eventId)", token: token, apiKey: encryptedAPIKey)
         Network.shared.send(request) { (result: Result<Data, Error>)  in
             switch result {
                 case .success(let rsvpattendees):
@@ -464,7 +467,7 @@ class InviteFriendViewController: UIViewController, UITableViewDelegate, UITable
             
             //print(myjson)
             //let inviteeJson = joinevent
-            let request = PostRequest(path: "/api/Event/joinevent", model: joinTheEvent, token: token)
+            let request = PostRequest(path: "/api/Event/joinevent", model: joinTheEvent, token: token, apiKey: encryptedAPIKey, deviceId: "")
             
            // print("joinevent =\(joinTheEvent)")
             Network.shared.send(request) { (result: Result<Empty, Error>)  in
@@ -472,8 +475,8 @@ class InviteFriendViewController: UIViewController, UITableViewDelegate, UITable
                 case .success( let join):
                    // print(self.join.joinList[0].email)
                     
-                    self.messageLabel.text = "Congrats! Invitation has been sent."
-                    self.messageLabel.textColor = UIColor(red: 32/256, green: 106/256, blue: 93/256, alpha: 1.0)
+                    //self.messageLabel.text = "Congrats! Invitation has been sent."
+                    //self.messageLabel.textColor = UIColor(red: 32/256, green: 106/256, blue: 93/256, alpha: 1.0)
                     
                     self.contact.removeAll()
                     self.contacts.removeAll()
@@ -483,7 +486,7 @@ class InviteFriendViewController: UIViewController, UITableViewDelegate, UITable
                    
                     break
                 case .failure(let error):
-                    self.messageLabel.text = "Something went terribly wrong. Please try again.."
+                    //self.messageLabel.text = "Something went terribly wrong. Please try again.."
                     print("This is the erro \(error.localizedDescription)")
                 }
             }
@@ -501,7 +504,7 @@ class InviteFriendViewController: UIViewController, UITableViewDelegate, UITable
         let sendEmailData = SendEmail(toEmail: toEmail, toFirstName: toFirstName, toLastName: toLastName, subject: subject, message: message, ccList: ccList)
         
         print("sendEmailData \(sendEmailData)")
-        let request = PostRequest(path: "/api/Profile/email", model: sendEmailData, token: token)
+        let request = PostRequest(path: "/api/Profile/email", model: sendEmailData, token: token, apiKey: encryptedAPIKey, deviceId: "")
     
         
         Network.shared.send(request) { (result: Result<Data, Error>)  in
@@ -739,22 +742,45 @@ class InviteFriendViewController: UIViewController, UITableViewDelegate, UITable
     
     func getfooterView() -> UIView
     {
-        let Header = UIView(frame: CGRect(x: 0, y: 0, width: Double(self.tableView.frame.size.width), height: 70))
+        let Header = UIView(frame: CGRect(x: 0, y: 0, width: Double(self.tableView.frame.size.width), height: 90))
        Header.backgroundColor = UIColor(named: "#2AF8AC")
        
         
         
        // let Header = UIView(frame: CGRect(x: 0, y: 0, width: tableView.frame.width, height: 44.0))
         
-        let button = UIButton(frame: CGRect(x: 110, y: 0, width: 130, height: 44.0))
+        //let button = MainActionBtn(frame: CGRect(x: 110, y: 0, width: 130, height: 44.0))
+            
+        //let button = UIButton(frame: CGRect(x: 110, y: 0, width: 300, height: 40.0))
+        let button = MyCustomButton(frame: CGRect(x: 43, y: 0, width: 300, height: 40.0))
+        button.setTitleColor(UIColor.white, for: .normal)
+        //layer.cornerRadius = 6
+        //backgroundColor = UIColor.red
+        button.layer.borderWidth = 0.5
+        //borderColor = UIColor.black
+        
+        //layer.cornerRadius = 10
+        //layer.masksToBounds = true
+        
+        //61, 126, 166 – Hcolor
+        button.backgroundColor = UIColor(red: 138/256, green: 196/256, blue: 208/256, alpha: 1.0)
+            //UIColor(red: 61/256, green: 126/256, blue: 166/256, alpha: 1.0)
+        button.layer.cornerRadius = 4
+        button.layer.shadowColor = UIColor.white.cgColor
+        button.layer.shadowOffset = CGSize(width: 2, height: 2)
+        button.layer.shadowRadius = 5
+        button.layer.shadowOpacity = 0.5
+        button.layer.masksToBounds = true
+        
+        //button.frame = CGRect(x: 110, y: 0, width: 300, height: 40.0)
         //button.frame = CGRect(x: 0, y: 0, width: Header.frame.size.width , height: Header.frame.size.height)
-        button.backgroundColor = UIColor(red: 2/255.0, green: 132/255.0, blue: 130/255.0, alpha: 1.0)
-        button.setTitle("Submit", for: .normal)
-        button.setTitleColor(.white, for: .normal)
+        //button.backgroundColor = UIColor(red: 2/255.0, green: 132/255.0, blue: 130/255.0, alpha: 1.0)
+        button.setTitle("Send Invite", for: .normal)
+        //button.setTitleColor(.white, for: .normal)
         button.addTarget(self, action: #selector(saveClicked), for: UIControl.Event.touchUpInside)
 
         Header.addSubview(button)
-       Header.bringSubviewToFront(button)
+        Header.bringSubviewToFront(button)
         return Header
     }
     

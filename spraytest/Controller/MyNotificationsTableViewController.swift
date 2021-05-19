@@ -47,6 +47,12 @@ class MyNotificationsTableViewController: UITableViewController {
         //let useTouchID = defaults.bool(forKey: "UseTouchID")
         //let pi = defaults.double(forKey: "Pi")
     }
+    override func viewDidAppear(_ animated: Bool) {
+        AppUtility.lockOrientation(.portrait)
+    }
+    override func viewDidDisappear(_ animated: Bool) {
+        AppUtility.lockOrientation(.all)
+    }
     @IBAction func alertMeWhenEventEndsSwitch(_ sender: UISwitch) {
         if (sender.isOn == true) {
             defaults.set(true, forKey: "isAlertMeWhenEventEnds")

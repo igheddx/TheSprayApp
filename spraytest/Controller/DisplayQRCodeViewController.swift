@@ -13,17 +13,29 @@ import UIKit
 
 
 class DisplayQRCodeViewController: UIViewController {
-    var eventId: Int64?
-    var profileId: Int64?
+    var eventId: Int64 = 0
+    var profileId: Int64 = 0
     var token: String?
     var eventName: String = ""
     var eventCode: String = ""
     var eventDate: String = ""
+    var eventType: String =  ""
     var eventTypeIcon: String = ""
     var paymentClientToken: String?
-    var ownerId: Int64?
+    var ownerId: Int64 = 0
+    var urlAppStore: String = ""
+    var urlBackToApp: String = ""
+    var isSingleReceiverEvent: Bool = true
+    var encryptedAPIKey: String = ""
     
+    @IBOutlet weak var eventUIView: EventUIView!
     @IBOutlet weak var QRCodeImage: UIImageView!
+    
+    @IBOutlet weak var eventImage: CircularImage!
+    
+    @IBOutlet weak var eventNameLbl: UILabel!
+    @IBOutlet weak var eventDateTimeLbl: UILabel!
+    
     
     lazy var filter = CIFilter(name: "CIQRCodeGenerator")
     lazy var imageView = UIImageView()
@@ -45,7 +57,30 @@ class DisplayQRCodeViewController: UIViewController {
     
     override func viewDidLoad() {
         super.viewDidLoad()
-        let qrData = "\(eventName)| \(eventDate)| \(eventCode)| \(eventTypeIcon)"
+        
+        self.navigationItem.title = "Event QR Code"
+       
+        
+        navigationItem.largeTitleDisplayMode = .automatic
+        navigationController?.navigationBar.prefersLargeTitles = true
+        
+        print("profileId = \(profileId)")
+        print("ownerId = \(ownerId)")
+        print("eventId = \(eventId)")
+        
+        
+        eventNameLbl.text = eventName
+        eventDateTimeLbl.text = eventDate
+        eventImage.image = UIImage(named: eventTypeIcon)
+        
+        //change single receiver value to string
+        var isSingleReceiverEventStr: String = ""
+        if isSingleReceiverEvent == true {
+            isSingleReceiverEventStr = "true"
+        } else  {
+            isSingleReceiverEventStr = "false"
+        }
+        let qrData = "\(eventName)| \(eventDate)| \(eventCode)| \(eventTypeIcon)| \(eventId)| \(ownerId)| \(eventType)| \(isSingleReceiverEventStr)"
         print(qrData)
       generateCode(qrData,                                                      foregroundColor: UIColor(red:0.00, green:0.00, blue:0.00, alpha:1.00),
                                                         backgroundColor: UIColor(red:1.00, green:1.00, blue:1.00, alpha:1.00))
@@ -55,7 +90,12 @@ class DisplayQRCodeViewController: UIViewController {
        
     }
     
- 
+    override func viewDidAppear(_ animated: Bool) {
+        AppUtility.lockOrientation(.portrait)
+    }
+    override func viewDidDisappear(_ animated: Bool) {
+        AppUtility.lockOrientation(.all)
+    }
     func generateCode(_ string: String, foregroundColor: UIColor = .black, backgroundColor: UIColor = .white) {
       guard let filter = filter,
         let data = string.data(using: .isoLatin1, allowLossyConversion: false) else {

@@ -13,8 +13,13 @@ class MenuTabViewController: UITabBarController {
     var profileId: Int64?
     var token: String?
     var paymentClientToken: String = ""
-    
+    var eventId: Int64 = 0
+    var eventType: String = ""
+    var eventTypeIcon: String =  ""
+    var myProfileData: [MyProfile] = []
     var dataTransferFrom = "transfer this string"
+    var stripeOnboardingMessage: String = ""
+    var encryptedAPIKey: String = ""
     
     override func viewDidLoad() {
         super.viewDidLoad()
@@ -29,6 +34,8 @@ class MenuTabViewController: UITabBarController {
                     menuViewController.profileId = profileId
                     menuViewController.token = token
                     menuViewController.paymentClientToken = paymentClientToken
+                    menuViewController.encryptedAPIKey = encryptedAPIKey
+                    
                 }
             }
         }
@@ -47,9 +54,17 @@ class MenuTabViewController: UITabBarController {
         for viewController in viewControllers {
             if let homeNavigationController = viewController as? HomeNavigationViewController {
                 if let homeViewController = homeNavigationController.viewControllers.first as? HomeViewController {
-                    homeViewController.profileId = profileId
+                    homeViewController.profileId = profileId!
                     homeViewController.token = token
                     homeViewController.paymentClientToken = paymentClientToken
+                    homeViewController.eventId = eventId
+                    homeViewController.eventType = eventType
+                    homeViewController.eventTypeIcon2 = eventTypeIcon
+                    homeViewController.myProfileData = myProfileData
+                    homeViewController.stripeOnboardingMessage = stripeOnboardingMessage
+                    homeViewController.encryptedAPIKey = encryptedAPIKey
+                    
+                    
                 }
             }
         }
@@ -61,6 +76,8 @@ class MenuTabViewController: UITabBarController {
                     dashboardViewController.profileId = profileId!
                     dashboardViewController.token = token!
                     dashboardViewController.paymentClientToken = paymentClientToken
+                    dashboardViewController.encryptedAPIKey = encryptedAPIKey
+                    
                 }
             }
         }

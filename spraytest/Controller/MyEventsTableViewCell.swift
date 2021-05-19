@@ -38,6 +38,7 @@ class MyEventsTableViewCell: UITableViewCell, UIImagePickerControllerDelegate, U
     var myProfileId: Int64?
     var myOwnerId: Int64?
     var myToken: String?
+    var myApiKey: String?
     var myPaymentClientToken: String?
     var myEventTypeIcon: String = ""
     var myAddress1: String = ""
@@ -48,7 +49,12 @@ class MyEventsTableViewCell: UITableViewCell, UIImagePickerControllerDelegate, U
     var myCountry: String = ""
     var myEventState: Int?
     var myEventType: Int?
-    
+    var myEventType2: String = "" //description
+    var myIsRsvprequired: Bool?
+    var myIsSingleReceiver: Bool?
+    var myDefaultEventPaymentMethod: Int = 0
+    var myDefaultEventPaymentCustomName: String = ""
+    var encryptedAPIKey: String = ""
     static func nib() -> UINib {
           return UINib(nibName: "MyEventsTableViewCell", bundle: nil)
     }
@@ -64,6 +70,7 @@ class MyEventsTableViewCell: UITableViewCell, UIImagePickerControllerDelegate, U
                           profileId: Int64,
                           ownerId: Int64,
                           token: String,
+                          ApiKey: String,
                           paymentClientToken: String,
                           address1: String,
                           address2: String,
@@ -72,17 +79,20 @@ class MyEventsTableViewCell: UITableViewCell, UIImagePickerControllerDelegate, U
                           zipCode: String,
                           country: String,
                           eventState: Int,
-                          eventType: Int) {
+                          eventType: Int,
+                          eventType2: String, isRsvprequired: Bool, isSingleReceiver: Bool, defaultEventPaymentMethod: Int = 0, defaultEventPaymentCustomName: String = "") {
           
           
         myEventName = eventName
         myEventDateTime = eventDateTime
         myEventCode = eventCode
         myisActiveFlag = isActiveFlag
+       
         myEventId = eventId
         myProfileId = profileId
         myOwnerId = ownerId
         myToken = token
+        myApiKey = ApiKey
         myPaymentClientToken = paymentClientToken
         myEventTypeIcon = imageName
         
@@ -94,6 +104,12 @@ class MyEventsTableViewCell: UITableViewCell, UIImagePickerControllerDelegate, U
         myCountry = country
         myEventState = eventState
         myEventType = eventType
+        myEventType2 = eventType2
+        
+        myIsRsvprequired = isRsvprequired
+        myIsSingleReceiver = isSingleReceiver
+        myDefaultEventPaymentMethod = defaultEventPaymentMethod
+        myDefaultEventPaymentCustomName = defaultEventPaymentCustomName
         
         eventNameLabel.text = eventName
         eventAddressLabel.text = eventAddress
@@ -129,15 +145,15 @@ class MyEventsTableViewCell: UITableViewCell, UIImagePickerControllerDelegate, U
             return view
         }()
         
-        eventImage.frame = CGRect.init(x: 8, y: 41, width: 90, height: 90)
-        //myAvatar.backgroundColor = UIColor.black
-        eventImage.contentMode =  UIView.ContentMode.scaleToFill// ScaleToFill
-        eventImage.layoutIfNeeded()
-        eventImage.layer.borderWidth = 1
-        eventImage.layer.masksToBounds = false
-        eventImage.layer.borderColor =  UIColor(red: 154/256, green: 211/256, blue: 188/256, alpha: 1.0).cgColor //UIColor.black.cgColor
-        eventImage.layer.cornerRadius = eventImage.frame.height/2
-        eventImage.clipsToBounds = true
+//        eventImage.frame = CGRect.init(x: 8, y: 41, width: 90, height: 90)
+//        //myAvatar.backgroundColor = UIColor.black
+//        eventImage.contentMode =  UIView.ContentMode.scaleToFill// ScaleToFill
+//        eventImage.layoutIfNeeded()
+//        eventImage.layer.borderWidth = 1
+//        eventImage.layer.masksToBounds = false
+//        eventImage.layer.borderColor =  UIColor(red: 154/256, green: 211/256, blue: 188/256, alpha: 1.0).cgColor //UIColor.black.cgColor
+//        eventImage.layer.cornerRadius = eventImage.frame.height/2
+//        eventImage.clipsToBounds = true
         
         
        
@@ -180,6 +196,7 @@ class MyEventsTableViewCell: UITableViewCell, UIImagePickerControllerDelegate, U
                profileId: myProfileId!,
                ownerId: myOwnerId!,
                token: myToken!,
+               ApiKey: myApiKey!,
                paymentClientToken:  myPaymentClientToken!,
                screenIdentifier: "MyEvents",
                eventTypeIcon: myEventTypeIcon,
@@ -190,7 +207,8 @@ class MyEventsTableViewCell: UITableViewCell, UIImagePickerControllerDelegate, U
                zipCode: myZipCode,
                country: myCountry,
                eventState: myEventState!,
-               eventType: myEventType!
+               eventType: myEventType!,
+               eventType2: myEventType2, isRsvprequired: myIsRsvprequired!, isSingleReceiver: myIsSingleReceiver!, defaultEventPaymentMethod: myDefaultEventPaymentMethod, defaultEventPaymentCustomName: myDefaultEventPaymentCustomName
             )
           }
       }
@@ -199,7 +217,7 @@ class MyEventsTableViewCell: UITableViewCell, UIImagePickerControllerDelegate, U
         
         if(self.myEventsCustomCellDelegate != nil){
             print("my attempt to segue - Events Table QR")//Just to be safe.
-            self.myEventsCustomCellDelegate?.callInviteFriendsFromCell(eventName: myEventName!, eventDateTime: myEventDateTime!, eventCode: myEventCode!, isActiveFlag: myisActiveFlag!, eventId: myEventId!, profileId: myProfileId!, ownerId: myOwnerId!, token: myToken!, paymentClientToken:  myPaymentClientToken!, screenIdentifier: "QRCode", eventTypeIcon:  myEventTypeIcon,
+            self.myEventsCustomCellDelegate?.callInviteFriendsFromCell(eventName: myEventName!, eventDateTime: myEventDateTime!, eventCode: myEventCode!, isActiveFlag: myisActiveFlag!, eventId: myEventId!, profileId: myProfileId!, ownerId: myOwnerId!, token: myToken!, ApiKey: myApiKey!, paymentClientToken:  myPaymentClientToken!, screenIdentifier: "QRCode", eventTypeIcon:  myEventTypeIcon,
                                                                        address1: myAddress1,
                                                                        address2: myAddress2,
                                                                        city: myCity,
@@ -207,7 +225,8 @@ class MyEventsTableViewCell: UITableViewCell, UIImagePickerControllerDelegate, U
                                                                        zipCode: myZipCode,
                                                                        country: myCountry,
                                                                        eventState: myEventState!,
-                                                                       eventType: myEventType!)
+                                                                       eventType: myEventType!,
+                                                                       eventType2: myEventType2, isRsvprequired: myIsRsvprequired!, isSingleReceiver: myIsSingleReceiver!, defaultEventPaymentMethod: myDefaultEventPaymentMethod, defaultEventPaymentCustomName: myDefaultEventPaymentCustomName)
         }
     }
 
@@ -215,7 +234,7 @@ class MyEventsTableViewCell: UITableViewCell, UIImagePickerControllerDelegate, U
         
         if(self.myEventsCustomCellDelegate != nil){
             print("my attempt to segue - Events Table editEvent ")//Just to be safe.
-            self.myEventsCustomCellDelegate?.callInviteFriendsFromCell(eventName: myEventName!, eventDateTime: myEventDateTime!, eventCode: myEventCode!, isActiveFlag: myisActiveFlag!, eventId: myEventId!, profileId: myProfileId!, ownerId: myOwnerId!, token: myToken!, paymentClientToken:  myPaymentClientToken!, screenIdentifier: "EditEvent", eventTypeIcon:  myEventTypeIcon,
+            self.myEventsCustomCellDelegate?.callInviteFriendsFromCell(eventName: myEventName!, eventDateTime: myEventDateTime!, eventCode: myEventCode!, isActiveFlag: myisActiveFlag!, eventId: myEventId!, profileId: myProfileId!, ownerId: myOwnerId!, token: myToken!, ApiKey: myApiKey!,paymentClientToken:  myPaymentClientToken!, screenIdentifier: "EditEvent", eventTypeIcon:  myEventTypeIcon,
                                                                        address1: myAddress1,
                                                                        address2: myAddress2,
                                                                        city: myCity,
@@ -223,7 +242,8 @@ class MyEventsTableViewCell: UITableViewCell, UIImagePickerControllerDelegate, U
                                                                        zipCode: myZipCode,
                                                                        country: myCountry,
                                                                        eventState: myEventState!,
-                                                                       eventType: myEventType!)
+                                                                       eventType: myEventType!,
+                                                                       eventType2: myEventType2, isRsvprequired: myIsRsvprequired!, isSingleReceiver: myIsSingleReceiver!, defaultEventPaymentMethod: myDefaultEventPaymentMethod, defaultEventPaymentCustomName: myDefaultEventPaymentCustomName)
         }
     }
     

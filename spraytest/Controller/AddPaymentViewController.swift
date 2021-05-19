@@ -14,7 +14,7 @@ class AddPaymentViewController: UIViewController {
     var token: String = ""
     var paymentClientToken: String?
     var eventName: String = ""
-    
+    var encryptedAPIKey: String = ""
        let clientToken = "CLIENT_TOKEN_FROM_SERVER"
     @IBOutlet weak var eventNameLabel: UILabel!
     @IBAction func buttonPressed(_ sender: Any) {

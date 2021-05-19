@@ -24,6 +24,12 @@ class GeneralSettingsViewController: UIViewController {
         configureUI()
     }
 
+    override func viewDidAppear(_ animated: Bool) {
+        AppUtility.lockOrientation(.portrait)
+    }
+    override func viewDidDisappear(_ animated: Bool) {
+        AppUtility.lockOrientation(.all)
+    }
     // MARK: - Helper Functions
     
     func configureTableView() {

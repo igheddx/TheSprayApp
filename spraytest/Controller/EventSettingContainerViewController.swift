@@ -35,6 +35,8 @@ class EventSettingContainerViewController: UIViewController{
     var refreshscreendelegate: RefreshScreenDelegate?
     var  testDelegate: GetClearEventDataDelegate?
     var selectionDelegate: SideSelectionDelegate!
+    var encryptedAPIKey: String = ""
+    
     //var sprayDelegate: SprayTransactionDelegate!
     //var selectionDelegate: SideSelectionDelegate!
     enum Segues {
@@ -104,7 +106,7 @@ class EventSettingContainerViewController: UIViewController{
             print("go to home backToHome Segue")
             let nextVC = segue.destination as! HomeViewController
             nextVC.isRefreshData = isRefreshData
-            nextVC.profileId = profileId
+            nextVC.profileId = profileId!
         }
     }
 

@@ -25,13 +25,26 @@ class CustomTextField {
         label.layer.borderWidth = 1.0
         //label. borderStyle = .none
     }
+    
+    func noBorderForTextField(textField: UITextField, validationFlag: Bool) {
+        //no error
+    
+        textField.layer.cornerRadius = 6.0
+        textField.layer.masksToBounds = true
+        textField.layer.borderColor = UIColor(red: 255/256, green: 255/256, blue: 255/256, alpha: 1.0 ).cgColor
+        textField.layer.borderWidth = 0.0
+        textField.borderStyle = .none
+        
+   }
+
+    
     func borderForTextField(textField: UITextField, validationFlag: Bool) {
         //no error
         if validationFlag == false {
             
             textField.layer.cornerRadius = 6.0
             textField.layer.masksToBounds = true
-            textField.layer.borderColor = UIColor(red: 112/256, green: 112/256, blue: 112/256, alpha: 1.0 ).cgColor
+            textField.layer.borderColor = UIColor(red: 0/256, green: 0/256, blue: 0/256, alpha: 1.0 ).cgColor
             textField.layer.borderWidth = 1.0
             textField.borderStyle = .none
         //yes error

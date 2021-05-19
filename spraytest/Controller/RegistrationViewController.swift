@@ -59,6 +59,8 @@ class RegistrationViewController: UIViewController, UITextFieldDelegate {
 
     var formValidation =   Validation()
     let customtextfield = CustomTextField()
+    var encryptedAPIKey: String = "" //CHqcPp7MN3mTY3nF6TWHdG8dHPVSgJBj"
+    var encryptedDeviceId: String = ""
     
     override func viewDidLoad() {
         super.viewDidLoad()
@@ -289,7 +291,7 @@ class RegistrationViewController: UIViewController, UITextFieldDelegate {
     func authenticateUser(userName:String,password: String, phone: String, email: String,  eventCode: String) {
         //******************** After creating account; authenticating to get Token *****************************
         let authenticatedUserProfile = AuthenticateUser(username: userName, password: password)
-        let request = PostRequest(path: "/api/Profile/authenticate", model: authenticatedUserProfile, token: "")
+        let request = PostRequest(path: "/api/Profile/authenticate", model: authenticatedUserProfile, token: "", apiKey: encryptedAPIKey, deviceId: encryptedDeviceId)
 
 
 
@@ -324,7 +326,7 @@ class RegistrationViewController: UIViewController, UITextFieldDelegate {
 
         let Invite =  JoinEvent(joinList: [JoinEventFields(profileId: profileId, email: email, phone: phone, eventCode: eventCode)])
 
-        let request = PostRequest(path: "/api/Event/joinevent", model: Invite, token: token)
+        let request = PostRequest(path: "/api/Event/joinevent", model: Invite, token: token, apiKey: encryptedAPIKey, deviceId: "")
 
 
         Network.shared.send(request) { (result: Result<Data, Error>)  in
@@ -335,6 +337,11 @@ class RegistrationViewController: UIViewController, UITextFieldDelegate {
             }
         }
 
+    }
+    func presentUIAlert(alertMessage: String, alertTitle: String) {
+        let alert2 = UIAlertController(title: alertTitle, message: "\(alertMessage) \n \(message)", preferredStyle: .alert)
+
+        alert2.addAction(UIAlertAction(title: "Ok", style: .default, handler: nil))
     }
     @IBAction func registerButtonPressed(_ sender: UIButton) {
 
@@ -444,7 +451,7 @@ class RegistrationViewController: UIViewController, UITextFieldDelegate {
             let userData = UserModel(firstName: firstName, lastName: lastName, username: username!, password: password, email: email, phone: ".")
 
             print(userData)
-            let request = PostRequest(path: "/api/Profile/register", model: userData, token: "")
+            let request = PostRequest(path: "/api/Profile/register", model: userData, token: "", apiKey: encryptedAPIKey, deviceId: "")
             Network.shared.send(request) { (result: Result<UserData, Error>) in
                 switch result {
                 case .success(let userdata):
@@ -477,6 +484,7 @@ class RegistrationViewController: UIViewController, UITextFieldDelegate {
             let NextVC = segue.destination as! MenuTabViewController
             NextVC.profileId = Int64(profileId!)
             NextVC.token = token2pass
+            
             //                          displayVC.token = token2pass
             //                          displayVC.userdata = userdata
         }

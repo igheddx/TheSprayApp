@@ -24,7 +24,7 @@ class NotificationsViewController: UIViewController {
     
     var tableView: UITableView!
     var userInfoHeader: UserInfoHeader!
-    
+    var encryptedAPIKey: String = ""
     // MARK: - Init
 
     override func viewDidLoad() {

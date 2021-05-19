@@ -35,7 +35,7 @@ class EventMetricDetailsViewController: UIViewController, UITableViewDelegate, U
     var ownerId: Int64 = 0
     var profileId: Int64 = 0
     var token: String = ""
-    
+    var encryptedAPIKey: String = ""
     var eventsstatstabledata = [EventsStatsTableData]()
     
     @IBOutlet weak var eventNameLabel: UILabel!
@@ -50,12 +50,20 @@ class EventMetricDetailsViewController: UIViewController, UITableViewDelegate, U
     override func viewDidLoad() {
         super.viewDidLoad()
         
+        navigationController?.navigationBar.topItem?.backBarButtonItem = UIBarButtonItem(title: "", style: .plain, target: nil, action: nil)
+        
+        self.navigationItem.title = "Event Metrics"
+   
+        navigationItem.largeTitleDisplayMode = .automatic
+        navigationController?.navigationBar.prefersLargeTitles = true
+        
+        
         tableView.delegate = self
         tableView.dataSource = self
         
         eventNameLabel.text = eventName
         eventDateTimeLabel.text = eventDateTime
-        eventCodeLabel.text = eventCode
+        //eventCodeLabel.text = eventCode
         eventImage.image = UIImage(named: eventTypeIcon!)
         getEventDetailMetrics()
         // Do any additional setup after loading the view.
@@ -63,7 +71,7 @@ class EventMetricDetailsViewController: UIViewController, UITableViewDelegate, U
     
     func getEventDetailMetrics() {
       
-        let request = Request(path: "/api/Event/stats/\(eventId)", token: token)
+        let request = Request(path: "/api/Event/stats/\(eventId)", token: token, apiKey: encryptedAPIKey)
                
         Network.shared.send(request) { [self] (result: Result<EventStatsDetail, Error>)  in
             switch result {

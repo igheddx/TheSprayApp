@@ -80,7 +80,8 @@ class SelectAttendeeToSprayViewController: UIViewController, UITableViewDelegate
     
     var searchCountry = [String]()
     var searching = false
-  
+    var encryptedAPIKey: String = ""
+    
     override func viewDidLoad() {
         super.viewDidLoad()
         eventSettingBtn.isHidden = true
@@ -338,6 +339,7 @@ class SelectAttendeeToSprayViewController: UIViewController, UITableViewDelegate
         nextVC.profileId = profileId
         nextVC.ownerId = ownerId
         nextVC.token = token
+        nextVC.encryptedAPIKey = encryptedAPIKey
         nextVC.paymentClientToken  =  paymentClientToken
         //nextVC.ownerId = 31
         
@@ -366,7 +368,7 @@ class SelectAttendeeToSprayViewController: UIViewController, UITableViewDelegate
     
     func getGifterData()  {
 
-        let request = Request(path: "/api/Event/transactiontotal/\(profileId!)/\(eventId!)", token: token)
+        let request = Request(path: "/api/Event/transactiontotal/\(profileId!)/\(eventId!)", token: token, apiKey: encryptedAPIKey)
                
         Network.shared.send(request) { [self] (result: Result<Data, Error>)  in
             switch result {
@@ -382,7 +384,7 @@ class SelectAttendeeToSprayViewController: UIViewController, UITableViewDelegate
     }
     func getGifterTotalTransBalance()   {
         //var theGifterTotalTransBalance: Int = 0
-        let request = Request(path: "/api/Event/transactiontotal/\(profileId!)/\(eventId!)", token: token)
+        let request = Request(path: "/api/Event/transactiontotal/\(profileId!)/\(eventId!)", token: token, apiKey: encryptedAPIKey)
                
         Network.shared.send(request) { [self] (result: Result<Data, Error>)  in
             switch result {
@@ -420,7 +422,7 @@ class SelectAttendeeToSprayViewController: UIViewController, UITableViewDelegate
         let AddSprayTrans = SprayTransactionModel(eventId: eventId!, senderId: profileId!, recipientId:giftReceiverId!, amount: receiverBalanceAfterSpray, success: true, errorCode: "", errorMessage: "")
         
         print("AddSprayTrans \(AddSprayTrans)")
-        let request = PostRequest(path: "/api/SprayTransaction/add", model: AddSprayTrans , token: token)
+        let request = PostRequest(path: "/api/SprayTransaction/add", model: AddSprayTrans , token: token, apiKey: encryptedAPIKey, deviceId: "")
 
         Network.shared.send(request) { (result: Result<Data, Error>)  in
             switch result {
@@ -439,7 +441,7 @@ class SelectAttendeeToSprayViewController: UIViewController, UITableViewDelegate
     }
     func getEventPref3() {
         //var eventprefdate:  [EventPreferenceData] = [] //paymentmethod1
-        let request = Request(path: "/api/Event/prefs/\(profileId!)/\(eventId!)", token: token)
+        let request = Request(path: "/api/Event/prefs/\(profileId!)/\(eventId!)", token: token, apiKey: encryptedAPIKey)
         
         Network.shared.send(request) { (result: Result<Data, Error>)   in
             switch result {
@@ -525,7 +527,7 @@ class SelectAttendeeToSprayViewController: UIViewController, UITableViewDelegate
     
     
     func getEventPreference(spraybalance: [SenderSprayBalance]) {
-       let request = Request(path: "/api/Event/prefs/\(profileId!)/\(eventId!)", token: token)
+       let request = Request(path: "/api/Event/prefs/\(profileId!)/\(eventId!)", token: token, apiKey: encryptedAPIKey)
        Network.shared.send(request) { (result: Result<Data, Error>)  in
         switch result {
            case .success(let eventPreferenceData):
@@ -597,7 +599,7 @@ class SelectAttendeeToSprayViewController: UIViewController, UITableViewDelegate
 //    
     
     func fetchRSVPAttendees(eventId: Int64) {
-        let request = Request(path: "/api/Event/attendees?eventId=\(eventId)", token: token)
+        let request = Request(path: "/api/Event/attendees?eventId=\(eventId)", token: token, apiKey: encryptedAPIKey)
         Network.shared.send(request) { (result: Result<Data, Error>)  in
             switch result {
                 case .success(let rsvpattendees):
@@ -654,7 +656,7 @@ class SelectAttendeeToSprayViewController: UIViewController, UITableViewDelegate
             print("the invite = \(invite.name)")
             let Invite = SendInvite(profileId: nil, email: email, phone: invite.phone, eventCode: eventCode)
             
-            let request = PostRequest(path: "/api/Event/joinevent", model: Invite, token: token)
+            let request = PostRequest(path: "/api/Event/joinevent", model: Invite, token: token, apiKey: encryptedAPIKey, deviceId: "")
         
             
             Network.shared.send(request) { (result: Result<Data, Error>)  in
@@ -910,6 +912,7 @@ class SelectAttendeeToSprayViewController: UIViewController, UITableViewDelegate
                     NextVC.giftReceiverId = rsvpAttendees2[indexPath.row].profileId
                     NextVC.gifterTotalTransAmount = gifterTotalTransAmount
                     NextVC.token = token
+                    NextVC.encryptedAPIKey = encryptedAPIKey
                     NextVC.isAutoReplenishFlag = isAutoReplenishFlag
                     NextVC.autoReplenishAmount = autoReplenishAmount
                     NextVC.notificationAmount = notificationAmount
@@ -932,6 +935,7 @@ class SelectAttendeeToSprayViewController: UIViewController, UITableViewDelegate
                     NextVC.profileId = profileId!
                     NextVC.giftReceiverId = rsvpAttendees[indexPath.row].profileId //giftReceiverId!
                     NextVC.token = token
+                    NextVC.encryptedAPIKey = encryptedAPIKey
                     NextVC.isAutoReplenishFlag = isAutoReplenishFlag
                     NextVC.autoReplenishAmount = autoReplenishAmount
                     NextVC.notificationAmount = notificationAmount
@@ -997,7 +1001,7 @@ extension SelectAttendeeToSprayViewController: SprayTransactionDelegate {
             let AddSprayTrans = SprayTransactionModel(eventId: Int64(eventId), senderId: Int64(senderId), recipientId: Int64(receiverId), amount: receiverBalanceAfterSpray, success: true, errorCode: "", errorMessage: "")
             
             print("AddSprayTrans \(AddSprayTrans)")
-            let request = PostRequest(path: "/api/SprayTransaction/add", model: AddSprayTrans , token: token)
+            let request = PostRequest(path: "/api/SprayTransaction/add", model: AddSprayTrans , token: token, apiKey: encryptedAPIKey, deviceId: "")
 
             Network.shared.send(request) { (result: Result<Data, Error>)  in
                 switch result {

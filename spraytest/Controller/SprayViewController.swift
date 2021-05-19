@@ -34,6 +34,7 @@ class SprayViewController: UIViewController {
     var eventTypeIcon: String = ""
     var currencyImageSide1: String = ""
     var currencyImageSide2: String = ""
+    var encryptedAPIKey: String = ""
     
     @IBOutlet weak var sprayCurrencyImage: UIImageView!
     var incomingGiftReceiverName: String!
@@ -54,6 +55,8 @@ class SprayViewController: UIViewController {
     
     var customtextfield = CustomTextField()
     //var totalGiftedLbl: TotalGiftedLbl()
+    var currencyCode: String = "usd"
+    
     
     @IBOutlet weak var imgImage: UIImageView!
     @IBOutlet weak var giftReceiverName: UILabel!
@@ -264,7 +267,7 @@ class SprayViewController: UIViewController {
         if parent == nil {
             print("gifter balance before the left screen \(gifterBalance)")
             /*send receiver balance based if autoflag is set and continue to
-             replenish is set*/
+             replenish is set*/                      
 //            var receiverBalanceAmtAfterSpray: Int = 0
 //            if isAutoReplenishFlag == true && isOkToReplenish == true {
 //                receiverBalanceAmtAfterSpray = sprayAmountDuringAutoReplenish
@@ -453,7 +456,8 @@ class SprayViewController: UIViewController {
         let AddSprayTrans = SprayTransactionModel(eventId: eventId, senderId: profileId, recipientId:giftReceiverId, amount: sprayAmount, success: true, errorCode: "", errorMessage: "")
         
         print("AddSprayTrans \(AddSprayTrans)")
-        let request = PostRequest(path: "/api/SprayTransaction/add", model: AddSprayTrans , token: token)
+        
+        let request = PostRequest(path: "/api/SprayTransaction/add", model: AddSprayTrans , token: token, apiKey: encryptedAPIKey, deviceId: "")
 
         Network.shared.send(request) { (result: Result<Data, Error>)  in
             switch result {
@@ -487,7 +491,7 @@ class SprayViewController: UIViewController {
         
         var availablebalance: Int = 0
         //var theGifterTotalTransBalance: Int = 0
-        let request = Request(path: "/api/Event/transactiontotal/\(profileId)/\(eventId)", token: token)
+        let request = Request(path: "/api/Event/transactiontotal/\(profileId)/\(eventId)", token: token, apiKey: encryptedAPIKey)
                
         Network.shared.send(request) { [self] (result: Result<Data, Error>)  in
             switch result {
@@ -525,7 +529,7 @@ class SprayViewController: UIViewController {
     
     func getGifterTotalTransBalance()   {
         //var theGifterTotalTransBalance: Int = 0
-        let request = Request(path: "/api/Event/transactiontotal/\(profileId)/\(eventId)", token: token)
+        let request = Request(path: "/api/Event/transactiontotal/\(profileId)/\(eventId)", token: token, apiKey: encryptedAPIKey)
                
         Network.shared.send(request) { [self] (result: Result<Data, Error>)  in
             switch result {
@@ -558,7 +562,7 @@ class SprayViewController: UIViewController {
     
     func getEventPref3() {
             //var eventprefdate:  [EventPreferenceData] = [] //paymentmethod1
-            let request = Request(path: "/api/Event/prefs/\(profileId)/\(eventId)", token: token)
+            let request = Request(path: "/api/Event/prefs/\(profileId)/\(eventId)", token: token, apiKey: encryptedAPIKey)
             
             Network.shared.send(request) { (result: Result<Data, Error>)   in
                 switch result {
@@ -674,8 +678,19 @@ class SprayViewController: UIViewController {
     }
     
     @objc func swipeGesture(sendr: UISwipeGestureRecognizer) {
-       
         
+        //var currencyIncImg: UIImage
+        //currencyIncImg.image = [#imageLiteral(resourceName: "currencySide2B"),#imageLiteral(resourceName: "5dollarSide1"),#imageLiteral(resourceName: "10dollarSide2"),#imageLiteral(resourceName: "20dollarSide2Old"),#imageLiteral(resourceName: "5dollarSide2"),#imageLiteral(resourceName: "100dollarSide1")]
+        
+        
+        let currencyDenomination2 = [#imageLiteral(resourceName: "currencySide2B"),#imageLiteral(resourceName: "5dollarSide1"),#imageLiteral(resourceName: "10dollarSide2"),#imageLiteral(resourceName: "20dollarSide2Old"),#imageLiteral(resourceName: "5dollarSide2"),#imageLiteral(resourceName: "100dollarSide1")]
+        print("currencyDenomination \(currencyDenomination2.count)")
+        var j: Int = 0
+        for i in currencyDenomination2 {
+            
+            print(currencyDenomination2[j])
+            j = j + 1
+        }
         let currencyArray = [#imageLiteral(resourceName: "currencySide2B"),#imageLiteral(resourceName: "currencySide1B"),#imageLiteral(resourceName: "currencySide3B")]
         //            if let swipeGesture = sendr as? UISwipeGestureRecognizer {
         //                switch swipeGesture.direction {
@@ -941,6 +956,11 @@ class SprayViewController: UIViewController {
                     //                    swipeCount += 1
                     //                    print("swipe up 2 \(swipeCount)")
                 //imgImage.image = UIImage(named: "currency2")
+                case UISwipeGestureRecognizer.Direction.left:
+                    print("SWIPE LEFT")
+                    imgImage.image  = UIImage(named: currencyImageSide1)
+                case UISwipeGestureRecognizer.Direction.right:
+                    print("SWIPE RIGHT")
                 default:
                     break
                    
@@ -972,7 +992,7 @@ class SprayViewController: UIViewController {
         
         
         //var eventprefdate:  [EventPreferenceData] = [] //paymentmethod1
-        let request = Request(path: "/api/Event/prefs/\(profileId)/\(eventId)", token: token)
+        let request = Request(path: "/api/Event/prefs/\(profileId)/\(eventId)", token: token, apiKey: encryptedAPIKey)
         
         Network.shared.send(request) { (result: Result<Data, Error>)   in
             switch result {
@@ -1037,10 +1057,10 @@ class SprayViewController: UIViewController {
 //        }
         //print("paymentType= \(paymentType)")
         let newWithdrawAmount = withdrawAmount + autoReplenishAmount!
-        let addEventPreference = EventPreference(eventId: eventId, profileId: profileId, paymentMethod: paymentMethodId, maxSprayAmount: newWithdrawAmount, replenishAmount: autoReplenishAmount!, notificationAmount:  notificationAmount!, isAutoReplenish: isAutoReplenishFlag!)
+        let addEventPreference = EventPreference(eventId: eventId, profileId: profileId, paymentMethod: paymentMethodId, maxSprayAmount: newWithdrawAmount, replenishAmount: autoReplenishAmount!, notificationAmount:  notificationAmount!, isAutoReplenish: isAutoReplenishFlag!, currency: currencyCode)
 
         print("Add  \(addEventPreference)")
-        let request = PostRequest(path: "/api/Event/addprefs", model: addEventPreference, token: token)
+        let request = PostRequest(path: "/api/Event/addprefs", model: addEventPreference, token: token, apiKey: encryptedAPIKey, deviceId: "")
         Network.shared.send(request) { (result: Result<Data, Error>)  in
             switch result {
             case .success(let eventpref): print(eventpref); break
@@ -1074,6 +1094,7 @@ class SprayViewController: UIViewController {
         nextVC.profileId = profileId
         //nextVC.ownerId = ownerId
         nextVC.token = token
+        nextVC.encryptedAPIKey = encryptedAPIKey
         nextVC.paymentClientToken  =  paymentClientToken
         //nextVC.ownerId = 31
 //

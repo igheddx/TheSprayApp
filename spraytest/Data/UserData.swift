@@ -8,7 +8,9 @@
 
 import Foundation
 
-
+struct OnboardingUrl: Codable {
+    let redirectUrl: String?
+}
 struct UserData: Model {
     let token: String?
     let profileId: Int64?
@@ -40,14 +42,22 @@ struct ProfileData: Codable {
 struct ProfileData2: Model {
     
     var token: String?
-    var profileId: Int64?
-    var firstName: String?
-    var lastName: String?
+    var profileId: Int64
+    var firstName: String
+    var lastName: String
     var userName: String
     var email: String
-    var phone: String?
+    var phone: String
     var avatar: String?
+    var paymentCustomerId: String?
+    var paymentConnectedActId: String?
     var success: Bool
+    var returnUrl: String?
+    var refreshUrl: String?
+    //var success: Bool
     //var isFaulted: Bool
+    var hasValidPaymentMethod: Bool
+    var defaultPaymentMethod: Int
+    var defaultPaymentMethodCustomName: String?
     
 }

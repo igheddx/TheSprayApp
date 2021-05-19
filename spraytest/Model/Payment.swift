@@ -31,6 +31,16 @@ struct InitializePaymentData: Model {
 //
 }
 
+struct AddPayment: Model {
+    let paymentMethodToken: String?
+    let isUpdate: Bool?
+    let customName: String?
+    let paymentType: Int64?
+    let paymentDescription: String?
+    let paymentExpiration: String?
+    let profileId: Int64?
+}
+
 struct AddPaymentType: Model {
     let nonce: String?
     let customName: String?
@@ -47,9 +57,26 @@ struct PaymentTypeData: Decodable  {
     let customName: String?
     let paymentDescription: String?
     let paymentExpiration: String?
+    let defaultPaymentMethod: Bool?
     let success: Bool?
     let errorCode: String?
     let errorMessage: String?
+}
+
+
+struct PaymentTypeData2: Decodable  {
+    let paymentMethodId: Int64?
+    let profileId: Int64?
+    let paymentType: Int64?
+    let customName: String?
+    let paymentDescription: String?
+    let paymentExpiration: String?
+    let defaultPaymentMethod: Bool?
+    let paymentImage: String?
     
+    
+//    let success: Bool?
+//    let errorCode: String?
+//    let errorMessage: String?
 }
 

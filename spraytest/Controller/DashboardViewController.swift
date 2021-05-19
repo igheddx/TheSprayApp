@@ -67,6 +67,7 @@ class DashboardViewController: UIViewController, ChartViewDelegate, UITableViewD
     var myeventsfordashboard = [MyEventsForDashboard]()
     var myeventsfordashboard2 = [MyEventsForDashboard]()
     let eventTypeIcon = EventTypeIcon()
+    var encryptedAPIKey: String = ""
     
     override func viewDidLoad() {
         super.viewDidLoad()
@@ -74,6 +75,10 @@ class DashboardViewController: UIViewController, ChartViewDelegate, UITableViewD
         tableView.dataSource = self
         thePieChart.delegate = self
        
+        self.navigationItem.title = "My Dashboard"
+   
+        navigationItem.largeTitleDisplayMode = .automatic
+        navigationController?.navigationBar.prefersLargeTitles = true
         //pieChart.delegate = self
         
 //            eventNameLabel.text = eventName
@@ -103,7 +108,7 @@ class DashboardViewController: UIViewController, ChartViewDelegate, UITableViewD
        
        
         
-        let request = Request(path: "/api/Event/myevents?profileid=\(profileId!)", token: token)
+        let request = Request(path: "/api/Event/myevents?profileid=\(profileId!)", token: token, apiKey: encryptedAPIKey)
         Network.shared.send(request) { (result: Result<Data, Error>)  in
             switch result {
                 
@@ -347,7 +352,7 @@ class DashboardViewController: UIViewController, ChartViewDelegate, UITableViewD
     func getMyEventStats() {
       
         
-        let request = Request(path: "/api/Event/profilestats/\(profileId)/\(eventId)", token: token)
+        let request = Request(path: "/api/Event/profilestats/\(profileId)/\(eventId)", token: token, apiKey: encryptedAPIKey)
         Network.shared.send(request) { [self] (result: Result<Data, Error>)  in
         switch result {
         case .success(let eventStatsData):
@@ -379,7 +384,7 @@ class DashboardViewController: UIViewController, ChartViewDelegate, UITableViewD
         //clear object data
         eventmetricsspraydetails.removeAll()
         
-        let request = Request(path: "/api/SprayTransaction/sendertotal/\(profileId)/\(eventId)", token: token)
+        let request = Request(path: "/api/SprayTransaction/sendertotal/\(profileId)/\(eventId)", token: token, apiKey: encryptedAPIKey)
 
         Network.shared.send(request) { [self] (result: Result<Data, Error>)  in
         switch result {
@@ -421,7 +426,7 @@ class DashboardViewController: UIViewController, ChartViewDelegate, UITableViewD
     func getSenderSprayDetails(isForSearch: Bool) {
       
         eventmetricsspraydetails.removeAll()
-        let request = Request(path: "/api/SprayTransaction/recipienttotal/\(profileId)/\(eventId)", token: token)
+        let request = Request(path: "/api/SprayTransaction/recipienttotal/\(profileId)/\(eventId)", token: token, apiKey: encryptedAPIKey)
 
         Network.shared.send(request) { [self] (result: Result<Data, Error>)  in
         switch result {
@@ -568,6 +573,7 @@ extension DashboardViewController {
                 if searching {
                     NextVC.profileId = profileId!
                     NextVC.token = token
+                    NextVC.encryptedAPIKey = encryptedAPIKey
                     NextVC.eventId = myeventsfordashboard2[indexPath.row].eventId// rsvpAttendees2[indexPath.row].firstName //contact[indexPath.row].name
                     NextVC.eventName = myeventsfordashboard2[indexPath.row].eventName
                     NextVC.eventCode = myeventsfordashboard2[indexPath.row].eventCode
@@ -578,6 +584,7 @@ extension DashboardViewController {
                 } else {
                     NextVC.profileId = profileId!
                     NextVC.token = token
+                    NextVC.encryptedAPIKey = encryptedAPIKey
                     NextVC.eventId = myeventsfordashboard[indexPath.row].eventId// rsvpAttendees2[indexPath.row].firstName //contact[indexPath.row].name
                     NextVC.eventName = myeventsfordashboard[indexPath.row].eventName
                     NextVC.eventCode = myeventsfordashboard[indexPath.row].eventCode

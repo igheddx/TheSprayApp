@@ -24,7 +24,12 @@ class MySettingsTableViewController: UITableViewController {
             keepGiftBalanceSwitch.isOn = true
         }
     }
-    
+    override func viewDidAppear(_ animated: Bool) {
+        AppUtility.lockOrientation(.portrait)
+    }
+    override func viewDidDisappear(_ animated: Bool) {
+        AppUtility.lockOrientation(.all)
+    }
     @IBAction func keepGiftBalanceSwitch(_ sender: UISwitch) {
         if (sender.isOn == true) {
             defaults.set(true, forKey: "keepGiftBalance")

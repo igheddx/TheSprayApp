@@ -24,7 +24,7 @@ class AddBankAccountViewController: UIViewController {
     var bankaccount = [BankAccount]()
     
     let accountTypeOption = ["Account Type", "Checking", "Savings"]
-  
+    var encryptedAPIKey: String = ""
     
     //instantiate picker view objects
     var accountTypePickerView = UIPickerView()

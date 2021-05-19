@@ -23,6 +23,7 @@ class HomeScreenViewController: UIViewController {
     var token: String?
     var userdata: UserModel?
     //var userdata2: UserData2?
+    var encryptedAPIKey: String = ""
     
     @IBOutlet weak var textLabel: UILabel!
     @IBOutlet weak var firstnameLabel: UILabel!
@@ -55,6 +56,16 @@ class HomeScreenViewController: UIViewController {
     override func viewDidAppear(_ animated: Bool) {
         //print(token!)
         AppUtility.lockOrientation(.portrait)
+        
+        if self.navigationController!.navigationBar.isHidden == true {
+            
+            print("navigation bar was hidden")
+            navigationController?.setNavigationBarHidden(false, animated: animated)
+        } else {
+            print("No navigation bar was hidden")
+        }
+        
+        
     }
     override func viewWillDisappear(_ animated: Bool) {
         super.viewWillDisappear(animated)
@@ -74,7 +85,7 @@ class HomeScreenViewController: UIViewController {
     
     @IBAction func getDataButtonPressed(_ sender: UIButton) {
         print(token!)
-        let request = Request(path: "api/Profile/all", token: token!)
+        let request = Request(path: "api/Profile/all", token: token!, apiKey: encryptedAPIKey)
               
                 Network.shared.send(request) { (result: Result<Data, Error>)  in
                    switch result {

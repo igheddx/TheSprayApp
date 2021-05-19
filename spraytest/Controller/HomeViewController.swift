@@ -13,13 +13,18 @@
 //
 
 
-
+import Foundation
 import UIKit
+import AppCenter
+import AppCenterCrashes
 //import SVProgressHUD
 
 
 class HomeViewController: UIViewController, UITextFieldDelegate {
 
+ 
+    
+    let defaults = UserDefaults.standard
     var noActivityLabel: UILabel = UILabel()
     var addEventCodeTextField: UITextField = UITextField()
     
@@ -33,11 +38,27 @@ class HomeViewController: UIViewController, UITextFieldDelegate {
     var eventName: String = ""
     var eventDateTime: String = ""
     var eventCode: String = ""
+    var eventId: Int64 = 0
+    var eventOwnerId: Int64 = 0
+    var eventOwnerName: String = ""
+    var eventType: String = ""
+    var eventTypeIcon2: String = "" //this is the eventTypeIcon pass when you scan a QRCode
     var updateAttendee: Attendees?
     var attendeeFlagWasSet: Bool = false
     var eventtypeData: [EventTypeData] = []
-   
-
+    var myProfileData: [MyProfile] = []
+    var stripeOnboardingMessage: String = ""
+    //variable that goes w/ goSpray viewcontroller
+    var sprayAmount: Int = 0
+    var isReplenish: Bool = false
+    var replenishAmount: Int = 0
+    
+    var stripeBalanceAvailable = [AmountCurrency]() //new data
+    var stripeBalancePending = [AmountCurrency]() //new data
+    var infoBoardMetric =  [BalanceAmountCurrency]()
+    
+    
+    
     @IBOutlet weak var tableView: UITableView!
     //@IBOutlet weak var lablemessage: UILabel!
 
@@ -50,7 +71,7 @@ class HomeViewController: UIViewController, UITextFieldDelegate {
     
     var token: String?
     var paymentClientToken: String = ""
-    var profileId: Int64?
+    var profileId: Int64 = 0
     var eventResult = [EventResult]()
     var homescreeneventdata_2 = [HomeScreenEventDataModel]() //old data
     var homescreeneventdata = [EventProperty]() //new data
@@ -59,15 +80,208 @@ class HomeViewController: UIViewController, UITextFieldDelegate {
     var eventsattendingmodel = [EventProperty]()
     var eventIdsattendingmodel = [Int]()
     var eventsinvitedmodel = [EventProperty]()
+    var eventpaymentmethod = [eventPaymentMethod]()
     var isAttending = [isAttendingModel]()
     var isattendingdata = [isAttendingData]()
     let eventTypeIcon = EventTypeIcon()
-    
-    
+    var isPaymentMethodAvailable2: Bool = false
+    //let isPaymentMethodOnFile: Bool = UserDefaults.standard.bool(forKey: "isPaymentMethodAvailable")
+    var generalPaymentMethodId: Int = 0
+    var generalDefaultPaymentCustomName: String = ""
+    var completionAction: String = ""
+    var avatar: String = ""
+    var isPaymentMethodGeneralAvailable: Bool = false
+    var isSingleReceiverEventStr: String = "" //use this from when QR code is scanned and you are trying to determine if event is single receiver
+    var isSingleReceiver: Bool = false
+    var displayName: String = ""
+    var outstandingTransferAmt: String = ""
+    //var pendingPayoutAmt: String = ""
+    var pendingPayoutAmt2: String = ""
+    var totalGiftedAmt: String = ""
+    var totalGiftReceivedAmt: String = ""
+    var currency: String = ""
+    var paymentCustomerId: String?
+    var paymentConnectedActId: String?
+    var encryptedAPIKey: String = ""
+    //var refreshscreendelegate: RefreshScreenDelegate?
     
     override func viewDidLoad() {
+        super.viewDidLoad()
+        print("HOME encryptedAPIKey \(encryptedAPIKey)")
         
-        self.navigationItem.title = "My Activity"
+//        AppCenter.start(withAppSecret: "ec81818c-6d8c-452d-9011-85b7ecbf8a5e", services:[
+//          Crashes.self
+//        ])
+        
+        self.tabBarController?.delegate = self
+        
+        if #available(iOS 13.2, *) {
+            print("i am here statusBarManager")
+            let statusBar = UIView(frame: UIApplication.shared.keyWindow?.windowScene?.statusBarManager?.statusBarFrame ?? CGRect.zero)
+             statusBar.backgroundColor = UIColor.init(red: 255/250, green: 255/250, blue: 255/250, alpha: 1)
+             UIApplication.shared.keyWindow?.addSubview(statusBar)
+        } else {
+            print("i am here - nope didn't work statusBarManager")
+            //   var statusBarManager: UIView? {
+            //      return value(forKey: "statusBarManager") as? UIView
+            //    }
+             UIApplication.shared.statusBarManager?.backgroundColor = UIColor.init(red: 255/250, green: 255/250, blue: 255/250, alpha: 1)
+            
+        }
+
+        
+        
+        if stripeOnboardingMessage == "success" {
+            self.completionAlert(message: "Congratulations!!! Your Onetime Payout Setup is Complete. Once Verification is Complete and Approved, Your Payout Will Begin.", timer: 6, completionAction: "gospray")
+        } else if stripeOnboardingMessage == "failed" {
+            self.completionAlert(message: "Oh no... Something Went Wrong With the Onetime Payout Setup. Please Try Again Latter.", timer: 6, completionAction: "gospray")
+        }
+        clearData()
+        // get profile data for eventOwner - this is the event coming from the scaned QR cod
+        if eventOwnerId > 0 {
+            getOtherProfileData(profileId: eventOwnerId)
+        }
+        
+        
+//        for data in myProfileData {
+//            displayName = data.firstName
+//        }
+        //get user profile info... set haspyament flag and other varialbe
+        getProfileData(profileId: profileId)
+        print("MY PROFILE ID = \(profileId)")
+        print("isEventEdited \(isEventEdited) isRefreshData=\(isRefreshData)")
+        
+        //call getMyevent func when the screen loads
+        // print("paymentClientToken - Home = \(paymentClientToken!)")
+        if isEventEdited == false && isRefreshData == false {
+            // print("View Did Load Inside false isEventEdited = \(isEventEdited)")
+            //LoadingStart(message: "Loading...")
+            getDataForInfoUIView()
+            
+            //getPrefData()
+        }
+        
+        //get profileName
+        var avatarStr: String = ""
+        var newAvatarImage: UIImage?
+        
+        if myProfileData.isEmpty {
+            avatarStr = "noimage"
+            print("no avatar")
+        } else {
+            for name in myProfileData {
+                displayName = name.firstName
+                print("I am inside myProfile loop")
+                if let avatarStr1 = name.avatar {
+                    avatarStr = avatarStr1
+                  
+                } else {
+                    avatarStr = "noimage"
+                    print("no image here")
+                    break
+                }
+               
+            }
+        }
+       
+        
+        if avatarStr == "noimage" {
+            newAvatarImage = UIImage(named: "userprofile")
+            print("noimage")
+            
+        } else {
+            newAvatarImage = convertBase64StringToImage(imageBase64String: avatarStr)
+            print("there is an image???")
+        }
+       
+        
+//        if let myAvatar2 = myAvatar2 {
+//
+//            myAvatar.image = convertBase64StringToImage(imageBase64String: myAvatar2)
+//        } else {
+//            myAvatar.image = UIImage(named: "userprofile")
+        //}
+        let frame = CGRect(x: 0, y: 0, width: 30, height: 30)
+           let customView = UIView(frame: frame)
+           let imageView = UIImageView(image: newAvatarImage)
+           imageView.frame = frame
+           imageView.layer.cornerRadius = imageView.frame.height * 0.5
+           imageView.layer.masksToBounds = true
+           customView.addSubview(imageView)
+        if #available(iOS 14.0, *) {
+            navigationItem.rightBarButtonItems = [
+                UIBarButtonItem(customView: customView), UIBarButtonItem(title: displayName, style: UIBarButtonItem.Style.plain, target: self, action: #selector(handleClick))
+            ]
+        } else {
+            // Fallback on earlier versions
+        }
+        // UIBarButtonItem(systemItem: .action), UIBarButtonItem(customView: customView)
+       // title: "Dominic", style: UIBarButtonItem.Style.plain, target: self, action: #selector(handleClick)
+        
+        //let btnRefresh = UIBarButtonItem(barButtonSystemItem: UIBarButtonItem.SystemItem.pers, target: self, action: #selector(handleClick))
+//        let customImageBarBtn1 = UIBarButtonItem(image: newAvatarImage!.withRenderingMode(.alwaysOriginal),
+//            style: .plain, target: self, action: #selector(handleClick))
+       //let customImageBarBtn2 = UIBarButtonItem(title: displayName, style: .plain, target: self, action: nil)
+//
+//        let moreButton = UIButton(frame: CGRect(x: 0, y: 0, width: 35, height: 35))
+//        moreButton.setBackgroundImage(UIImage(named: "ic_more_vert_3"), for: .normal)
+//        moreButton.addTarget(self, action: #selector(handleClick), for: .touchUpInside)
+//        self.navigationItem.rightBarButtonItem = UIBarButtonItem(customView: moreButton)
+        
+           //If you want icon in left side
+           // navigationItem.leftBarButtonItem = btnRefresh
+
+           //If you want icon in right side
+            //navigationItem.rightBarButtonItem = btnRefresh
+       
+       // navigationItem.rightBarButtonItems = [customImageBarBtn2]
+        
+       
+        
+        
+        //self.rightBarButton.titleLabel.text = @"Test";
+        //self.navigationItem.rightBarButtonItem = UIBarButtonItem(title: "Dominic", style: UIBarButtonItem.Style.plain, target: self, action: #selector(handleClick))
+        
+        setStatusBarColor()
+        
+//        NotificationCenter.default.addObserver(self, selector: Selector(("keyboardWillShow:")), name:UIResponder.keyboardWillShowNotification, object: nil);
+//        NotificationCenter.default.addObserver(self, selector: Selector(("keyboardWillHide:")), name:UIResponder.keyboardWillHideNotification, object: nil);
+
+        
+        //hhid backbutton when coming back from scanner
+        self.navigationItem.setHidesBackButton(true, animated: true)
+        print("my profile home \(myProfileData)")
+        print("the eventId = \(eventId)")
+        //variable to determine if user has a paymenthod on file
+        print("eventType= \(eventType)")
+        
+        //if any of these single receiver event, then....
+        //if eventType == "entertainer" || eventType == "waiter" || eventType == "bandicon" || eventType == "concerticon" {
+        if isSingleReceiverEventStr == "true" {
+            //checkIfPaymentMethodExist()
+            
+            completionAction = "singlereceiver"
+            print("I called  checkIfPaymentMethodExist")
+           // if eventTypeIcon.getEventTypeIcon(eventTypeId: eventType) == "waiter" {
+                //let value = eventTypeIcon.getEventTypeIcon(eventTypeId: eventType)
+        } else {
+            completionAction = "allreceiver"
+        }
+        
+       
+        
+        //check if payment method exist all regardless of event
+        //checkIfGeneralEventPaymentMethod(profileId: profileId)
+        
+        print("isPaymentMethodAvailable2 = \(isPaymentMethodAvailable2)")
+        self.navigationItem.title = "My Activities"
+       
+        
+        navigationItem.largeTitleDisplayMode = .automatic
+        navigationController?.navigationBar.prefersLargeTitles = true
+       
+        navigationController?.navigationBar.topItem?.backBarButtonItem = UIBarButtonItem(title: "", style: .plain, target: nil, action: nil)
+        
         //self.tableView.layer.borderWidth = 0
         //self.tableView.backgroundColor =  UIColor(red: 154/256, green: 211/256, blue: 188/256, alpha: 1.0)
         
@@ -76,52 +290,705 @@ class HomeViewController: UIViewController, UITextFieldDelegate {
        // print(convertDateFormatter(date: "2020-07-20T19:45:20.435"))
 
 //        readyToSprayButtonPressed.layer.borderColor = UIColor.clear.cgColor
-        tableView.register(TableViewCell3.nib(), forCellReuseIdentifier: TableViewCell3.identifier)
+        tableView.register(MySprayEventTableViewCell.nib(), forCellReuseIdentifier: MySprayEventTableViewCell.identifier)
         tableView.register(MyInvitationsTableViewCell.nib(), forCellReuseIdentifier: MyInvitationsTableViewCell.identifier)
         tableView.register(MyEventsTableViewCell.nib(), forCellReuseIdentifier: MyEventsTableViewCell.identifier)
+        tableView.register(InfoBoardTableViewCell.nib(), forCellReuseIdentifier: InfoBoardTableViewCell.identifier)
         
-        super.viewDidLoad()
+        
         //SVProgressHUD.setDefaultMaskType(.black)
         //SVProgressHUD.show(withStatus: "Authenticating...")
         
-        //call getMyevent func when the screen loads
-        // print("paymentClientToken - Home = \(paymentClientToken!)")
-        if isEventEdited == false && isRefreshData == false {
-            // print("View Did Load Inside false isEventEdited = \(isEventEdited)")
-            getMyEvents()
-        }
-        homescreeneventdata_2.removeAll()
-      
+//        homescreeneventdata_2.removeAll()
+//        homescreeneventdata.removeAll()
+        
+        print("MY proifle ID = \(profileId)")
         addEventTypeData()
+        
+        //restore tabBar if missing
+        if self.tabBarController?.tabBar.isHidden == true {
+            self.tabBarController?.tabBar.isHidden = false
+        }
     }
     
-    
+   
     
     override func viewDidAppear(_ animated: Bool) {
-        print("isRefreshData\(isRefreshData)")
+        navigationController?.setNavigationBarHidden(false, animated: animated)
+        print("eventType= \(eventType)")
+//        homescreeneventdata_2.removeAll()
+//        homescreeneventdata.removeAll()
+        //restore tabBar if missing
+        if self.tabBarController?.tabBar.isHidden == true {
+            self.tabBarController?.tabBar.isHidden = false
+        }
+        print("isRefreshData = \(isRefreshData)")
         // print("View Did Appear isEventEdited = \(isEventEdited)")
 //        if isEventEdited == true {
 //            clearData()
 //        }
+        
+        if #available(iOS 13.2, *) {
+            print("i am here statusBarManager")
+            let statusBar = UIView(frame: UIApplication.shared.keyWindow?.windowScene?.statusBarManager?.statusBarFrame ?? CGRect.zero)
+             statusBar.backgroundColor = UIColor.init(red: 255/250, green: 255/250, blue: 255/250, alpha: 1)
+             UIApplication.shared.keyWindow?.addSubview(statusBar)
+        } else {
+            print("i am here - nope didn't work statusBarManager")
+            //   var statusBarManager: UIView? {
+            //      return value(forKey: "statusBarManager") as? UIView
+            //    }
+             UIApplication.shared.statusBarManager?.backgroundColor = UIColor.init(red: 255/250, green: 255/250, blue: 255/250, alpha: 1)
+            
+        }
+        
         //uncommented this so that getMyEvents is not called on initial load of screen
         if isRefreshData == true {
            // print("isRefreshData Did Appear 1 = \(isRefreshData)")
-             clearData()
-             getMyEvents()
+            clearData()
+            
+            //get user profile info... set haspyament flag and other varialbe
+            getProfileData(profileId: profileId)
+            //getMyEvents()
+            getDataForInfoUIView()
+            //getPrefData()
              print("BACK BUTTON TRIGGERED VIEWDID APPEAR isRefreshData  = \(isRefreshData )")
+            
+            // get profile data for eventOwner - this is the event coming from the scaned QR cod
+            if eventOwnerId > 0 {
+                getOtherProfileData(profileId: eventOwnerId)
+            }
         }
        
         AppUtility.lockOrientation(.portrait)
        
          // print("isRefreshData  Did Appear 2 \(isRefreshData)")
     }
-    
+    override func viewWillAppear(_ animated: Bool) {
+        print("View will appear was called")
+       
+    }
     override func viewWillDisappear(_ animated: Bool) {
         super.viewWillDisappear(animated)
         
         // Don't forget to reset when view is being removed
         AppUtility.lockOrientation(.all)
     }
+    
+    @objc func keyboardWillShow(sender: NSNotification) {
+         self.view.frame.origin.y = -150 // Move view 150 points upward
+    }
+
+    @objc func keyboardWillHide(sender: NSNotification) {
+         self.view.frame.origin.y = 0 // Move view to original position
+    }
+    
+    @objc func handleClick() {
+        print("do notheing")
+    }
+    
+    //Decoding Base64 Image
+    func convertBase64StringToImage (imageBase64String:String) -> UIImage {
+        let imageData = Data.init(base64Encoded: imageBase64String, options: .init(rawValue: 0))
+        let image = UIImage(data: imageData!)
+        return image!
+    }
+    
+//    func getDataForInfoUIView2(json: Data){
+//        let decoder = JSONDecoder()
+//        do {
+//            print("i am doing")
+//            let stripeBalanceJson: [StripeBalance2] = try decoder.decode([StripeBalance2].self, from: json)
+//            print("stripeBalanceJson =\(stripeBalanceJson)")
+//            for available in stripeBalanceJson {
+//               print("available amound =\(available.available.amount)")
+//            }
+//
+//
+//        //let decoder = JSONDecoder()
+//        //do {
+//          //  let stripeBalanceJson: StripeBalance = try decoder.decode(StripeBalance.self, from: mybalance)
+//
+//            print("we are inside O")
+////                    for available in stripeBalanceJson.available {
+////
+////                            print("available= \(available.amount)")
+////                    let data = BalanceAmountCurrency(metricType: "outstandingTransferAmt", amount: available.amount, currency: available.currency)
+////                    }
+//
+//
+//
+////                        print("available amount = \(available.amount)")
+////                        let data = BalanceAmountCurrency(metricType: "outstandingTransferAmt", amount: available.amount, currency: available.currency)
+////                         infoDataforInfoUIView.append(data)
+////                        print("UI View Metric data = available \( infoDataforInfoUIView)")
+//
+//
+//
+////                    for pending in stripeBalanceJson.pending {
+////                    print("pending amount = \(pending.amount)")
+//////                        let data2 = StripeBalanceAmountCurrency(amount: pending.amount, currency: pending.currency)
+//////                        stripeBalancePending.append(data2)
+////
+////                    let data2 = BalanceAmountCurrency(metricType: "pendingPayoutAmt", amount: pending.amount, currency: pending.currency)
+////                         infoDataforInfoUIView.append(data2)
+////                        print("UI View Metric data = pending \( infoDataforInfoUIView)")
+////                    }
+//
+//    } catch {
+//
+//    }
+//    }
+    func jsonToString(json: Data){
+        do {
+            let data1 =  try JSONSerialization.data(withJSONObject: json, options: JSONSerialization.WritingOptions.prettyPrinted) // first of all convert json to the data
+            let convertedString = String(data: data1, encoding: String.Encoding.utf8) // the data will be converted to the string
+            print(convertedString ?? "defaultvalue")
+        } catch let myJSONError {
+            print(myJSONError)
+        }
+        
+    }
+    func getDataForInfoUIView(){
+        getRecipientTotalAmt()
+        getSenderTotalAmount()
+       // clearData()
+        
+        let request = Request(path: "/api/Profile/balance/\(profileId)", token: token!, apiKey: encryptedAPIKey)
+        print("profileId = \(profileId)")
+        print(" i am getting InfoUIView data")
+        
+        Network.shared.send(request) { [self] (result: Result<InfoBoardMetrics, Error>)  in
+            switch result {
+            case .success(let mybalance):
+                print(mybalance.pending)
+                infoBoardMetric.removeAll() //clear object
+                
+                if let pending = mybalance.pending {
+                    let pending = mybalance.pending
+                    for pending in mybalance.pending! {
+                        let data1 = BalanceAmountCurrency(metricType: "pendingPayoutAmt", amount: pending.amount!, currency: pending.currency!)
+                        infoBoardMetric.append(data1)
+                    }
+                    print("pending is good \(pending)")
+                } else {
+//                    let pending = "Nothing - bad"
+//                    print("pending is bad \(pending)")
+//                    for pending in mybalance.pending! {
+                    let data1 = BalanceAmountCurrency(metricType: "pendingPayoutAmt", amount: 0, currency: "usd")
+                    infoBoardMetric.append(data1)
+                    //}
+                }
+                //print("is pending empty \(mybalance.pending!.isEmpty)")
+               
+                if let available = mybalance.available {
+                    for available in mybalance.available! {
+                        let data2 = BalanceAmountCurrency(metricType: "outstandingTransferAmt", amount: available.amount!, currency: available.currency!)
+                        infoBoardMetric.append(data2)
+                    }
+                } else  {
+                    //for available in mybalance.available! {
+                        let data2 = BalanceAmountCurrency(metricType: "outstandingTransferAmt", amount: 0, currency:"usd")
+                        infoBoardMetric.append(data2)
+                    //}
+                }
+                    
+                
+                print("infoBoardMetric =\(infoBoardMetric)")
+                for i in infoBoardMetric {
+                    print("metrictype =\(i.metricType)")
+                    print("amount = \(i.amount)")
+                    print("currentcy = \(i.currency)")
+                }
+                print("I am inside Info again")
+              
+                
+                for item in self.infoBoardMetric {
+                    print("i am inside infoBoardMetric ")
+                    if item.metricType == "outstandingTransferAmt" {
+                        outstandingTransferAmt = String(item.amount)
+                        currency = item.currency
+                    }
+                
+                   
+                    if item.metricType == "pendingPayoutAmt" {
+                        pendingPayoutAmt2 = String(item.amount)
+                        currency = item.currency
+                    }
+                }
+                getMyEvents()
+            case .failure(let error):
+                
+                /*4/22 this is a temporary solution - when a user doesn't
+                have pending transfer, the object structure looks like this...
+                 the null value is causing this to break... need to talk to Karl about changing this... in the meantime, I am going to hardcode the value
+                 {
+                     "available": null,
+                     "pending": null,
+                     "success": false,
+                     "errorCode": null,
+                     "errorMessage": null
+                 }*/
+                infoBoardMetric.removeAll() //clear object
+                //for pending in mybalance.pending {
+                    let data1 = BalanceAmountCurrency(metricType: "pendingPayoutAmt", amount: 0, currency: "usd")
+                    infoBoardMetric.append(data1)
+               // }
+                
+                //for available in mybalance.available {
+                    let data2 = BalanceAmountCurrency(metricType: "outstandingTransferAmt", amount: 0, currency: "usd")
+                    infoBoardMetric.append(data2)
+                //}
+                
+                print("infoBoardMetric =\(infoBoardMetric)")
+                for i in infoBoardMetric {
+                    print("metrictype =\(i.metricType)")
+                    print("amount = \(i.amount)")
+                    print("currentcy = \(i.currency)")
+                }
+                print("I am inside Info again")
+              
+                
+                for item in self.infoBoardMetric {
+                    print("i am inside infoBoardMetric ")
+                    if item.metricType == "outstandingTransferAmt" {
+                        outstandingTransferAmt = String(item.amount)
+                        currency = item.currency
+                    }
+                
+                   
+                    if item.metricType == "pendingPayoutAmt" {
+                        pendingPayoutAmt2 = String(item.amount)
+                        currency = item.currency
+                    }
+                }
+                getMyEvents()
+                print(" balance failed DOMINIC G IGHEDOSA ERROR \(error.localizedDescription)")
+            }
+        }
+    }
+    
+    
+    func getSenderTotalAmount() {
+      
+        //clear object data
+        //eventmetricsspraydetails.removeAll()
+        
+        let request = Request(path: "/api/SprayTransaction/sendertotal/\(profileId)/0", token: token!, apiKey: encryptedAPIKey)
+
+        Network.shared.send(request) { [self] (result: Result<Data, Error>)  in
+        switch result {
+        case .success(let sprayData):
+        let decoder = JSONDecoder()
+            do {
+                let sprayDetailJson: sEventMetricsSprayData  = try decoder.decode(sEventMetricsSprayData.self, from: sprayData)
+                
+              
+                
+                totalGiftedAmt = String(sprayDetailJson.totalAmountGifted)
+//                for sprayData in  sprayDetailJson.recipientList {
+//                    switch isForSearch {
+//                    case true:
+//                        let data1 = EventMetricsSprayDetails(lastName: sprayData.lastName, firstName: sprayData.firstName, totalAmount: sprayData.totalAmount, recordType: "Receiver")
+//
+//                        eventmetricsspraydetails2.append(data1)
+//                    case false:
+//                        let data1 = EventMetricsSprayDetails(lastName: sprayData.lastName, firstName: sprayData.firstName, totalAmount: sprayData.totalAmount, recordType: "Receiver")
+//
+//                        eventmetricsspraydetails.append(data1)
+//                    default:
+//                        break
+//                    }
+//
+//
+//                }
+                
+                
+            } catch {
+                print(error)
+            }
+            
+        case .failure(let error):
+            print(" DOMINIC IGHEDOSA ERROR \(error.localizedDescription)")
+        }
+    }
+    }
+    
+    func getRecipientTotalAmt() {
+      
+        //eventmetricsspraydetails.removeAll()
+        let request = Request(path: "/api/SprayTransaction/recipienttotal/\(profileId)/0", token: token!, apiKey: encryptedAPIKey)
+
+        Network.shared.send(request) { [self] (result: Result<Data, Error>)  in
+        switch result {
+        case .success(let sprayData):
+        let decoder = JSONDecoder()
+            do {
+                let sprayDetailJson: rEventMetricsSprayData  = try decoder.decode(rEventMetricsSprayData.self, from: sprayData)
+                
+                totalGiftReceivedAmt = String(sprayDetailJson.totalAmountReceived)
+//                for sprayData in  sprayDetailJson.senderList {
+//
+//                    switch isForSearch {
+//                    case true:
+//
+//                        let data1 = EventMetricsSprayDetails(lastName: sprayData.lastName, firstName: sprayData.firstName, totalAmount: sprayData.totalAmount, recordType: "Sender")
+//                        eventmetricsspraydetails2.append(data1)
+//                    case false:
+//                        let data1 = EventMetricsSprayDetails(lastName: sprayData.lastName, firstName: sprayData.firstName, totalAmount: sprayData.totalAmount, recordType: "Sender")
+//                        eventmetricsspraydetails.append(data1)
+//                    default:
+//                        break
+//                    }
+//
+//
+//
+//                }
+            } catch {
+                print(error)
+            }
+            
+           // tableView.reloadData()
+      
+        case .failure(let error):
+            print(" DOMINIC IGHEDOSA ERROR \(error.localizedDescription)")
+        }
+    }
+    }
+    
+    func completionAlert(message: String, timer: Int, completionAction:String) -> Void {
+        let delay = Double(timer) //* Double(NSEC_PER_SEC)
+        let alert = UIAlertController(title: "", message: message, preferredStyle: UIAlertController.Style.alert)
+        present(alert, animated: true, completion: nil)
+        DispatchQueue.main.asyncAfter(deadline: .now() + delay) {
+            alert.dismiss(animated: true)
+//            if completionAction == "gospray" {
+//                self.callGoSpray()
+//            }
+        }
+    }
+    
+    func setStatusBarColor() {
+        if #available(iOS 13.0, *) {
+
+
+               let statusBar1 =  UIView()
+               statusBar1.frame = UIApplication.shared.keyWindow?.windowScene?.statusBarManager!.statusBarFrame as! CGRect
+               statusBar1.backgroundColor = UIColor.white
+
+               UIApplication.shared.keyWindow?.addSubview(statusBar1)
+    
+            } else {
+
+               let statusBar1: UIView = UIApplication.shared.value(forKey: "statusBar") as! UIView
+               statusBar1.backgroundColor = UIColor.white
+               
+            }
+
+    }
+    //calling this on viewdid load
+    func getProfileData(profileId: Int64) {
+        print("getProfileData")
+        let request = Request(path: "/api/Profile/\(profileId)", token: token!, apiKey: encryptedAPIKey)
+        
+        print("request=\(request)")
+        Network.shared.send(request) { [self] (result: Result<ProfileData2, Error>)  in
+        switch result {
+        case .success(let profileData):
+            //self.eventOwnerName = profileData.firstName
+            self.isPaymentMethodGeneralAvailable = profileData.hasValidPaymentMethod
+            self.generalPaymentMethodId = profileData.defaultPaymentMethod
+            self.avatar = profileData.firstName
+            self.displayName = profileData.firstName
+            self.paymentCustomerId = profileData.paymentCustomerId!
+            self.paymentConnectedActId = profileData.paymentConnectedActId
+            
+            print("profileData.paymentConnectedActId \(profileData.paymentConnectedActId)")
+            print("profileData.paymentCustomerId! \(profileData.paymentCustomerId!)")
+            
+            print("getProfileData Was successful")
+            
+            if self.paymentConnectedActId.isNil {
+                print("paymentConnectedActId is NILL")
+                self.paymentConnectedActId = ""
+
+            }
+            
+          
+            if self.paymentCustomerId.isNil {
+                self.paymentCustomerId = ""
+                print("paymentCustomerId = \(paymentCustomerId)")
+            }
+           
+            if let iAvatar = profileData.avatar  {
+                let dataString = iAvatar
+                
+                let dataURL = URL(string: dataString)
+                let contents: String?
+                do {
+                    contents = try String(contentsOf: dataURL!)
+                    //contents = try Data(contentsOf: someURL)
+                    print("image 1 = \(profileData.avatar!)")
+                    //originalAvatar = profileData.avatar!
+                } catch {
+                    contents = "dominic"
+                   // print("image 2 = \(profileData.avatar!)")
+                    //originalAvatar = profileData.avatar!
+                }
+                
+                //let image = UIImage(data: data)
+                
+                //myAvatar.image = UIImage(named: contents!)
+                
+                let results = dataString.matches(for: "data:image\\/([a-zA-Z]*);base64,([^\\\"]*)")
+                for imageString in results {
+                    autoreleasepool {
+                        
+                        let image2 = imageString.base64ToImage()
+                        //myAvatar.image = image2
+
+                    }
+                
+                }
+                
+//            } else {
+//                myAvatar.image = UIImage(named: "userprofile")
+            }
+            
+            
+//            let imageData = Data.init(base64Encoded: profileData.avatar!, options: .init(rawValue: 0))
+////               let image = UIImage(data: imageData!)
+////               return image!
+//            myAvatar.image = UIImage(data: imageData!)
+            
+            break
+        case .failure(let error):
+           //self.textLabel.text = error.localizedDescription
+        print(" DOMINIC C IGHEDOSA ERROR \(error.localizedDescription)")
+            self.eventOwnerName = "Not Identified..."
+                    
+            }
+                  
+        }
+         //print(profiledata)
+    }
+    
+    //calling this on viewdid load
+    func getOtherProfileData(profileId: Int64) {
+        print("getOtherProfileData")
+        let request = Request(path: "/api/Profile/\(profileId)", token: token!, apiKey: encryptedAPIKey)
+        
+        print("request=\(request)")
+        Network.shared.send(request) { [self] (result: Result<ProfileData2, Error>)  in
+        switch result {
+        case .success(let profileData):
+            self.eventOwnerName = profileData.firstName
+
+            if let iAvatar = profileData.avatar  {
+                let dataString = iAvatar
+                
+                let dataURL = URL(string: dataString)
+                let contents: String?
+                do {
+                    contents = try String(contentsOf: dataURL!)
+                    //contents = try Data(contentsOf: someURL)
+                    print("image 1 = \(profileData.avatar!)")
+                    //originalAvatar = profileData.avatar!
+                } catch {
+                    contents = "dominic"
+                   // print("image 2 = \(profileData.avatar!)")
+                    //originalAvatar = profileData.avatar!
+                }
+                
+                //let image = UIImage(data: data)
+                
+                //myAvatar.image = UIImage(named: contents!)
+                
+                let results = dataString.matches(for: "data:image\\/([a-zA-Z]*);base64,([^\\\"]*)")
+                for imageString in results {
+                    autoreleasepool {
+                        
+                        let image2 = imageString.base64ToImage()
+                        //myAvatar.image = image2
+
+                    }
+                
+                }
+                
+//            } else {
+//                myAvatar.image = UIImage(named: "userprofile")
+            }
+            
+            
+//            let imageData = Data.init(base64Encoded: profileData.avatar!, options: .init(rawValue: 0))
+////               let image = UIImage(data: imageData!)
+////               return image!
+//            myAvatar.image = UIImage(data: imageData!)
+            
+            break
+        case .failure(let error):
+           //self.textLabel.text = error.localizedDescription
+        print(" DOMINIC D IGHEDOSA ERROR \(error.localizedDescription)")
+            self.eventOwnerName = "Not Identified..."
+                    
+            }
+                  
+        }
+         //print(profiledata)
+    }
+    
+    //check if payment method exist for event Id from scan that was scanned
+    //this is temporary - 3/17 i will remove this in the future because this flag will be part of the QR code
+    func getPrefData() {
+        
+        print("checkIfPaymentMethodExist-1")
+        //var eventprefdate:  [EventPreferenceData] = [] //paymentmethod1
+        let request = Request(path: "/api/Event/prefs/\(profileId)/0", token: token!, apiKey: encryptedAPIKey)
+       // let request = Request(path: "/api/Event/prefs/\(profileId)/\(eventId)", token: token!)
+        print("request = \(request)")
+        Network.shared.send(request) { (result: Result<Data, Error>)   in
+            switch result {
+                case .success(let eventPreferenceData):
+                    print("A")
+                    
+                    print("checkIfPaymentMethodExist-2")
+                    let decoder = JSONDecoder()
+                    do {
+                        let eventPreferenceJson: [EventPreferenceData2] = try decoder.decode([EventPreferenceData2].self, from: eventPreferenceData)
+                       
+                        for eventPrefData in eventPreferenceJson {
+                            if eventPrefData.paymentMethod > 0 {
+                                print("eventPrefData.paymentMethod > 0")
+                                //if eventPrefData.defaultEventPaymentMethod > 0 {
+                                    self.isPaymentMethodAvailable2 = true
+                                //} else {
+                                   // self.isPaymentMethodAvailable2 = false
+                                //}
+                                
+                                self.generalPaymentMethodId = eventPrefData.paymentMethod
+                               
+                                self.sprayAmount = eventPrefData.maxSprayAmount
+                                self.isReplenish =  eventPrefData.isAutoReplenish
+                                self.replenishAmount = eventPrefData.replenishAmount
+                                //self.self.isPaymentMethodAvailable2 = eventPrefData.h
+                                print("checkIfPaymentMethodExist-3")
+                                break
+                            } else {
+                                //self.generalPaymentMethodId = eventPrefData.paymentMethod
+                                self.isPaymentMethodAvailable2 = self.isPaymentMethodGeneralAvailable
+                                self.sprayAmount = 0
+                                self.isReplenish = false
+                                self.replenishAmount = 0
+                                //self.self.isPaymentMethodAvailable2 = eventPrefData.h
+                                print("checkIfPaymentMethodExist-3")
+                            }
+
+                        }
+            
+                    } catch {
+                        print(error)
+                    }
+                    
+                    if self.isPaymentMethodGeneralAvailable == true {
+                        //call launch goSpray
+                        if self.sprayAmount == 0 {
+                            print("checkIfPaymentMethodExist-4")
+                            //call method to insert default payment and spray amounnt
+                            self.addGeneralEventPaymentPref(updatedGiftAmount: 10, updatedAutoReplenishAmount: 0, updatedAutoReplenishFlag: false, updatedPaymentMethodId: self.generalPaymentMethodId, currencycode: "usd", isPaymentMethodAvailable: self.isPaymentMethodAvailable2)
+                            //call goSpray
+                            self.launchGotoSprayVC(updatedGiftAmount: self.sprayAmount, updatedAutoReplenishAmount:  self.replenishAmount, updatedAutoReplenishFlag: self.isReplenish, updatedPaymentMethodId: self.generalPaymentMethodId, currencycode: "usd", isPaymentMethodAvailable: self.isPaymentMethodAvailable2)
+                        } else {
+                            //call goSpray
+                            print("checkIfPaymentMethodExist-5")
+                            self.launchGotoSprayVC(updatedGiftAmount: self.sprayAmount, updatedAutoReplenishAmount:  self.replenishAmount, updatedAutoReplenishFlag: self.isReplenish, updatedPaymentMethodId: self.generalPaymentMethodId, currencycode: "usd", isPaymentMethodAvailable: self.isPaymentMethodAvailable2)
+                        }
+                    } else  {
+                        //if no payment method ask the use add
+                        let alert2 = UIAlertController(title: "Need Payment Method", message: "You currently do not have a Payment Method selected for this Event. A Payment Metheod is required to participate in the fun of Spraying. Would you like to add a Payment Method?", preferredStyle: .alert)
+
+                        //alert2.addAction(UIAlertAction(title: "Yes, Let's Do It", style: .default, handler: nil))
+                        var isSingleReceiverEvent: Bool?
+                        if self.isSingleReceiverEventStr == "true" {
+                            isSingleReceiverEvent = true
+                        } else {
+                            isSingleReceiverEvent = false
+                        }
+                        alert2.addAction(UIAlertAction(title: "Yes, Let's Do It", style: .default, handler: { [self] (action) in self.launchEventPaymentScreen(eventId2: eventId, eventName2: eventName, eventDateTime2: eventDateTime, completionAction: "gotospray", eventTypeIcon: eventTypeIcon2, isPaymentMethodAvailable: false, hasPaymentMethod: false, isRsvprequired: false, isSingleReceiver: isSingleReceiverEvent!, defaultEventPaymentMethod: generalPaymentMethodId, defaultEventPaymentCustomName: generalDefaultPaymentCustomName)}))
+                        alert2.addAction(UIAlertAction(title: "No, Not Yet", style: .cancel, handler: nil))
+                     
+                        self.present(alert2, animated: true)
+                    }
+                    
+                case .failure(let error):
+                print(" DOMINIC E IGHEDOSA 1 ERROR \(error.localizedDescription)")
+                    print("checkIfPaymentMethodExist-error")
+            }
+        }
+    }
+    
+    func addGeneralEventPaymentPref(updatedGiftAmount: Int, updatedAutoReplenishAmount: Int, updatedAutoReplenishFlag: Bool, updatedPaymentMethodId: Int, currencycode: String, isPaymentMethodAvailable: Bool) {
+        print("checkIfPaymentMethodExist-6")
+        let addEventPreference = EventPreference(eventId: eventId, profileId: profileId, paymentMethod: Int(updatedPaymentMethodId), maxSprayAmount: updatedGiftAmount, replenishAmount: updatedAutoReplenishAmount, notificationAmount:  0, isAutoReplenish: updatedAutoReplenishFlag, currency: currencycode)
+
+        print("ADD EVENT DOMINC PREFERENCE \(addEventPreference)")
+    
+    
+        
+        let request = PostRequest(path: "/api/Event/addprefs", model: addEventPreference, token: token!, apiKey: encryptedAPIKey, deviceId: "")
+        Network.shared.send(request) { (result: Result<Data, Error>)  in
+            switch result {
+            case .success(let eventpref): print("AWELE -- \(eventpref)");
+                
+                //self.completionAlert(message: "Update Was Successful", timer: 1)
+                //close payment window
+                print("checkIfPaymentMethodExist-8")
+                self.launchGotoSprayVC(updatedGiftAmount: updatedGiftAmount, updatedAutoReplenishAmount: updatedAutoReplenishAmount, updatedAutoReplenishFlag: updatedAutoReplenishFlag, updatedPaymentMethodId: updatedPaymentMethodId, currencycode: currencycode, isPaymentMethodAvailable: self.isPaymentMethodAvailable2)
+                break
+            case .failure(let error):
+            print(error.localizedDescription)
+            }
+        }
+
+    }
+    
+    func launchGotoSprayVC(updatedGiftAmount: Int, updatedAutoReplenishAmount: Int, updatedAutoReplenishFlag: Bool, updatedPaymentMethodId: Int, currencycode: String, isPaymentMethodAvailable: Bool) {
+        
+        print("checkIfPaymentMethodExist-9")
+        print("ThIS IS A SINGLE RECEIVER EVENT \(eventType)")
+        let nextVC = storyboard?.instantiateViewController(withIdentifier: "GoSprayViewController") as! GoSprayViewController
+        //hold for now 1/29/2021
+       //                let nextVC = storyboard?.instantiateViewController(withIdentifier: "SelectAttendeeToSprayViewController") as! SelectAttendeeToSprayViewController
+       //
+       //                    nextVC.eventName = eventName
+       //                    nextVC.eventDateTime = eventDateTime
+       //                    nextVC.eventCode = eventCode
+       
+        print("launch go to sprayVC was called isPaymentMethodAvailable = \(isPaymentMethodAvailable)")
+        nextVC.eventId = eventId
+        nextVC.eventOwnerName = eventOwnerName
+        nextVC.eventOwnerProfileId = eventOwnerId
+        nextVC.profileId = profileId
+        nextVC.token = token!
+        nextVC.encryptedAPIKey = encryptedAPIKey
+        nextVC.completionAction = completionAction
+        nextVC.receiverName = "" //eventOwnerName - hold for now 3/20
+        nextVC.refreshscreendelegate = self
+        nextVC.sprayAmount = updatedGiftAmount
+        nextVC.autoReplenishAmount = updatedAutoReplenishAmount
+        nextVC.isAutoReplenishFlag = updatedAutoReplenishFlag
+        nextVC.isPaymentMethodAvailable = isPaymentMethodAvailable
+        nextVC.processspraytrandelegate = self
+        nextVC.haspaymentdelegate = self
+        
+       //                    nextVC.eventTypeIcon = eventTypeIcon
+       //                    nextVC.paymentClientToken = paymentClientToken
+                   
+        self.navigationController?.pushViewController(nextVC , animated: true)
+        //}
+
+    }
+    
+
     
     //when user select back button after editing the EventSettingViewController
     func getEventTypeName(eventTypeId: Int) -> String {
@@ -143,7 +1010,7 @@ class HomeViewController: UIViewController, UITextFieldDelegate {
         eventtypeData.append(EventTypeData(id: 0, eventTypeName: "Select Event Type"))
         eventtypeData.append(EventTypeData(id: 1, eventTypeName: "Birthday"))
         eventtypeData.append(EventTypeData(id: 2, eventTypeName: "Anniversary"))
-        eventtypeData.append(EventTypeData(id: 7, eventTypeName: "Wedding Anniversary"))
+        eventtypeData.append(EventTypeData(id: 7, eventTypeName: "Street Entertainer"))
         eventtypeData.append(EventTypeData(id: 3, eventTypeName: "Wedding"))
         eventtypeData.append(EventTypeData(id: 4, eventTypeName: "Baby Shower"))
         eventtypeData.append(EventTypeData(id: 5, eventTypeName: "Graduation"))
@@ -151,7 +1018,7 @@ class HomeViewController: UIViewController, UITextFieldDelegate {
         eventtypeData.append(EventTypeData(id: 8, eventTypeName: "Family Reunion"))
         eventtypeData.append(EventTypeData(id: 9, eventTypeName: "Concert"))
         eventtypeData.append(EventTypeData(id: 10, eventTypeName: "General Party"))
-        eventtypeData.append(EventTypeData(id: 11, eventTypeName: "Coffee House"))
+        eventtypeData.append(EventTypeData(id: 11, eventTypeName: "Waiter"))
         eventtypeData.append(EventTypeData(id: 12, eventTypeName: "Cover Band"))
         eventtypeData.append(EventTypeData(id: 13, eventTypeName: "Thanksgiving"))
        // print(eventtypeData )
@@ -165,33 +1032,163 @@ class HomeViewController: UIViewController, UITextFieldDelegate {
         eventIdsattendingmodel.removeAll()
         isAttending.removeAll()
         isattendingdata.removeAll()
+        
         //getMyEvents()
     }
     
     
     @IBAction func inviteButtonPressed(_ sender: Any) {
         let vc = InviteFriendViewController(nibName: "InviteFriendViewController", bundle: nil)
-        vc.messageLabel?.text  = "Next level blog photo booth, tousled authentic tote bag kogi"
+        //vc.messageLabel?.text  = "Next level blog photo booth, tousled authentic tote bag kogi"
         navigationController?.pushViewController(vc, animated: true)
     }
     
+    
+    func testFunctionWithNoEscapingClosure(myClosure:() -> Void) {
+        print("function called")
+        myClosure()
+        return
+    }
+
+
+    //function call
+//    testFunctionWithNoEscapingClosure(eventId: Int64) {
+//        print("closure called")
+//        var isPaymentMethodForEvent: Bool = false
+//        let request = Request(path: "/api/Event/prefs/\(profileId!)/\(eventId)", token: token!)
+//
+//        Network.shared.send(request) { (result: Result<Data, Error>)   in
+//            switch result {
+//                case .success(let eventPreferenceData):
+//                    let decoder = JSONDecoder()
+//                    do {
+//                        let eventPreferenceJson: [EventPreferenceData2] = try decoder.decode([EventPreferenceData2].self, from: eventPreferenceData)
+//                        for eventPrefData in eventPreferenceJson {
+//                            if eventPrefData.paymentMethodDetails.paymentMethodId > 0{
+//                                print("paymentMethodId > 0 \(eventPrefData.paymentMethodDetails.paymentMethodId )  eventId = \(eventId)")
+//                                isPaymentMethodForEvent = true
+//                                break
+//                            } else {
+//                                isPaymentMethodForEvent = false
+//                            }
+//                        }
+//
+//                    } catch {
+//                        print(error)
+//                    }
+//
+//                case .failure(let error):
+//                print(" DOMINIC IGHEDOSA 1 ERROR \(error.localizedDescription)")
+//            }
+//        }
+//
+//    }
+//
+        //hold for now... 3/17 was using to get haspyment flag..now getting this from the profile objec
+//    func checkIfGeneralEventPaymentMethod(profileId: Int64)  {
+//        let request = Request(path: "/api/Event/prefs/\(profileId)/0", token: token!)
+//
+//        print("request \(request)")
+//        Network.shared.send(request) { (result: Result<Data, Error>)   in
+//            switch result {
+//                case .success(let eventPreferenceData):
+//                    print("I am here 1")
+//                    let decoder = JSONDecoder()
+//                    do {
+//                        let eventPreferenceJson: [EventPreferenceData2] = try decoder.decode([EventPreferenceData2].self, from: eventPreferenceData)
+//                        print("I am here 2")
+//                        if eventPreferenceJson.count > 0 {
+//                            self.isPaymentMethodGeneralAvailable = true
+//                            //let a = true
+//                            print("self.isPaymentMethodGeneralAvailable  = true \(self.isPaymentMethodGeneralAvailable)")
+//                            break
+//                        }
+//
+//                    } catch {
+//                        print(error)
+//                    }
+//
+//                case .failure(let error):
+//                print(" DOMINIC IGHEDOSA 1 ERROR \(error.localizedDescription)")
+//            }
+//        }
+//    }
 
     
-    func getMyEvents(){
-        let request = Request(path: "/api/Event/myevents?profileid=\(profileId!)", token: token!)
+    //moving to loginViewController - will followup late 1/26/21
+    func checkEventPayment(eventId: Int64) -> Bool {
+        var isPaymentMethodForEvent: Bool = false
+        //var eventprefdate:  [EventPreferenceData] = [] //paymentmethod1
         
+        print("before isPaymentMethodForEvent = \(isPaymentMethodForEvent)")
+        func getEventPaymentMethod() -> Bool {
+
+            let request = Request(path: "/api/Event/prefs/\(profileId)/\(eventId)", token: token!, apiKey: encryptedAPIKey)
+
+            Network.shared.send(request) { (result: Result<Data, Error>)   in
+                switch result {
+                    case .success(let eventPreferenceData):
+                        let decoder = JSONDecoder()
+                        do {
+                            let eventPreferenceJson: [EventPreferenceData2] = try decoder.decode([EventPreferenceData2].self, from: eventPreferenceData)
+                            for eventPrefData in eventPreferenceJson {
+                                if eventPrefData.paymentMethodDetails.paymentMethodId == 9 {
+                                    print("paymentMethodId > 0 \(eventPrefData.paymentMethodDetails.paymentMethodId )  eventId = \(eventId)")
+                                    isPaymentMethodForEvent = true
+                                    print("paymentmethod >=21 During  \(isPaymentMethodForEvent)")
+                                    break
+                                } else {
+                                    //setting to true temporarily 3/2
+                                    isPaymentMethodForEvent = true
+                                    print("paymentmethod < 21 During  \(isPaymentMethodForEvent)")
+                                }
+                            }
+
+                        } catch {
+                            print(error)
+                        }
+
+                    case .failure(let error):
+                    print(" DOMINIC F IGHEDOSA 1 ERROR \(error.localizedDescription)")
+                }
+            }
+            print("paymentmethod AFTER \(isPaymentMethodForEvent)")
+            return isPaymentMethodForEvent
+        }
+
+
+        return getEventPaymentMethod()
+    }
+    func getMyEvents(){
+        
+        clearData()
+        
+        let request = Request(path: "/api/Event/myevents?profileid=\(profileId)", token: token!, apiKey: encryptedAPIKey)
+        print("encryptedAPIKey from homescreen \(encryptedAPIKey)")
         Network.shared.send(request) { (result: Result<Data, Error>)  in
             switch result {
             case .success(let event):
+                //populate data for InfoView
+                
                 self.parse(json: event)
             case .failure(let error):
-                print(" DOMINIC IGHEDOSA ERROR \(error.localizedDescription)")
+                print(" DOMINIC G IGHEDOSA ERROR \(error.localizedDescription)")
             }
         }
     }
     
     
-    
+    func checkIfEventIsRSVP(mydata: [Int], eventId: Int64) -> Bool {
+        var foundIt: Bool = false
+        for i in mydata {
+            if i == Int(eventId) {
+                foundIt = true
+                break
+                
+            }
+        }
+        return foundIt
+    }
     //***** hold this for later *****
     
     func parse(json: Data) {
@@ -199,7 +1196,20 @@ class HomeViewController: UIViewController, UITextFieldDelegate {
         //eventjson.result.eventsOwned
         
        
+         //let dataCollection0 = EventProperty(eventId: eventId, ownerId: ownerId, name: name, dateTime: dateTime, address1: address1, address2: address2, city: city, zipCode: zipCode, country: country, state: state, eventState: eventState, eventCode: eventCode, isActive: isActive, eventType: eventType, isAttending: nil, dataCategory: "Info", hasPaymentMethod: hasPaymentMethod)
         
+        let dataCollection0 = EventProperty(eventId: 0, ownerId: 0, name: "", dateTime: "", address1: "", address2: "", city: "", zipCode: "", country: "", state: "", eventState: 1, eventCode: "", isActive: true, eventType: 1, isRsvprequired: true, isSingleReceiver: false, defaultEventPaymentMethod: 0, defaultEventPaymentCustomName: "", isAttending: false, dataCategory: "info", hasPaymentMethod: false, outstandingTransferAmt1: outstandingTransferAmt, pendingPayoutAmt1: pendingPayoutAmt2, totalGiftedAmt1: self.totalGiftedAmt, totalReceivedAmt1: totalGiftReceivedAmt, currency1: currency, paymentCustomerId1: paymentCustomerId!, paymentConnectedActId1: paymentCustomerId!)
+        homescreeneventdata.append(dataCollection0)
+        //print("MY COUNTER = \(j) = \(dataCollection0)")
+        //eventsownedmodel.append(dataCollection)
+        
+//        var outstandingTransferAmt: String = ""
+//        var pendingPayountAmt: String = ""
+//        var totalGiftedAmt: String = ""
+//        var totalGiftReceivedAmt: String = ""
+        
+        
+    
         let decoder = JSONDecoder()
         
         do {
@@ -223,10 +1233,14 @@ class HomeViewController: UIViewController, UITextFieldDelegate {
                         let eventState = i.eventState //eventjson[i].result.eventsOwned[i].eventState
                         let eventCode = i.eventCode //eventjson[i].result.eventsOwned[i].eventCode
                         let isActive = i.isActive //eventjson[i].result.eventsOwned[i].isActive
-                         let eventType = i.eventType
+                        let eventType = i.eventType
+                        let isRsvprequired = i.isRsvprequired
+                        let isSingleReceiver = i.isSingleReceiver
+                        let defaultEventPaymentMethod =  i.defaultEventPaymentMethod
+                        let defaultEventPaymentCustomName = i.defaultEventPaymentCustomName
+                        let hasPaymentMethod = false
                      
-                     
-                         let dataCollection = EventProperty(eventId: eventId, ownerId: ownerId, name: name, dateTime: dateTime, address1: address1, address2: address2, city: city, zipCode: zipCode, country: country, state: state, eventState: eventState, eventCode: eventCode, isActive: isActive, eventType: eventType, isAttending: nil, dataCategory: "owned")
+                        let dataCollection = EventProperty(eventId: eventId, ownerId: ownerId, name: name, dateTime: dateTime, address1: address1, address2: address2, city: city, zipCode: zipCode, country: country, state: state, eventState: eventState, eventCode: eventCode, isActive: isActive, eventType: eventType, isRsvprequired: isRsvprequired!, isSingleReceiver: isSingleReceiver!, defaultEventPaymentMethod: defaultEventPaymentMethod, defaultEventPaymentCustomName: defaultEventPaymentCustomName, isAttending: nil, dataCategory: "owned", hasPaymentMethod: hasPaymentMethod, outstandingTransferAmt1: self.outstandingTransferAmt, pendingPayoutAmt1: pendingPayoutAmt2, totalGiftedAmt1: self.totalGiftedAmt, totalReceivedAmt1: totalGiftReceivedAmt, currency1: self.currency, paymentCustomerId1: paymentCustomerId!, paymentConnectedActId1: paymentCustomerId!)
                      
                         homescreeneventdata.append(dataCollection)
                         print("MY COUNTER = \(j) = \(dataCollection)")
@@ -236,55 +1250,125 @@ class HomeViewController: UIViewController, UITextFieldDelegate {
             }
             
 
-            for x in eventjson.result.eventsInvited {
-                if x.isActive == true  {
-                    let eventId = x.eventId// eventjson[i].result.eventsOwned[i].eventId
-                    let ownerId = x.ownerId //eventjson[i].result.eventsOwned[i].ownerId
-                    let name = x.name //eventjson[i].result.eventsOwned[i].name
-                    let dateTime = x.dateTime //eventjson[i].result.eventsOwned[i].dateTime
-                    let address1 = x.address1 //eventjson[i].result.eventsOwned[i].address1
-                    let address2 = x.address2 //eventjson[i].result.eventsOwned[i].address2
-                    let city = x.city //eventjson[i].result.eventsOwned[i].city
-                    let zipCode = x.zipCode //eventjson[i].result.eventsOwned[i].zipCode
-                    let country = x.country //eventjson[i].result.eventsOwned[i].country
-                    let state = x.state //eventjson[i].result.eventsOwned[i].state
-                    let eventState = x.eventState //eventjson[i].result.eventsOwned[i].eventState
-                    let eventCode = x.eventCode //eventjson[i].result.eventsOwned[i].eventCode
-                    let isActive = x.isActive //eventjson[i].result.eventsOwned[i].isActive
-                    let eventType = x.eventType
-                    let dataCollection2 = EventProperty(eventId: eventId, ownerId: ownerId, name: name, dateTime: dateTime, address1: address1, address2: address2, city: city, zipCode: zipCode, country: country, state: state, eventState: eventState, eventCode: eventCode, isActive: isActive, eventType: eventType, isAttending: nil, dataCategory: "invited")
-                    homescreeneventdata.append(dataCollection2)
-                    //eventsinvitedmodel.append(dataCollection2)
-                    
-                }
-            }
+           
             
             
             for item in eventjson.result.eventIdsAttending {
                 eventIdsattendingmodel.append(item)
+                
             }
             
+//            print("eventIdsattendingmodel.count is GREAT THAN \(eventIdsattendingmodel.count )")
+//            if eventIdsattendingmodel.count > 0 {
+//                print("GALVESTON")
+//                for eventid in eventIdsattendingmodel {
+//                    print("HOUSTON")
+//                    print("eventIds attending = \(eventid)")
+//
+////                    for x in eventjson.result.eventsInvited {
+////                        print("KEMAH --- \(x.name)")
+////                        if x.isActive == true  {
+////
+////                            //call the checkIfEventIsRSVP function to see eventId exist in the attending array of objects
+////                            //if so, don't add the invited array of objects
+////                            let wefoundIt = checkIfEventIsRSVP(mydata: eventIdsattendingmodel, eventId: x.eventId)
+////                            if wefoundIt == false {
+////                                print("WefoundIt = \(wefoundIt) --- eventId = \(x.eventId)")
+////                                print("eventIds doe not equal each other = \(x.eventId)")
+////                                let eventId = x.eventId// eventjson[i].result.eventsOwned[i].eventId
+////                                let ownerId = x.ownerId //eventjson[i].result.eventsOwned[i].ownerId
+////                                let name = x.name //eventjson[i].result.eventsOwned[i].name
+////                                let dateTime = x.dateTime //eventjson[i].result.eventsOwned[i].dateTime
+////                                let address1 = x.address1 //eventjson[i].result.eventsOwned[i].address1
+////                                let address2 = x.address2 //eventjson[i].result.eventsOwned[i].address2
+////                                let city = x.city //eventjson[i].result.eventsOwned[i].city
+////                                let zipCode = x.zipCode //eventjson[i].result.eventsOwned[i].zipCode
+////                                let country = x.country //eventjson[i].result.eventsOwned[i].country
+////                                let state = x.state //eventjson[i].result.eventsOwned[i].state
+////                                let eventState = x.eventState //eventjson[i].result.eventsOwned[i].eventState
+////                                let eventCode = x.eventCode //eventjson[i].result.eventsOwned[i].eventCode
+////                                let isActive = x.isActive //eventjson[i].result.eventsOwned[i].isActive
+////                                let eventType = x.eventType
+////                                let isRsvprequired = x.isRsvprequired
+////                                let isSingleReceiver = x.isSingleReceiver
+////                                let defaultEventPaymentMethod =  x.defaultEventPaymentMethod
+////                                let defaultEventPaymentCustomName = x.defaultEventPaymentCustomName
+////
+////                                let hasPaymentMethod = false //checkEventPayment(eventId: x.eventId)
+////                                let dataCollection2 = EventProperty(eventId: eventId, ownerId: ownerId, name: name, dateTime: dateTime, address1: address1, address2: address2, city: city, zipCode: zipCode, country: country, state: state, eventState: eventState, eventCode: eventCode, isActive: isActive, eventType: eventType, isRsvprequired: isRsvprequired!, isSingleReceiver: isSingleReceiver!, defaultEventPaymentMethod: defaultEventPaymentMethod, defaultEventPaymentCustomName: defaultEventPaymentCustomName, isAttending: nil, dataCategory: "invited", hasPaymentMethod: hasPaymentMethod)
+////                                homescreeneventdata.append(dataCollection2)
+////                                //eventsinvitedmodel.append(dataCollection2)
+////
+////                            }
+////                        }
+//                    //}
+//                }
+//            } else {
+                //do this is invite has not been RSVP
+            for x in eventjson.result.eventsInvited {
+                if x.isActive == true {
+                    /* this contain method seem to work to remove events that a person has already RSVP for few more events are still show - iOS Destruction party and Brian Birthday - need to talk to Karl about why they are still showing 3/19/21*/
+                    if eventIdsattendingmodel.contains(Int(x.eventId)) == false {
+                    
+                        print("Idsattending count = 0 ")
+                        let eventId = x.eventId// eventjson[i].result.eventsOwned[i].eventId
+                        let ownerId = x.ownerId //eventjson[i].result.eventsOwned[i].ownerId
+                        let name = x.name //eventjson[i].result.eventsOwned[i].name
+                        let dateTime = x.dateTime //eventjson[i].result.eventsOwned[i].dateTime
+                        let address1 = x.address1 //eventjson[i].result.eventsOwned[i].address1
+                        let address2 = x.address2 //eventjson[i].result.eventsOwned[i].address2
+                        let city = x.city //eventjson[i].result.eventsOwned[i].city
+                        let zipCode = x.zipCode //eventjson[i].result.eventsOwned[i].zipCode
+                        let country = x.country //eventjson[i].result.eventsOwned[i].country
+                        let state = x.state //eventjson[i].result.eventsOwned[i].state
+                        let eventState = x.eventState //eventjson[i].result.eventsOwned[i].eventState
+                        let eventCode = x.eventCode //eventjson[i].result.eventsOwned[i].eventCode
+                        let isActive = x.isActive //eventjson[i].result.eventsOwned[i].isActive
+                        let eventType = x.eventType
+                        let isRsvprequired = x.isRsvprequired
+                        let isSingleReceiver = x.isSingleReceiver
+                        let defaultEventPaymentMethod =  x.defaultEventPaymentMethod
+                        let defaultEventPaymentCustomName = x.defaultEventPaymentCustomName
+                        let hasPaymentMethod = false //checkEventPayment(eventId: x.eventId)
+                        let dataCollection2 = EventProperty(eventId: eventId, ownerId: ownerId, name: name, dateTime: dateTime, address1: address1, address2: address2, city: city, zipCode: zipCode, country: country, state: state, eventState: eventState, eventCode: eventCode, isActive: isActive, eventType: eventType, isRsvprequired: isRsvprequired!, isSingleReceiver: isSingleReceiver!, defaultEventPaymentMethod: defaultEventPaymentMethod, defaultEventPaymentCustomName: defaultEventPaymentCustomName, isAttending: nil, dataCategory: "invited", hasPaymentMethod: hasPaymentMethod, outstandingTransferAmt1: self.outstandingTransferAmt, pendingPayoutAmt1: pendingPayoutAmt2, totalGiftedAmt1: self.totalGiftedAmt, totalReceivedAmt1: totalGiftReceivedAmt, currency1: self.currency, paymentCustomerId1: paymentCustomerId!, paymentConnectedActId1: paymentCustomerId!)
+                        homescreeneventdata.append(dataCollection2)
+                        //eventsinvitedmodel.append(dataCollection2)
+                    }
+                }
+            }
+        //}
+       
             
             for y in eventjson.result.eventsAttending {
+                
+               
                 //print("y = \(y)")
                 if y.isActive == true {
+                    //find event with paymentMethod already assigned
+                   
+                    
+                    
                     let eventId = y.eventId// eventjson[i].result.eventsOwned[i].eventId
-                   let ownerId = y.ownerId //eventjson[i].result.eventsOwned[i].ownerId
-                   let name = y.name //eventjson[i].result.eventsOwned[i].name
-                   let dateTime = y.dateTime //eventjson[i].result.eventsOwned[i].dateTime
-                   let address1 = y.address1 //eventjson[i].result.eventsOwned[i].address1
-                   let address2 = y.address2 //eventjson[i].result.eventsOwned[i].address2
-                   let city = y.city //eventjson[i].result.eventsOwned[i].city
-                   let zipCode = y.zipCode //eventjson[i].result.eventsOwned[i].zipCode
-                   let country = y.country //eventjson[i].result.eventsOwned[i].country
-                   let state = y.state //eventjson[i].result.eventsOwned[i].state
-                   let eventState = y.eventState //eventjson[i].result.eventsOwned[i].eventState
-                   let eventCode = y.eventCode //eventjson[i].result.eventsOwned[i].eventCode
-                   let isActive = y.isActive //eventjson[i].result.eventsOwned[i].isActive
-                let eventType = y.eventType
+                    let ownerId = y.ownerId //eventjson[i].result.eventsOwned[i].ownerId
+                    let name = y.name //eventjson[i].result.eventsOwned[i].name
+                    let dateTime = y.dateTime //eventjson[i].result.eventsOwned[i].dateTime
+                    let address1 = y.address1 //eventjson[i].result.eventsOwned[i].address1
+                    let address2 = y.address2 //eventjson[i].result.eventsOwned[i].address2
+                    let city = y.city //eventjson[i].result.eventsOwned[i].city
+                    let zipCode = y.zipCode //eventjson[i].result.eventsOwned[i].zipCode
+                    let country = y.country //eventjson[i].result.eventsOwned[i].country
+                    let state = y.state //eventjson[i].result.eventsOwned[i].state
+                    let eventState = y.eventState //eventjson[i].result.eventsOwned[i].eventState
+                    let eventCode = y.eventCode //eventjson[i].result.eventsOwned[i].eventCode
+                    let isActive = y.isActive //eventjson[i].result.eventsOwned[i].isActive
+                    let eventType = y.eventType
+                    let isRsvprequired = y.isRsvprequired
+                    let isSingleReceiver = y.isSingleReceiver
+                    let defaultEventPaymentMethod =  y.defaultEventPaymentMethod
+                    let defaultEventPaymentCustomName = y.defaultEventPaymentCustomName
+                    let hasPaymentMethod = false //checkEventPayment(eventId: y.eventId)
                 
-                
-                let dataCollection3 =  EventProperty(eventId: eventId, ownerId: ownerId, name: name, dateTime: dateTime, address1: address1, address2: address2, city: city, zipCode: zipCode, country: country, state: state, eventState: eventState, eventCode: eventCode, isActive: isActive, eventType: eventType, isAttending: nil, dataCategory: "attending")
+                    let dataCollection3 =  EventProperty(eventId: eventId, ownerId: ownerId, name: name, dateTime: dateTime, address1: address1, address2: address2, city: city, zipCode: zipCode, country: country, state: state, eventState: eventState, eventCode: eventCode, isActive: isActive, eventType: eventType, isRsvprequired: isRsvprequired!, isSingleReceiver: isSingleReceiver!, defaultEventPaymentMethod: defaultEventPaymentMethod, defaultEventPaymentCustomName: defaultEventPaymentCustomName, isAttending: nil, dataCategory: "attending", hasPaymentMethod: hasPaymentMethod, outstandingTransferAmt1: self.outstandingTransferAmt, pendingPayoutAmt1: pendingPayoutAmt2, totalGiftedAmt1: self.totalGiftedAmt, totalReceivedAmt1: totalGiftReceivedAmt, currency1: self.currency, paymentCustomerId1: paymentCustomerId!, paymentConnectedActId1: paymentConnectedActId!)
                 
                 
                 homescreeneventdata.append(dataCollection3)
@@ -294,11 +1378,19 @@ class HomeViewController: UIViewController, UITextFieldDelegate {
                 
                // print(" EVENTS ATTENDDING  \(dataCollection3)")
                 
-                let data = isAttendingModel(profileId: profileId!, eventId: eventId, category: "eventsAttending")
+                let data = isAttendingModel(profileId: profileId, eventId: eventId, category: "eventsAttending")
                 
                 isAttending.append(data)
                 
                 attendeeFlagWasSet = false
+                    
+                    print("eventIdsattendingmodel .count = \(eventIdsattendingmodel.count)")
+                for eventidattending in eventIdsattendingmodel {
+                    
+                    print("eventidattending = \(eventidattending )")
+                }
+                    
+                    
                 
                 }
             }
@@ -333,10 +1425,10 @@ class HomeViewController: UIViewController, UITextFieldDelegate {
             noActivityLabel.isHidden = true
         }
         
-        
+        //LoadingStop()
         tableView.delegate = self
-               tableView.dataSource = self
-               tableView.reloadData()
+        tableView.dataSource = self
+        tableView.reloadData()
         
         print("eventIdsattendingmodel.count = \(eventIdsattendingmodel.count)")
     }
@@ -351,7 +1443,7 @@ class HomeViewController: UIViewController, UITextFieldDelegate {
         
 
         if let indexPathA = tableView.indexPathForSelectedRow {
-            guard let destinationVC = segue.destination as? EventUpdateViewController else {return}
+            guard let destinationVC = segue.destination as? UpdateEventViewController else {return}
             let selectedRow = indexPathA.row
             destinationVC.eventName = homescreeneventdata[selectedRow].name!
             //destinationVC.eventName =  homescreeneventdata[indexPathA.section].eventProperty[selectedRow].name!
@@ -511,20 +1603,25 @@ class HomeViewController: UIViewController, UITextFieldDelegate {
      let indexPathE = self.tableView.indexPathForRow(at: buttonPosition2)
      if indexPathE != nil {
 
-         
-         let theEventName = homescreeneventdata[indexPathE!.row].name!
-        let theEventId = homescreeneventdata[indexPathE!.row].eventId
-        
+        //hold for now 1/22/21
+//        let theEventName = homescreeneventdata[indexPathE!.row].name!
+//        let theEventId = homescreeneventdata[indexPathE!.row].eventId
+//
 
         //print("The event name \(theEventName)")
-         let selectRSVPVC = self.storyboard?.instantiateViewController(withIdentifier: "EventSettingViewController") as! EventSettingViewController
-         self.navigationController?.pushViewController(selectRSVPVC , animated: true)
+//         let selectRSVPVC = self.storyboard?.instantiateViewController(withIdentifier: "EventSettingViewController") as! EventSettingViewController
+//         self.navigationController?.pushViewController(selectRSVPVC , animated: true)
+//
+        let selectRSVPVC = self.storyboard?.instantiateViewController(withIdentifier: "RSVPViewController") as! RSVPViewController
+        self.navigationController?.pushViewController(selectRSVPVC , animated: true)
+       
         
-        selectRSVPVC.eventId = theEventId
-        selectRSVPVC.eventName = theEventName
-        selectRSVPVC.token = token!
-        selectRSVPVC.paymentClientToken =  paymentClientToken
-        selectRSVPVC.profileId = profileId!
+        //hold for now 1/22/21
+//        selectRSVPVC.eventId = theEventId
+//        selectRSVPVC.eventName = theEventName
+//        selectRSVPVC.token = token!
+//        selectRSVPVC.paymentClientToken =  paymentClientToken
+//        selectRSVPVC.profileId = profileId!
 
      }
     }
@@ -637,6 +1734,47 @@ extension HomeViewController: UITableViewDataSource, UITableViewDelegate {
     
     func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
         
+   
+        
+        if homescreeneventdata[indexPath.row].dataCategory == "info" {
+            
+            
+            let cell0 = tableView.dequeueReusableCell(withIdentifier: InfoBoardTableViewCell.identifier, for: indexPath) as! InfoBoardTableViewCell
+            //let cell = tableView.dequeueReusableCell(withIdentifier: TableViewCell3.identifier) as! TableViewCell3
+            
+//            let eventNameCellData = homescreeneventdata[indexPath.row].name!
+//            let eventAddressCellData = homescreeneventdata[indexPath.row].address1! + " " + homescreeneventdata[indexPath.row].address2!
+//            //let eventDateTimeCellData = homescreeneventdata[indexPath.section].eventProperty[indexPath.row].dateTime!
+//            let eventDateTimeCellData = homescreeneventdata[indexPath.row].dateTime!
+//
+//           let eventCityStateZipCountryCellData = homescreeneventdata[indexPath.row].city! + ", " + homescreeneventdata[indexPath.row].state! + " " + homescreeneventdata[indexPath.row].zipCode! + " " +
+//               homescreeneventdata[indexPath.row].country!
+//
+//            let eventCodeCellData = homescreeneventdata[indexPath.row].eventCode!
+//
+//            let isActiveFlagCellData = homescreeneventdata[indexPath.row].isActive
+//
+//            let eventImageCellData = eventTypeIcon.getEventTypeIcon(eventTypeId: homescreeneventdata[indexPath.row].eventType!)
+//            let eventIdData = homescreeneventdata[indexPath.row].eventId
+//            let profileIdData = profileId
+//            let ownerIdData = homescreeneventdata[indexPath.row].ownerId
+//            let tokenData = token
+//            let paymentClientTokenData = paymentClientToken
+//            let isRsvprequiredCellData = homescreeneventdata[indexPath.row].isRsvprequired
+//            let isSingleReceiverCellData = homescreeneventdata[indexPath.row].isSingleReceiver
+//            let defaultEventPaymentMethodCellData = homescreeneventdata[indexPath.row].defaultEventPaymentMethod
+//            let defaultEventPaymentCustomNameCellData = homescreeneventdata[indexPath.row].defaultEventPaymentCustomName
+//
+            print("homescreeneventdata[indexPath.row].pendingPayoutAmt1 \(homescreeneventdata[indexPath.row].pendingPayoutAmt1)")
+            cell0.configure(with: homescreeneventdata[indexPath.row].outstandingTransferAmt1, pendingPayoutAmt: homescreeneventdata[indexPath.row].pendingPayoutAmt1, totalGiftedAmt: homescreeneventdata[indexPath.row].totalGiftedAmt1, totalReceivedAmt: homescreeneventdata[indexPath.row].totalReceivedAmt1, currency: homescreeneventdata[indexPath.row].currency1, paymentCustomerId: homescreeneventdata[indexPath.row].paymentCustomerId1, paymentConnectedActId:
+                homescreeneventdata[indexPath.row].paymentConnectedActId1)
+            //cell0.configure(with: <#T##String#>, pendingPayoutAmt: <#T##String#>, totalGiftedAmt: <#T##String#>, totalReceivedAmt: <#T##String#>)
+//
+            cell0.customCellDelegate = self
+            return cell0
+        }
+        
+        
         if homescreeneventdata[indexPath.row].dataCategory == "owned" {
              let cell2 = tableView.dequeueReusableCell(withIdentifier: MyEventsTableViewCell.identifier, for: indexPath) as! MyEventsTableViewCell
             //if homescreeneventdata[indexPath.row].dataCategory! == "owned" {
@@ -659,9 +1797,10 @@ extension HomeViewController: UITableViewDataSource, UITableViewDelegate {
             let isActiveFlagCellData = homescreeneventdata[indexPath.row].isActive
             let eventImageCellData = eventTypeIcon.getEventTypeIcon(eventTypeId: homescreeneventdata[indexPath.row].eventType!)
             let eventIdData = homescreeneventdata[indexPath.row].eventId
-            let profileIdData = profileId!
+            let profileIdData = profileId
             let ownerIdData = homescreeneventdata[indexPath.row].ownerId
             let tokenData = token!
+            let apiKeyData = encryptedAPIKey
             
             let address1Data = homescreeneventdata[indexPath.row].address1!
             let address2Data = homescreeneventdata[indexPath.row].address2!
@@ -671,73 +1810,27 @@ extension HomeViewController: UITableViewDataSource, UITableViewDelegate {
             let countryData = homescreeneventdata[indexPath.row].country
             let eventStateData = homescreeneventdata[indexPath.row].eventState
             let eventTypeData =  homescreeneventdata[indexPath.row].eventType
+            let isRsvprequiredCellData = homescreeneventdata[indexPath.row].isRsvprequired
+            let isSingleReceiverCellData = homescreeneventdata[indexPath.row].isSingleReceiver
+            let defaultEventPaymentMethodCellData = homescreeneventdata[indexPath.row].defaultEventPaymentMethod
+            let defaultEventPaymentCustomNameCellData = homescreeneventdata[indexPath.row].defaultEventPaymentCustomName
             
             let paymentClientTokenData = paymentClientToken
+            
+            var defaultEventPaymentCustomName: String = ""
+            if let custName = defaultEventPaymentCustomNameCellData  {
+                defaultEventPaymentCustomName = custName
+            } else {
+                defaultEventPaymentCustomName = ""
+            }
     
 //            cell2.configure(with: eventNameCellData, eventAddress: eventAddressCellData, eventDateTime: eventDateTimeCellData, eventCityStateZipCountry: eventCityStateZipCountryCellData, eventCode: eventCodeCellData, isActiveFlag: isActiveFlagCellData, imageName: eventImageCellData, eventId: eventIdData, profileId: profileIdData, ownerId: ownerIdData, token: tokenData, paymentClientToken: paymentClientTokenData, address1: address1Data, address2: address2Data, city: cityData, state: stateData, zipCode: zipCodeData, country: countryData, eventState: eventStateData, eventType: eventTypeData)
 //
-            cell2.configure(with: eventNameCellData, eventAddress: eventAddressCellData, eventDateTime: eventDateTimeCellData, eventCityStateZipCountry: eventCityStateZipCountryCellData, eventCode: eventCodeCellData, isActiveFlag: isActiveFlagCellData, imageName: eventImageCellData, eventId: eventIdData, profileId: profileIdData, ownerId: ownerIdData, token: tokenData, paymentClientToken: paymentClientTokenData, address1: address1Data, address2: address2Data, city: cityData, state: stateData!, zipCode: zipCodeData!, country: countryData!, eventState: eventStateData, eventType: eventTypeData!)
-            
-//                cell2.configure(with: eventNameCellData,
-//                                eventAddress: eventAddressCellData,
-//                                eventDateTime: eventDateTimeCellData,
-//                                eventCityStateZipCountry: eventCityStateZipCountryCellData,
-//                                eventCode: eventCodeCellData,
-//                                isActiveFlag: isActiveFlagCellData,
-//                                imageName: eventImageCellData,
-//                                eventId: eventIdData,
-//                                profileId: profileIdData,
-//                                ownerId: ownerIdData,
-//                                token: tokenData!,
-//                                paymentClientToken: paymentClientTokenData,
-//                                address1: address1Data,
-//                                address2: address2Data,
-//                                city: cityData,
-//                                state: stateData,
-//                                zipCode: zipCodeData,
-//                                country: countryData,
-//                                eventState: eventStateData,
-//                                eventType: eventTypeData)
-            
-//            cell2.configure(with: eventNameCellData,
-//                                  eventAddress: String,
-//                                  eventDateTime: String,
-//                                  eventCityStateZipCountry: String,
-//                                  eventCode: String,
-//                                  isActiveFlag: Bool,
-//                                  imageName: String,
-//                                  eventId: Int64,
-//                                  profileId: Int64,
-//                                  ownerId: Int64,
-//                                  token: String,
-//                                  paymentClientToken: String,
-//                                  address1: String,
-//                                  address2: String,
-//                                  city: String,
-//                                  state: String,
-//                                  zipCode: String,
-//                                  country: String,
-//                                  eventState: Int,
-//                                  eventType: String)
-                                
-                                
-            
-                
+            cell2.configure(with: eventNameCellData, eventAddress: eventAddressCellData, eventDateTime: eventDateTimeCellData, eventCityStateZipCountry: eventCityStateZipCountryCellData, eventCode: eventCodeCellData, isActiveFlag: isActiveFlagCellData, imageName: eventImageCellData, eventId: eventIdData, profileId: profileIdData, ownerId: ownerIdData, token: tokenData, ApiKey: apiKeyData, paymentClientToken: paymentClientTokenData, address1: address1Data, address2: address2Data, city: cityData, state: stateData!, zipCode: zipCodeData!, country: countryData!, eventState: eventStateData, eventType: eventTypeData!, eventType2: "", isRsvprequired: isRsvprequiredCellData, isSingleReceiver: isSingleReceiverCellData, defaultEventPaymentMethod: defaultEventPaymentMethodCellData!, defaultEventPaymentCustomName: defaultEventPaymentCustomName)
+
+
                 print("eventDateTimeCellData = \(eventDateTimeCellData)")
                 cell2.myEventsCustomCellDelegate = self
-//                cell2.layer.borderColor = UIColor.gray.cgColor
-//                cell2.layer.borderWidth = 3.0
-                //cell2.accessoryType = .disclosureIndicator
-    
-//                cell2.layer.borderWidth = 2.0
-//                cell2.layer.cornerRadius = 8.0
-//                cell2.layer.borderColor  = UIColor.lightGray.cgColor
-//                cell2.layer.masksToBounds = false
-//                cell2.layer.shadowColor = UIColor.lightGray.cgColor
-//                cell2.layer.shadowOffset = CGSize(width: 1, height: 1.0)
-//                cell2.layer.shadowRadius = 4.0
-//                cell2.layer.shadowOpacity  = 0.0
-//                cell2.layer.shadowPath = UIBezierPath(roundedRect: cell2.bounds, cornerRadius: cell2.contentView.layer.cornerRadius).cgPath
             
                 return cell2
     
@@ -748,8 +1841,11 @@ extension HomeViewController: UITableViewDataSource, UITableViewDelegate {
         let cell3 = tableView.dequeueReusableCell(withIdentifier: MyInvitationsTableViewCell.identifier, for: indexPath) as! MyInvitationsTableViewCell
         cell3.myInvitationCustomCellDelegate = self
         print("RICHARD my invitation")
+        
+
         //let cell = tableView.dequeueReusableCell(withIdentifier: TableViewCell3.identifier) as! TableViewCell3
         if eventIdsattendingmodel.count == 0 {
+            print("eventIdsattendingmodel.count = \(eventIdsattendingmodel.count)")
             let eventNameCellData = homescreeneventdata[indexPath.row].name!
             let eventAddressCellData = homescreeneventdata[indexPath.row].address1! + " " + homescreeneventdata[indexPath.row].address2!
             //let eventDateTimeCellData = homescreeneventdata[indexPath.section].eventProperty[indexPath.row].dateTime!
@@ -764,18 +1860,33 @@ extension HomeViewController: UITableViewDataSource, UITableViewDelegate {
             
             let eventImageCellData = eventTypeIcon.getEventTypeIcon(eventTypeId: homescreeneventdata[indexPath.row].eventType!)
             let eventIdData = homescreeneventdata[indexPath.row].eventId
-            let profileIdData = profileId!
+            let profileIdData = profileId
             let ownerIdData = homescreeneventdata[indexPath.row].ownerId
             let tokenData = token
+            let apiKeyData = encryptedAPIKey
             let paymentClientTokenData = paymentClientToken
-
-            cell3.configure(with: eventNameCellData, eventAddress: eventAddressCellData, eventDateTime: eventDateTimeCellData, eventCityStateZipCountry: eventCityStateZipCountryCellData, eventCode: eventCodeCellData, isActiveFlag: isActiveFlagCellData, imageName: eventImageCellData, eventId: eventIdData, profileId: profileIdData, ownerId: ownerIdData, token: tokenData!, paymentClientToken: paymentClientTokenData)
+            let eventTypeCellData = eventTypeIcon.getEventTypeIcon(eventTypeId: homescreeneventdata[indexPath.row].eventType!)
+            let isRsvprequiredCellData = homescreeneventdata[indexPath.row].isRsvprequired
+            let isSingleReceiverCellData = homescreeneventdata[indexPath.row].isSingleReceiver
+            let defaultEventPaymentMethodCellData = homescreeneventdata[indexPath.row].defaultEventPaymentMethod
+            let defaultEventPaymentCustomNameCellData = homescreeneventdata[indexPath.row].defaultEventPaymentCustomName
+            
+            var defaultEventPaymentCustomName: String = ""
+            if let custName = defaultEventPaymentCustomNameCellData  {
+                defaultEventPaymentCustomName = custName
+            } else {
+                defaultEventPaymentCustomName = ""
+            }
+            cell3.configure(with: eventNameCellData, eventAddress: eventAddressCellData, eventDateTime: eventDateTimeCellData, eventCityStateZipCountry: eventCityStateZipCountryCellData, eventCode: eventCodeCellData, isActiveFlag: isActiveFlagCellData, eventType: eventTypeCellData, imageName: eventImageCellData, eventId: eventIdData, profileId: profileIdData, ownerId: ownerIdData, token: tokenData!, ApiKey: apiKeyData, paymentClientToken: paymentClientTokenData, myProfileData: myProfileData, isRsvprequired: isRsvprequiredCellData, isSingleReceiver: isSingleReceiverCellData, defaultEventPaymentMethod: defaultEventPaymentMethodCellData!, defaultEventPaymentCustomName: defaultEventPaymentCustomName )
         } else {
             for eventidattending in eventIdsattendingmodel {
                 print("RICHARD my invitation eventidattending = \(eventidattending)")
                 //print("eventidattending = \(eventidattending)")
                 //print("eventId = \(homescreeneventdata[indexPath.section].eventProperty[indexPath.row].eventId)")
+                //cell3.detailTextLabel?.text = String(homescreeneventdata[indexPath.row].eventId)
                 if eventidattending != homescreeneventdata[indexPath.row].eventId {
+                    //cell3.textLabel?.text = String(homescreeneventdata[indexPath.row].eventId)
+                    //print("eventidattend = \(eventidattending) AND \(homescreeneventdata[indexPath.row].eventId)")
                     let eventNameCellData = homescreeneventdata[indexPath.row].name!
                     let eventAddressCellData = homescreeneventdata[indexPath.row].address1! + " " + homescreeneventdata[indexPath.row].address2!
                     //let eventDateTimeCellData = homescreeneventdata[indexPath.section].eventProperty[indexPath.row].dateTime!
@@ -790,27 +1901,30 @@ extension HomeViewController: UITableViewDataSource, UITableViewDelegate {
                     
                     let eventImageCellData = eventTypeIcon.getEventTypeIcon(eventTypeId: homescreeneventdata[indexPath.row].eventType!)
                     let eventIdData = homescreeneventdata[indexPath.row].eventId
-                    let profileIdData = profileId!
+                    let profileIdData = profileId
                     let ownerIdData = homescreeneventdata[indexPath.row].ownerId
                     let tokenData = token
+                    let apiKeyData = encryptedAPIKey
                     let paymentClientTokenData = paymentClientToken
-
-                    cell3.configure(with: eventNameCellData, eventAddress: eventAddressCellData, eventDateTime: eventDateTimeCellData, eventCityStateZipCountry: eventCityStateZipCountryCellData, eventCode: eventCodeCellData, isActiveFlag: isActiveFlagCellData, imageName: eventImageCellData, eventId: eventIdData, profileId: profileIdData, ownerId: ownerIdData, token: tokenData!, paymentClientToken: paymentClientTokenData)
+                    let eventTypeCellData = eventTypeIcon.getEventTypeIcon(eventTypeId: homescreeneventdata[indexPath.row].eventType!)
+                    let isRsvprequiredCellData = homescreeneventdata[indexPath.row].isRsvprequired
+                    let isSingleReceiverCellData = homescreeneventdata[indexPath.row].isSingleReceiver
+                    let defaultEventPaymentMethodCellData = homescreeneventdata[indexPath.row].defaultEventPaymentMethod
+                    let defaultEventPaymentCustomNameCellData = homescreeneventdata[indexPath.row].defaultEventPaymentCustomName
+                    
+                    var defaultEventPaymentCustomName: String = ""
+                    if let custName = defaultEventPaymentCustomNameCellData  {
+                        defaultEventPaymentCustomName = custName
+                    } else {
+                        defaultEventPaymentCustomName = ""
+                    }
+                    
+                    cell3.configure(with: eventNameCellData, eventAddress: eventAddressCellData, eventDateTime: eventDateTimeCellData, eventCityStateZipCountry: eventCityStateZipCountryCellData, eventCode: eventCodeCellData, isActiveFlag: isActiveFlagCellData, eventType:eventTypeCellData, imageName: eventImageCellData, eventId: eventIdData, profileId: profileIdData, ownerId: ownerIdData, token: tokenData!, ApiKey: apiKeyData, paymentClientToken: paymentClientTokenData, myProfileData: myProfileData, isRsvprequired: isRsvprequiredCellData, isSingleReceiver: isSingleReceiverCellData, defaultEventPaymentMethod: defaultEventPaymentMethodCellData!, defaultEventPaymentCustomName: defaultEventPaymentCustomName)
 
                 }
             }
         }
         
-        
-//        cell3.layer.borderWidth = 2.0
-//        cell3.layer.cornerRadius = 8.0
-//        cell3.layer.borderColor  = UIColor.lightGray.cgColor
-//        cell3.layer.masksToBounds = false
-//        cell3.layer.shadowColor = UIColor.lightGray.cgColor
-//        cell3.layer.shadowOffset = CGSize(width: 1, height: 1.0)
-//        cell3.layer.shadowRadius = 4.0
-//        cell3.layer.shadowOpacity  = 0.0
-//        cell3.layer.shadowPath = UIBezierPath(roundedRect: cell3.bounds, cornerRadius: cell3.contentView.layer.cornerRadius).cgPath
     
         return cell3
         
@@ -819,6 +1933,9 @@ extension HomeViewController: UITableViewDataSource, UITableViewDelegate {
                    
         
     if homescreeneventdata[indexPath.row].dataCategory == "attending" {
+        
+        print("event has payment method! \(homescreeneventdata[indexPath.row].hasPaymentMethod)")
+        
         var isAttendingEventIdCellData: Int = 0
         for eventidattending in eventIdsattendingmodel {
             if eventidattending == homescreeneventdata[indexPath.row].eventId {
@@ -827,10 +1944,10 @@ extension HomeViewController: UITableViewDataSource, UITableViewDelegate {
                 
         }
         
-        let cell = tableView.dequeueReusableCell(withIdentifier: TableViewCell3.identifier, for: indexPath) as! TableViewCell3
+        let cell = tableView.dequeueReusableCell(withIdentifier: MySprayEventTableViewCell.identifier, for: indexPath) as! MySprayEventTableViewCell
         //let cell = tableView.dequeueReusableCell(withIdentifier: TableViewCell3.identifier) as! TableViewCell3
     
-        let eventNameCellData = homescreeneventdata[indexPath.row].name!
+        let eventNameCellData =  String(homescreeneventdata[indexPath.row].name!)
         let eventAddressCellData = homescreeneventdata[indexPath.row].address1! + " " + homescreeneventdata[indexPath.row].address2!
         //let eventDateTimeCellData = homescreeneventdata[indexPath.section].eventProperty[indexPath.row].dateTime!
         let eventDateTimeCellData = convertDateFormatter(date: homescreeneventdata[indexPath.row].dateTime!)
@@ -846,27 +1963,30 @@ extension HomeViewController: UITableViewDataSource, UITableViewDelegate {
 
         let eventImageCellData =  eventTypeIcon.getEventTypeIcon(eventTypeId: homescreeneventdata[indexPath.row].eventType!)
         let eventIdData = homescreeneventdata[indexPath.row].eventId
-        let profileIdData = profileId!
+        let profileIdData = profileId
         let ownerIdData = homescreeneventdata[indexPath.row].ownerId
         let tokenData = token
+        let apiKeyData = encryptedAPIKey
         let paymentClientTokenData = paymentClientToken
-        print("paymentClientToken! \(paymentClientToken)")
-        cell.configure(with: eventNameCellData, eventAddress: eventAddressCellData, eventDateTime: eventDateTimeCellData, eventCityStateZipCountry: eventCityStateZipCountryCellData, eventCode: eventCodeCellData,isActiveFlag: isActiveFlagCellData, imageName: eventImageCellData, eventId: eventIdData, profileId: profileIdData, ownerId: ownerIdData, token: tokenData!, paymentClientToken: paymentClientTokenData, isAttendingEventId: Int64(isAttendingEventIdCellData))
+        let hasPaymentMethod = homescreeneventdata[indexPath.row].hasPaymentMethod
+        let eventTypeCellData =  eventTypeIcon.getEventTypeIcon(eventTypeId: homescreeneventdata[indexPath.row].eventType!)
+        
+        let isRsvprequiredCellData = homescreeneventdata[indexPath.row].isRsvprequired
+        let isSingleReceiverCellData = homescreeneventdata[indexPath.row].isSingleReceiver
+        let defaultEventPaymentMethodCellData = homescreeneventdata[indexPath.row].defaultEventPaymentMethod
+        let defaultEventPaymentCustomNameCellData = homescreeneventdata[indexPath.row].defaultEventPaymentCustomName
+        
+        var defaultEventPaymentCustomName: String = ""
+        if let custName = defaultEventPaymentCustomNameCellData  {
+            defaultEventPaymentCustomName = custName
+        } else {
+            defaultEventPaymentCustomName = ""
+        }
+        
+        cell.configure(with: eventNameCellData, eventAddress: eventAddressCellData, eventDateTime: eventDateTimeCellData, eventCityStateZipCountry: eventCityStateZipCountryCellData, eventCode: eventCodeCellData,isActiveFlag: isActiveFlagCellData, eventType: eventTypeCellData, imageName: eventImageCellData, eventId: eventIdData, profileId: profileIdData, ownerId: ownerIdData, token: tokenData!, ApiKey: apiKeyData, paymentClientToken: paymentClientTokenData, isAttendingEventId: Int64(isAttendingEventIdCellData),hasPaymentMethod: hasPaymentMethod,isRsvprequired: isRsvprequiredCellData, isSingleReceiver: isSingleReceiverCellData, defaultEventPaymentMethod: defaultEventPaymentMethodCellData!, defaultEventPaymentCustomName: defaultEventPaymentCustomName)
 
             cell.customCellDelegate = self
-            //cell.myInvitationCustomCellDelegate = self
-//            cell.layer.borderColor = UIColor.gray.cgColor
-//
-//            cell.layer.borderWidth = 2.0
-//            cell.layer.cornerRadius = 8.0
-//            cell.layer.borderColor  = UIColor.lightGray.cgColor
-//            cell.layer.masksToBounds = false
-//            cell.layer.shadowColor = UIColor.lightGray.cgColor
-//            cell.layer.shadowOffset = CGSize(width: 1, height: 1.0)
-//            cell.layer.shadowRadius = 4.0
-//            cell.layer.shadowOpacity  = 0.0
-//            cell.layer.shadowPath = UIBezierPath(roundedRect: cell.bounds, cornerRadius: cell.contentView.layer.cornerRadius).cgPath
-        
+
                 return cell
              }
         return UITableViewCell()
@@ -917,14 +2037,283 @@ extension HomeViewController: UITableViewDataSource, UITableViewDelegate {
 //            performSegue(withIdentifier: "goToEventEdit", sender: self)
 //        }
 //    }
+    func launchEventPaymentScreen(eventId2: Int64, eventName2: String, eventDateTime2: String, completionAction: String, eventTypeIcon: String, isPaymentMethodAvailable: Bool, hasPaymentMethod: Bool, isRsvprequired: Bool, isSingleReceiver: Bool, defaultEventPaymentMethod: Int, defaultEventPaymentCustomName: String) {
+        let nextVC = storyboard?.instantiateViewController(withIdentifier: "EventPaymentViewController") as! EventPaymentViewController
+        //hold for now 1/29/2021
+        nextVC.eventId = eventId2
+        nextVC.profileId = profileId
+        nextVC.token = token!
+        nextVC.encryptedAPIKey = encryptedAPIKey
+        nextVC.eventName = eventName2
+        nextVC.eventDateTime = eventDateTime2
+        nextVC.completionAction = completionAction
+        nextVC.eventTypeIcon = eventTypeIcon
+        nextVC.isPaymentMethodAvailable = isPaymentMethodAvailable
+        nextVC.refreshscreendelegate = self
+        nextVC.paymentClientToken = paymentClientToken
+        
+        print("my completionAction = \(completionAction)")
+                   
+        self.navigationController?.pushViewController(nextVC , animated: true)
+    }
     
+    func onboardCustomer() {
+        LoadingStart(message: "Loading...")
+        var myName: String = ""
+        var myLastName: String = ""
+        var myusername: String = ""
+        var myEmail: String = ""
+        var myPhone: String = ""
+        var myAvatar: String?
+        var myPaymentCustomerId: String?
+        var myPaymentConnectedActId: String?
+        var myReturnUrl: String = ""
+        var myRefreshUrl: String = ""
+ 
+        for myprofile in myProfileData {
+            myName = myprofile.firstName
+            myLastName = myprofile.lastName
+            myusername = myprofile.email
+            myEmail = myprofile.email
+            myPhone = myprofile.phone
+            myAvatar = myprofile.avatar
+            myPaymentCustomerId = myprofile.paymentCustomerId
+            myPaymentConnectedActId = myprofile.paymentConnectedActId
+            //failure something goes wrong
+            
+            print("myprofile.firstName \(myprofile.firstName)")
+            
+//            print("I am in scanner and my name is \(firstname )")
+//            print("I am in scanner and my name is \(lastname )")
+//            print("I am in scanner and my name is \(email)")
+//            print("I am in scanner and my name is \(phone)")
+        }
+        
+//       let profileData = ProfileAvatar(token: token, profileId: profileId, firstName: firstName, lastName: lastName, userName: email, email: email, phone: phone, avatar: avatar, success: true)
+
+        myReturnUrl = "https://projectxclientapp.azurewebsites.net/stripe/Index?profileid=\(profileId)&status=success&token=\(token!)"
+        myRefreshUrl = "https://projectxclientapp.azurewebsites.net/stripe/Index?profileid=\(profileId)&status=failed&token=\(token!)"
+        
+        let onboardingProfile = ProfileOnboarding(token: token, profileId: profileId, firstName: myName, lastName: myLastName, userName: myusername, email: myEmail, phone: myPhone, avatar: myAvatar, paymentCustomerId: myPaymentCustomerId, paymentConnectedActId: myPaymentConnectedActId, success: true, returnUrl: myReturnUrl, refreshUrl: myRefreshUrl)
+       
+        print("onboardingProfile =\(onboardingProfile)")
+        let request = PostRequest(path: "/api/profile/addaccount", model: onboardingProfile, token: token!, apiKey: encryptedAPIKey, deviceId: "")
+        Network.shared.send(request) { [self] (result: Result<Data, Error>) in
+            switch result {
+            case .success(let urldata):
+                print("avatar \(urldata)")
+                print("SUCCESS")
+                
+                print(String(data: urldata, encoding: .utf8) ?? "*")
+                
+                let m = URL(string: String(data: urldata, encoding: .utf8) ?? "*")
+                print("m \(m)")
+                //print(URL(string: data: urldata, encoding: .utf8) ?? "*"))
+                let redirectUrl = String(data: urldata, encoding: .utf8) ?? "*"
+                
+                print("redirectUrl before \(redirectUrl)")
+                
+                
+//                let s = String(redirectUrl)
+//                let delCharSet = NSCharacterSet(charactersIn: " ")
+
+                let redirectURL2 = redirectUrl.replacingOccurrences(of: " ", with: "", options: NSString.CompareOptions.literal, range:nil)
+                
+                //s.replacingOccurrences(of: " ", with: "")
+               // let fileUrl = URL.init(fileURLWithPath: redirectUrl)
+              
+                let jsonData = redirectURL2.data(using: .utf8)!
+                let connectedaccount: ConnectedAccount = try! JSONDecoder().decode(ConnectedAccount.self, from: jsonData)
+                
+                print("MY URL IS \(connectedaccount.url!)")
+                print("IS ACCOUNT CONNECTED \(connectedaccount.isAccountConnected)")
+//                if let jsonData = try? JSONSerialization.data(withJSONObject: redirectURL2, options: JSONSerialization.WritingOptions.prettyPrinted)
+//                {
+//                    do {
+//                        let foo = try JSONDecoder().decode(Foo.self, from: jsonData)
+//                        print("MY BI URL IS ", foo.url)
+//                    } catch {
+//                        print("ERROR:", error)
+//                    }
+//                }
+                
+               
+                print("redirectURL2 \(redirectURL2)")
+                //let url = URL(string: redirectUrl)
+                if connectedaccount.isAccountConnected == false {
+                    launcWebView(urlstring: connectedaccount.url!)
+                    LoadingStop()
+                } else  {
+                    LoadingStop()
+                }
+                
+//                let url = redirectUrl
+//                let urlStr : String = url.addingPercentEncoding(withAllowedCharacters: .urlQueryAllowed)!
+//                let convertedURL : URL = URL(string: urlStr)!
+//                //let convertedURL2 : URL = URL(string: redirectUrl)!
+//                
+//               // print("convertedUR2L \(convertedURL2)")
+//                
+//                print("this is the URL = \(convertedURL)")
+                //launcWebView(urlstring: redirectUrl)
+               
+                //StripeAccountOnboardingViewController
+                
+//                let decoder = JSONDecoder()
+//                do {
+//                    let urlJson: OnboardingUrl = try decoder.decode(OnboardingUrl.self, from: urldata)
+//                    //for url in urlJson {
+//                        //           url.redirectUrl
+//                        print("MY URL = \( urlJson.redirectUrl)")
+//                    //}
+//
+//                } catch {
+//                    print(error)
+//                }
+                break
+
+            case .failure(let error):
+            print(" DOMINIC H IGHEDOSA 1 ERROR \(error.localizedDescription)")
+                LoadingStop()
+            }
+        }
+    }
+    
+    func launcWebView(urlstring: String){
+        //let url =  URL(string: urlstring)
+//        let convertedURL : URL = URL(string: String(urlstring))!
+//        print(convertedURL.absoluteURL)
+        
+        let nextVC = self.storyboard?.instantiateViewController(withIdentifier: "StripeAccountOnboardingViewController") as! StripeAccountOnboardingViewController
+        nextVC.urlRedirect = urlstring
+        nextVC.token = token!
+        nextVC.encryptedAPIKey = encryptedAPIKey
+        nextVC.paymentClientToken = paymentClientToken
+        nextVC.profileId = profileId
+        nextVC.refreshscreendelegate = self
+        nextVC.myProfileData = myProfileData
+        self.navigationController?.pushViewController(nextVC, animated: true)
+    }
+  
+    
+    func callSprayScreen(eventId: Int64, eventName: String, eventDateTime: String, eventOwnerId: Int64, completionAction: String, eventTypeIcon: String, paymentMethodAvailable: Bool, eventHasPaymentMethod: Bool, isRsvprequired: Bool, isSingleReceiver: Bool, paymentMethodId: Int, paymentCustomName: String) {
+        let nextVC = storyboard?.instantiateViewController(withIdentifier: "GoSprayViewController") as! GoSprayViewController
+
+        print("callSprayScreen was called paymentMethodAvailable = \(paymentMethodAvailable)")
+        
+        print("eventOwnerid B from Call Spray Screen= \(eventOwnerId)")
+        
+        var receiverName: String = ""
+        if isSingleReceiver == true {
+            receiverName = eventName
+        } else {
+            receiverName = ""
+        }
+        
+        nextVC.eventId = eventId
+        nextVC.profileId = profileId
+        nextVC.token = token!
+        nextVC.encryptedAPIKey = encryptedAPIKey
+        nextVC.completionAction = completionAction //"callspraycandidate"
+        nextVC.isPaymentMethodAvailable = isPaymentMethodGeneralAvailable
+        nextVC.receiverName = receiverName
+        nextVC.isSingleReceiverEvent = isSingleReceiver
+        nextVC.hasPaymentMethodEvent = eventHasPaymentMethod
+        nextVC.isRsvprequired = isRsvprequired
+        nextVC.defaultEventPaymentMethod = paymentMethodId
+        nextVC.defaultEventPaymentCustomName = paymentCustomName
+        nextVC.refreshscreendelegate = self
+        nextVC.paymentClientToken = paymentClientToken
+        nextVC.processspraytrandelegate = self
+        nextVC.haspaymentdelegate = self
+        nextVC.eventOwnerProfileId = eventOwnerId
+
+        self.navigationController?.pushViewController(nextVC , animated: true)
+    }
+    
+    func addEventPrefPayment(eventId: Int64, eventName: String, eventDateTime: String, eventOwnerId: Int64, completionAction: String, eventTypeIcon: String, paymentMethodAvailable: Bool, eventHasPaymentMethod: Bool, isRsvprequired: Bool, isSingleReceiver: Bool, paymentMethodId: Int, paymentCustomName: String, generalPaymentMethodId: Int) {
+        
+        //self.launchSprayCandidate()
+        
+        let updatedPaymentMethodId = generalPaymentMethodId //getPaymenthMethodId(customName: paymentCustonName)
+        let updatedGiftAmount = 10
+        let updatedAutoReplenishFlag = false
+        let updatedAutoReplenishAmount: Int = 0
+        let currencyCode: String = "usd"
+        
+        let addEventPreference = EventPreference(eventId: eventId, profileId: profileId, paymentMethod: Int(updatedPaymentMethodId), maxSprayAmount: updatedGiftAmount, replenishAmount: updatedAutoReplenishAmount, notificationAmount:  0, isAutoReplenish: updatedAutoReplenishFlag, currency: currencyCode)
+
+        print("ADD EVENT PREFERENCE \(addEventPreference)")
+//        updategfitamountdelegate?.sendLatestGiftAmount(latestGiftAmount: updatedGiftAmount, latestIsAutoReplenishFlag: updatedAutoReplenishFlag, latestAutoReplenishAmount: updatedAutoReplenishAmount)
+        //closeScreen()
+        
+        //hold 2/13 - for now...
+        let request = PostRequest(path: "/api/Event/addprefs", model: addEventPreference, token: token!, apiKey: encryptedAPIKey, deviceId: "")
+        Network.shared.send(request) { [self] (result: Result<Data, Error>)  in
+            switch result {
+            case .success(let eventpref): print(eventpref);
+                
+                callSprayScreen(eventId: eventId, eventName: eventName, eventDateTime: eventDateTime, eventOwnerId: eventOwnerId, completionAction: "gotospray", eventTypeIcon: eventTypeIcon, paymentMethodAvailable: false, eventHasPaymentMethod: eventHasPaymentMethod, isRsvprequired: isRsvprequired, isSingleReceiver: isSingleReceiver, paymentMethodId: paymentMethodId, paymentCustomName: paymentCustomName)
+                
+                //call launch spray candidate - in the future i will add logic here to
+                //only launch if not street performer, waiter, or band
+//                if self.completionAction == "allreceiver" {
+//
+//                    self.giftBalanceLbl.text = String(updatedGiftAmount)
+//                    self.sprayAmount = updatedGiftAmount
+//                    self.receiverName = ""
+//                    self.launchSprayCandidate()
+//                } else {
+//                    //change the name to the real person when you get it 2/27
+//                    self.giftReceiverNameLbl.text = self.eventOwnerName
+//                    print("updatedGiftAmount \(updatedGiftAmount)")
+//                    self.giftBalanceLbl.text = String(updatedGiftAmount)
+//                    self.sprayAmount = updatedGiftAmount
+//                    self.receiverName = self.eventOwnerName
+//                    //self.launchSprayCandidate()
+//                }
+                
+                break
+            case .failure(let error):
+            print(error.localizedDescription)
+            }
+        }
+    }
+   
 }
 
 
 extension HomeViewController:  MyCustomCellDelegator  {
-    func callSegueFromCell(eventName: String, eventDateTime: String, eventCode: String, isActiveFlag: Bool, eventId: Int64, profileId: Int64, ownerId: Int64, token: String, paymentClientToken: String, screenIdentifier: String, isAttendingEventId: Int64, eventTypeIcon: String) {
+    func infoBoard(completionAction: String) {
+        if completionAction == "createevent" {
+            let nextVC = storyboard?.instantiateViewController(withIdentifier: "CreateEventViewController") as! CreateEventViewController
+            nextVC.profileId = profileId
+            nextVC.token = token!
+            nextVC.encryptedAPIKey = encryptedAPIKey
+            nextVC.refreshscreendelegate = self
+            self.navigationController?.pushViewController(nextVC , animated: true)
+        } else if completionAction == "joinevent" {
+            let nextVC = storyboard?.instantiateViewController(withIdentifier: "ScannerViewController") as! ScannerViewController
+            
+            nextVC.completionAction = "postloginscan"
+            nextVC.profileId = profileId
+            nextVC.myProfileData = myProfileData
+            nextVC.token = token!
+            nextVC.encryptedAPIKey = encryptedAPIKey
+            
+            self.navigationController?.pushViewController(nextVC , animated: true)
+        } else if completionAction == "onboardcustomer" {
+            onboardCustomer()
+        }
+    }
+    
+    func callSegueFromCell(eventName: String, eventDateTime: String, eventCode: String, isActiveFlag: Bool, eventType: String, eventId: Int64, profileId: Int64, ownerId: Int64, token: String, ApiKey: String, paymentClientToken: String, screenIdentifier: String, isAttendingEventId: Int64, eventTypeIcon: String, hasPaymentMethod: Bool, isRsvprequired: Bool, isSingleReceiver: Bool, defaultEventPaymentMethod: Int, defaultEventPaymentCustomName: String) {
        
+        print("HAS PAYMENT METHOD = \(hasPaymentMethod)")
+        //set hasPaymentMethod to True for now 2/13
+        //let hasPaymentMethod = true
         
+        print("eventOwnerid A = \(ownerId)")
         if screenIdentifier == "ReadyToSpray" {
              
             //if user have not RSVP, then alert them and redirect them to Event Settings
@@ -938,29 +2327,118 @@ extension HomeViewController:  MyCustomCellDelegator  {
                 //{ action in self.performSegue(withIdentifier: "backToHome", sender: self) }))
                 self.present(alert, animated: true, completion: nil)
             } else {
-                let nextVC = storyboard?.instantiateViewController(withIdentifier: "SelectAttendeeToSprayViewController") as! SelectAttendeeToSprayViewController
-                           
-                    nextVC.eventName = eventName
-                    nextVC.eventDateTime = eventDateTime
-                    nextVC.eventCode = eventCode
-                    nextVC.eventId = eventId
-                    nextVC.profileId = profileId
-                    nextVC.token = token
-                    nextVC.eventTypeIcon = eventTypeIcon
-                    nextVC.paymentClientToken = paymentClientToken
-                           
-                self.navigationController?.pushViewController(nextVC , animated: true)
+                print("isPaymentMethodGeneralAvailable = \(isPaymentMethodGeneralAvailable)")
+               // print("isPaymentMethodOnFile = \(isPaymentMethodOnFile)")
+                print("hasPaymentMethod = \(hasPaymentMethod)")
+                if  isPaymentMethodGeneralAvailable == false && defaultEventPaymentMethod == 0 {
+                    let alert2 = UIAlertController(title: "Need Payment Method", message: "You currently do not have a Payment Method selected for this Event. A Payment Metheod is required to participate in the fun of Spraying. Would you like to add a Payment Method?", preferredStyle: .alert)
+
+                    //alert2.addAction(UIAlertAction(title: "Yes, Let's Do It", style: .default, handler: nil))
+                    //commented out temporarily 3/31/21 - will revisit
+//                    alert2.addAction(UIAlertAction(title: "Yes, Let's Do It", style: .default, handler: { [self] (action) in self.launchEventPaymentScreen(eventId2: eventId, eventName2: eventName, eventDateTime2: eventDateTime, completionAction: "gotospray", eventTypeIcon: eventTypeIcon, isPaymentMethodAvailable: false, hasPaymentMethod: hasPaymentMethod, isRsvprequired: isRsvprequired, isSingleReceiver: isSingleReceiver, defaultEventPaymentMethod: defaultEventPaymentMethod, defaultEventPaymentCustomName: defaultEventPaymentCustomName)}))
+                    
+                    alert2.addAction(UIAlertAction(title: "Yes, Let's Do It", style: .default, handler: { [self] (action) in self.callSprayScreen(eventId: eventId, eventName: eventName, eventDateTime: eventDateTime, eventOwnerId: ownerId, completionAction: "gotostripe", eventTypeIcon: eventTypeIcon, paymentMethodAvailable: false, eventHasPaymentMethod: hasPaymentMethod, isRsvprequired: isRsvprequired, isSingleReceiver: isSingleReceiver, paymentMethodId: defaultEventPaymentMethod, paymentCustomName: defaultEventPaymentCustomName)}))
+                    
+                    
+                    
+                    alert2.addAction(UIAlertAction(title: "No, Not Yet", style: .cancel, handler: nil))
+                 
+                    self.present(alert2, animated: true)
+                } else if isPaymentMethodGeneralAvailable == false && defaultEventPaymentMethod > 0 {
+                    //set default
+                    callSprayScreen(eventId: eventId, eventName: eventName, eventDateTime: eventDateTime, eventOwnerId: ownerId, completionAction: "gotospray", eventTypeIcon: eventTypeIcon, paymentMethodAvailable: false, eventHasPaymentMethod: hasPaymentMethod, isRsvprequired: isRsvprequired, isSingleReceiver: isSingleReceiver, paymentMethodId: defaultEventPaymentMethod, paymentCustomName: defaultEventPaymentCustomName)
+                    
+                    //3/19 not using this right now
+//                    let alert2 = UIAlertController(title: "Select Payment Method", message: "We found one or more Payment Methods on file. Please select the Payment Method to use for this Event.", preferredStyle: .alert)
+//
+//                    //alert2.addAction(UIAlertAction(title: "Yes, Let's Do It", style: .default, handler: nil))
+//                    alert2.addAction(UIAlertAction(title: "Select Payment Method", style: .default, handler: { [self] (action) in self.launchEventPaymentScreen(eventId2: eventId, eventName2: eventName, eventDateTime2: eventDateTime, completionAction: "gotospray", eventTypeIcon: eventTypeIcon, isPaymentMethodAvailable: true, hasPaymentMethod: hasPaymentMethod, isRsvprequired: isRsvprequired, isSingleReceiver: isSingleReceiver, defaultEventPaymentMethod: defaultEventPaymentMethod, defaultEventPaymentCustomName: defaultEventPaymentCustomName)}))
+//                    alert2.addAction(UIAlertAction(title: "Not Ready, Go Back Home", style: .cancel, handler: nil))
+//
+//                    self.present(alert2, animated: true)
+                } else if isPaymentMethodGeneralAvailable == true || defaultEventPaymentMethod > 0 {
+                   /*if no payment method for event, then use default payment method
+                     add default spray amount$15 - then call go to spray
+                     
+                     the if generalPaymentMethodId == 0 should never happen because if paymentavailble = true, there
+                     must be a payment method Id - for now, we're going to add this here to capture this unrealistic scenaria. remove after we have clean data 3/19/2021
+                     */
+                    if defaultEventPaymentMethod > 0 {
+                        callSprayScreen(eventId: eventId, eventName: eventName, eventDateTime: eventDateTime, eventOwnerId: ownerId, completionAction: "gotospray", eventTypeIcon: eventTypeIcon, paymentMethodAvailable: false, eventHasPaymentMethod: hasPaymentMethod, isRsvprequired: isRsvprequired, isSingleReceiver: isSingleReceiver, paymentMethodId: defaultEventPaymentMethod, paymentCustomName: defaultEventPaymentCustomName)
+                    } else if generalPaymentMethodId == 0 {
+                        
+                        let alert2 = UIAlertController(title: "Need Payment Method", message: "You currently do not have a Payment Method selected for this Event. A Payment Metheod is required to participate in the fun of Spraying. Would you like to add a Payment Method?", preferredStyle: .alert)
+
+                        //alert2.addAction(UIAlertAction(title: "Yes, Let's Do It", style: .default, handler: nil))
+                        //hold on to this piece of code 3/31/21 will revisit in the future
+//                        alert2.addAction(UIAlertAction(title: "Yes, Let's Do It", style: .default, handler: { [self] (action) in self.launchEventPaymentScreen(eventId2: eventId, eventName2: eventName, eventDateTime2: eventDateTime, completionAction: "gotospray", eventTypeIcon: eventTypeIcon, isPaymentMethodAvailable: false, hasPaymentMethod: hasPaymentMethod, isRsvprequired: isRsvprequired, isSingleReceiver: isSingleReceiver, defaultEventPaymentMethod: defaultEventPaymentMethod, defaultEventPaymentCustomName: defaultEventPaymentCustomName)}))
+                        
+                        alert2.addAction(UIAlertAction(title: "Yes, Let's Do It", style: .default, handler: { [self] (action) in  self.callSprayScreen(eventId: eventId, eventName: eventName, eventDateTime: eventDateTime, eventOwnerId: ownerId, completionAction: "gotostripe", eventTypeIcon: eventTypeIcon, paymentMethodAvailable: false, eventHasPaymentMethod: hasPaymentMethod, isRsvprequired: isRsvprequired, isSingleReceiver: isSingleReceiver, paymentMethodId: defaultEventPaymentMethod, paymentCustomName: defaultEventPaymentCustomName)}))
+                      
+                        alert2.addAction(UIAlertAction(title: "No, Not Yet", style: .cancel, handler: nil))
+                     
+                        self.present(alert2, animated: true)
+                    } else if defaultEventPaymentMethod == 0 {
+                        addEventPrefPayment(eventId: eventId, eventName: eventName, eventDateTime: eventDateTime, eventOwnerId: ownerId, completionAction: "gotospray", eventTypeIcon: eventTypeIcon, paymentMethodAvailable: isPaymentMethodGeneralAvailable, eventHasPaymentMethod: false, isRsvprequired: isRsvprequired, isSingleReceiver: isSingleReceiver, paymentMethodId: generalPaymentMethodId, paymentCustomName: generalDefaultPaymentCustomName, generalPaymentMethodId: generalPaymentMethodId)
+                        
+                    }
+                
+                } else {
+                    //if any of these single receiver event, then....
+//                    if eventTypeIcon == "entertainer" || eventTypeIcon  == "waiter" || eventTypeIcon  == "bandicon" || eventTypeIcon  == "concerticon" {
+//
+//                        completionAction = "singlereceiver"
+//                    } else {
+                    //completionAction = "allreceiver"
+                    //}
+                    
+                    var paymentMethodAvailable: Bool = false
+                    if hasPaymentMethod == true || isPaymentMethodGeneralAvailable == true {
+                        paymentMethodAvailable = true
+                    }
+                    
+                    //call spray screen
+//                    callSprayScreen(eventId: eventId, eventName: eventName, eventDateTime: eventDateTime, completionAction: "gotospray", eventTypeIcon: eventTypeIcon, paymentMethodAvailable: paymentMethodAvailable, hasPaymentMethod: hasPaymentMethod, isRsvprequired: isRsvprequired, isSingleReceiver: isSingleReceiver, defaultEventPaymentMethod: defaultEventPaymentMethod, defaultEventPaymentCustomName: defaultEventPaymentCustomName)
+                    
+                    callSprayScreen(eventId: eventId, eventName: eventName, eventDateTime: eventDateTime, eventOwnerId: ownerId, completionAction: "gotospray", eventTypeIcon: eventTypeIcon, paymentMethodAvailable: false, eventHasPaymentMethod: hasPaymentMethod, isRsvprequired: isRsvprequired, isSingleReceiver: isSingleReceiver, paymentMethodId: defaultEventPaymentMethod, paymentCustomName: defaultEventPaymentCustomName)
+                    //call go to spray
+                }
+              
             }
-           
+            
         } else if  screenIdentifier == "EventSettings" {
             
             //let VC1 = self.storyboard!.instantiateViewController(withIdentifier: "EventSettingTableVC2") as! EventSettingTableViewController
             //let navController = UINavigationController(rootViewController: VC1) // Creating a navigation controller with VC1 at the root of the navigation stack.
             //self.present(navController, animated:true, completion: nil)
             
-            let nextVC = storyboard?.instantiateViewController(withIdentifier: "EventContainer") as! EventSettingContainerViewController
-            nextVC.selectionDelegate = self
+            //hold for later 1/23/21
+//            let nextVC = storyboard?.instantiateViewController(withIdentifier: "EventContainer") as! EventSettingContainerViewController
+//            nextVC.selectionDelegate = self
+//            nextVC.refreshscreendelegate = self
+            
+            let nextVC = storyboard?.instantiateViewController(withIdentifier: "EventPaymentViewController") as! EventPaymentViewController
+            
+            nextVC.eventName = eventName
+            nextVC.eventDateTime = eventDateTime
+            //nextVC.eventCode = eventCode
+            nextVC.eventId = eventId
+            nextVC.profileId = profileId
+            nextVC.completionAction = "editpayment"
+            //nextVC.ownerId = ownerId
+            nextVC.token = token
+            nextVC.encryptedAPIKey = ApiKey
+            nextVC.paymentClientToken  =  paymentClientToken
+            //nextVC.ownerId = 31
+//            nextVC.isAttendingEventId = isAttendingEventId
+//            nextVC.screenIdentifier = screenIdentifier
+            nextVC.eventTypeIcon = eventTypeIcon
             nextVC.refreshscreendelegate = self
+            
+//            nextVC.selectionDelegate = self
+//            nextVC.refreshscreendelegate = self
+            
+            
 //            let viewControllerB = EventSettingTableViewController()
 //            viewControllerB.myDelegate = self
 //            viewControllerB.eventName = "Dominc Ighedosa"
@@ -985,18 +2463,19 @@ extension HomeViewController:  MyCustomCellDelegator  {
 //                   self.present(balanceViewController, animated: true, completion: nil)
 //
             
-            nextVC.eventName = eventName
-            nextVC.eventDateTime = eventDateTime
-            nextVC.eventCode = eventCode
-            nextVC.eventId = eventId
-            nextVC.profileId = profileId
-            nextVC.ownerId = ownerId
-            nextVC.token = token
-            nextVC.paymentClientToken  =  paymentClientToken
-            //nextVC.ownerId = 31
-            nextVC.isAttendingEventId = isAttendingEventId
-            nextVC.screenIdentifier = screenIdentifier
-            nextVC.eventTypeIcon = eventTypeIcon
+            //hold for later 1/23/21
+//            nextVC.eventName = eventName
+//            nextVC.eventDateTime = eventDateTime
+//            nextVC.eventCode = eventCode
+//            nextVC.eventId = eventId
+//            nextVC.profileId = profileId
+//            nextVC.ownerId = ownerId
+//            nextVC.token = token
+//            nextVC.paymentClientToken  =  paymentClientToken
+//            //nextVC.ownerId = 31
+//            nextVC.isAttendingEventId = isAttendingEventId
+//            nextVC.screenIdentifier = screenIdentifier
+//            nextVC.eventTypeIcon = eventTypeIcon
             
            self.navigationController?.pushViewController(nextVC , animated: true)
         } else if  screenIdentifier == "EventMetrics" {
@@ -1011,6 +2490,7 @@ extension HomeViewController:  MyCustomCellDelegator  {
             nextVC.profileId = profileId
             nextVC.ownerId = ownerId
             nextVC.token = token
+            nextVC.encryptedAPIKey = ApiKey
             nextVC.paymentClientToken  =  paymentClientToken
             //nextVC.ownerId = 31
 //            nextVC.isAttendingEventId = isAttendingEventId
@@ -1026,10 +2506,12 @@ extension HomeViewController:  MyCustomCellDelegator  {
             nextVC.eventCode = eventCode
             nextVC.eventDate = eventDateTime
             nextVC.eventTypeIcon = eventTypeIcon
+            nextVC.eventType = eventType
             nextVC.eventId = eventId
             nextVC.profileId = profileId
             nextVC.ownerId = ownerId
             nextVC.token = token
+            nextVC.encryptedAPIKey = ApiKey
             nextVC.paymentClientToken  =  paymentClientToken
             //nextVC.ownerId = 31
 //            nextVC.isAttendingEventId = isAttendingEventId
@@ -1038,7 +2520,8 @@ extension HomeViewController:  MyCustomCellDelegator  {
 //
              self.navigationController?.pushViewController(nextVC , animated: true)
         }
-
+        
+        //navigationController!.removeViewController(HomeViewController.self)
     }
 
 }
@@ -1046,14 +2529,15 @@ extension HomeViewController:  MyCustomCellDelegator  {
 
 
 extension HomeViewController:  MyInvitationCustomCellDelegate  {
-    func callEventSettingFromCell(eventName: String, eventDateTime: String, eventCode: String, isActiveFlag: Bool, eventId: Int64, profileId: Int64, ownerId: Int64, token: String, paymentClientToken: String, screenIdentifier: String, eventTypeIcon: String) {
+    func callEventSettingFromCell(eventName: String, eventDateTime: String, eventCode: String, isActiveFlag: Bool, eventType: String, eventId: Int64, profileId: Int64, ownerId: Int64, token: String, ApiKey: String, paymentClientToken: String, screenIdentifier: String, eventTypeIcon: String, profileData: [MyProfile], isRsvprequired: Bool, isSingleReceiver: Bool, defaultEventPaymentMethod: Int, defaultEventPaymentCustomName: String) {
        // print("I am ready to seque ")
         
         if screenIdentifier == "RSVP" {
             
             //let nextVC = storyboard?.instantiateViewController(withIdentifier: "EventSettingTableVC") as! EventSettingTableViewController
-            let nextVC = storyboard?.instantiateViewController(withIdentifier: "EventContainer") as! EventSettingContainerViewController
-            
+            //hold for now 1/22/21
+            //let nextVC = storyboard?.instantiateViewController(withIdentifier: "EventContainer") as! EventSettingContainerViewController
+            let nextVC = storyboard?.instantiateViewController(withIdentifier: "RSVPViewController") as! RSVPViewController
 //            nextVC.eventName = eventName
 //            nextVC.eventId = eventId
 //            nextVC.profileId = profileId
@@ -1063,18 +2547,24 @@ extension HomeViewController:  MyInvitationCustomCellDelegate  {
 //            nextVC.screenIdentifier = screenIdentifier
 //            nextVC.eventTypeIcon = eventTypeIcon
             
+            //hold for now 1/22/21
             nextVC.eventName = eventName
             nextVC.eventDateTime = eventDateTime
-            nextVC.eventCode = eventCode
+//            nextVC.eventCode = eventCode
             nextVC.eventId = eventId
             nextVC.profileId = profileId
-            nextVC.ownerId = ownerId
+            nextVC.eventOwnerProfileId = ownerId
             nextVC.token = token
+            nextVC.encryptedAPIKey = ApiKey
             nextVC.paymentClientToken  =  paymentClientToken
-            //nextVC.ownerId = 31
-            nextVC.isAttendingEventId = 0
-            nextVC.screenIdentifier = screenIdentifier
+//            //nextVC.ownerId = 31
+//            nextVC.isAttendingEventId = 0
+//            nextVC.screenIdentifier = screenIdentifier
+            nextVC.isPaymentMethodAvailable = isPaymentMethodGeneralAvailable
+            nextVC.isPaymentMethodAvailableEvent = defaultEventPaymentMethod
             nextVC.eventTypeIcon = eventTypeIcon
+            nextVC.myProfileData = profileData
+            nextVC.refreshscreendelegate = self
             
             self.navigationController?.pushViewController(nextVC , animated: true)
         } else if  screenIdentifier == "QRCode" {
@@ -1086,11 +2576,14 @@ extension HomeViewController:  MyInvitationCustomCellDelegate  {
             nextVC.eventCode = eventCode
             nextVC.eventDate = eventDateTime
             nextVC.eventTypeIcon = eventTypeIcon
+            nextVC.eventType = eventType
             nextVC.eventId = eventId
             nextVC.profileId = profileId
             nextVC.ownerId = ownerId
             nextVC.token = token
+            nextVC.encryptedAPIKey = ApiKey
             nextVC.paymentClientToken  =  paymentClientToken
+            
             
             self.navigationController?.pushViewController(nextVC , animated: true)
         }
@@ -1100,7 +2593,7 @@ extension HomeViewController:  MyInvitationCustomCellDelegate  {
 }
 
 extension HomeViewController:   MyEventsCustomCellDelegate  {
-    func callInviteFriendsFromCell(eventName: String, eventDateTime: String, eventCode: String, isActiveFlag: Bool, eventId: Int64, profileId: Int64, ownerId: Int64, token: String, paymentClientToken: String, screenIdentifier: String, eventTypeIcon: String, address1: String, address2: String, city: String, state: String, zipCode: String, country: String, eventState: Int, eventType: Int) {
+    func callInviteFriendsFromCell(eventName: String, eventDateTime: String, eventCode: String, isActiveFlag: Bool,  eventId: Int64, profileId: Int64, ownerId: Int64, token: String, ApiKey: String, paymentClientToken: String, screenIdentifier: String, eventTypeIcon: String, address1: String, address2: String, city: String, state: String, zipCode: String, country: String, eventState: Int, eventType: Int, eventType2: String, isRsvprequired: Bool, isSingleReceiver: Bool, defaultEventPaymentMethod: Int, defaultEventPaymentCustomName: String) {
     
 //    }
 //
@@ -1124,9 +2617,9 @@ extension HomeViewController:   MyEventsCustomCellDelegate  {
             nextVC.eventCode = eventCode
             nextVC.profileId = profileId
             nextVC.token = token
+            nextVC.encryptedAPIKey = ApiKey
             nextVC.eventTypeIcon = eventTypeIcon
-            
-            //nextVC.paymentClientToken  =  paymentClientToken
+            nextVC.paymentClientToken  =  paymentClientToken
             
 
             self.navigationController?.pushViewController(nextVC , animated: true)
@@ -1140,16 +2633,18 @@ extension HomeViewController:   MyEventsCustomCellDelegate  {
             nextVC.eventCode = eventCode
             nextVC.eventDate = eventDateTime
             nextVC.eventTypeIcon = eventTypeIcon
+            nextVC.eventType = eventType2
             nextVC.eventId = eventId
             nextVC.profileId = profileId
             nextVC.ownerId = ownerId
             nextVC.token = token
+            nextVC.encryptedAPIKey = ApiKey
             nextVC.paymentClientToken  =  paymentClientToken
             
             self.navigationController?.pushViewController(nextVC , animated: true)
         } else if  screenIdentifier == "EditEvent" {
             
-            let nextVC = storyboard?.instantiateViewController(withIdentifier: "EventUpdateViewController") as! EventUpdateViewController
+            let nextVC = storyboard?.instantiateViewController(withIdentifier: "UpdateEventViewController") as! UpdateEventViewController
             
             nextVC.eventName = eventName
             nextVC.eventCode = eventCode
@@ -1159,6 +2654,8 @@ extension HomeViewController:   MyEventsCustomCellDelegate  {
             nextVC.profileId = profileId
             //nextVC.ownerId = ownerId
             nextVC.token = token
+            nextVC.encryptedAPIKey = ApiKey
+            nextVC.refreshscreendelegate = self
             
            
             //nextVC.paymentClientToken  =  paymentClientToken
@@ -1179,6 +2676,11 @@ extension HomeViewController:   MyEventsCustomCellDelegate  {
 //            var token: String?
             nextVC.isEventEdited = false
             //var refreshscreendelegate: RefreshScreenDelegate?
+            nextVC.isRSVPRequired = isRsvprequired
+            nextVC.isSingleReceiverEvent = isSingleReceiver
+            nextVC.refreshscreendelegate = self
+            nextVC.eventCurrentState = eventState
+            
             
             self.navigationController?.pushViewController(nextVC , animated: true)
             
@@ -1188,11 +2690,29 @@ extension HomeViewController:   MyEventsCustomCellDelegate  {
 
 }
 
+extension HomeViewController:  HasPaymentMethodDelegate {
+    func hasPaymentMethod(hasPaymentMethod: Bool, paymentMethodId: Int) {
+        isPaymentMethodGeneralAvailable = hasPaymentMethod
+        print("HasPaymentMethodDelegate was called isPaymentMethodGeneralAvailable  = \(isPaymentMethodGeneralAvailable )")
+        
+    }
+}
+
+extension HomeViewController:   ProcessSprayTransDelegate  {
+    func updateSprayTransaction(receiverProfileId: Int64, gifterProfileId: Int64, eventId: Int64, giftAmount: Int, hasPaymentMethod: Bool) {
+        if giftAmount > 0 {
+            print(" gift amount = \(giftAmount) process spray trans was called - receiverId = \(receiverProfileId)")
+            
+        }
+        
+    }
+}
+
 extension HomeViewController:  RefreshScreenDelegate {
     func refreshScreen(isRefreshScreen: Bool) {
        
         isRefreshData = isRefreshScreen
-        print("refreshData function was called = \(isRefreshData)")
+        print("refreshData Blabablabalba  function was called = \(isRefreshData)")
         print(isRefreshData)
         //print("refreshHomeScreenDate = \(isShowScreen)")
     }
@@ -1209,3 +2729,63 @@ extension HomeViewController: SideSelectionDelegate {
     }
 }
 
+
+extension HomeViewController{
+    func LoadingStart(message: String){
+        ProgressDialog.alert = UIAlertController(title: nil, message: message, preferredStyle: .alert)
+    
+    let loadingIndicator = UIActivityIndicatorView(frame: CGRect(x: 10, y: 5, width: 50, height: 50))
+    loadingIndicator.hidesWhenStopped = true
+    loadingIndicator.style = UIActivityIndicatorView.Style.medium
+    loadingIndicator.startAnimating();
+
+    ProgressDialog.alert.view.addSubview(loadingIndicator)
+    present(ProgressDialog.alert, animated: true, completion: nil)
+  }
+
+  func LoadingStop(){
+    ProgressDialog.alert.dismiss(animated: true, completion: nil)
+  }
+}
+
+public extension Optional {
+
+    var isNil: Bool {
+
+        guard case Optional.none = self else {
+            return false
+        }
+
+        return true
+
+    }
+
+    var isNull: Bool {
+
+        return !self.isNil
+
+    }
+
+}
+
+extension HomeViewController: UITabBarControllerDelegate {
+    func tabBarController(_ tabBarController: UITabBarController, didSelect viewController: UIViewController) {
+            let tabBarIndex = tabBarController.selectedIndex
+            if tabBarIndex == 0 {
+                print("home")
+                clearData()
+                
+                //get user profile info... set haspyament flag and other varialbe
+                getProfileData(profileId: profileId)
+                //getMyEvents()
+                getDataForInfoUIView()
+                //getPrefData()
+                 print("BACK BUTTON TRIGGERED VIEWDID APPEAR isRefreshData  = \(isRefreshData )")
+                
+                // get profile data for eventOwner - this is the event coming from the scaned QR cod
+                if eventOwnerId > 0 {
+                    getOtherProfileData(profileId: eventOwnerId)
+                }
+            }
+       }
+}

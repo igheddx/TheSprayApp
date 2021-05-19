@@ -8,6 +8,18 @@
 
 import UIKit
 
+struct ProgressDialog {
+    static var alert = UIAlertController()
+    static var progressView = UIProgressView()
+    static var progressPoint : Float = 0{
+        didSet{
+            if(progressPoint == 1){
+                ProgressDialog.alert.dismiss(animated: true, completion: nil)
+            }
+        }
+    }
+}
+
 class ProfileViewController: UIViewController,UITextFieldDelegate, UIImagePickerControllerDelegate, UINavigationControllerDelegate {
 
     @IBOutlet weak var myAvatar: UIImageView!
@@ -21,7 +33,7 @@ class ProfileViewController: UIViewController,UITextFieldDelegate, UIImagePicker
     var customView = UIView()
     
     
-    
+    @IBOutlet weak var scrollView: UIScrollView!
     @IBOutlet weak var firstNameTextField: UITextField!
     @IBOutlet weak var lastNameTextField: UITextField!
     @IBOutlet weak var userNameTextField: UITextField!
@@ -30,13 +42,13 @@ class ProfileViewController: UIViewController,UITextFieldDelegate, UIImagePicker
     @IBOutlet weak var newPasswordTextField: UITextField!
     @IBOutlet weak var confirmPasswordTextField: UITextField!
     
-    @IBOutlet weak var firstNameErrorLabel: UILabel!
-    @IBOutlet weak var lastNameErrorLabel: UILabel!
-    @IBOutlet weak var userNameErrorLabel: UILabel!
-    @IBOutlet weak var emailErrorLabel: UILabel!
-    @IBOutlet weak var phoneErrorLabel: UILabel!
-    @IBOutlet weak var newPasswordErrorLabel: UILabel!
-    @IBOutlet weak var confirmPasswordErrorLabel: UILabel!
+//    @IBOutlet weak var firstNameErrorLabel: UILabel!
+//    @IBOutlet weak var lastNameErrorLabel: UILabel!
+//    @IBOutlet weak var userNameErrorLabel: UILabel!
+//    @IBOutlet weak var emailErrorLabel: UILabel!
+//    @IBOutlet weak var phoneErrorLabel: UILabel!
+//    @IBOutlet weak var newPasswordErrorLabel: UILabel!
+//    @IBOutlet weak var confirmPasswordErrorLabel: UILabel!
     
     var profileId: Int64 = 0
     var token: String = ""
@@ -47,16 +59,42 @@ class ProfileViewController: UIViewController,UITextFieldDelegate, UIImagePicker
     var customtextfield = CustomTextField()
     var formValidation =   Validation()
     
-
-    
+    var paymentCustomerId: String?
+    var paymentConnectedActId: String?
+//    var success: Bool
+    var returnUrl: String?
+    var refreshUrl: String?
+    var hasValidPaymentMethod: Bool?
+    var defaultPaymentMethod: Int = 0
+    var defaultPaymentMethodCustomName: String =  ""
+//
     let imagePicker = UIImagePickerController()
+    
+    var encryptedAPIKey: String = ""
+    
     override func viewDidLoad() {
         super.viewDidLoad()
         
        
-       
+        //use to keep keyboard down
+        NotificationCenter.default.addObserver(self, selector: #selector(keyboardWillShow(sender:)), name: UIResponder.keyboardWillShowNotification, object: nil);
+
+        NotificationCenter.default.addObserver(self, selector: #selector(keyboardWillHide(sender:)), name: UIResponder.keyboardWillHideNotification, object: nil);
    
         
+        self.navigationItem.title = "Profile"
+       
+        
+        navigationItem.largeTitleDisplayMode = .automatic
+        navigationController?.navigationBar.prefersLargeTitles = true
+       
+        
+        firstNameTextField.delegate = self
+        lastNameTextField.delegate = self
+        emailTextField.delegate = self
+        userNameTextField.delegate = self
+        newPasswordTextField.delegate = self
+        confirmPasswordTextField.delegate = self
         
 //        myAvatar.image = UIImage(named: "dominic")
 //        myAvatar.contentMode = UIView.ContentMode.scaleAspectFit
@@ -75,9 +113,13 @@ class ProfileViewController: UIViewController,UITextFieldDelegate, UIImagePicker
                                      //for: .editingChanged)
         lastNameTextField.addTarget(self, action: #selector(ProfileViewController.textFieldDidChange(_:)),
                                     for: .editingChanged)
+        
+        userNameTextField.addTarget(self, action: #selector(ProfileViewController.textFieldDidChange(_:)),
+                                  for: .editingChanged)
+        
         emailTextField.addTarget(self, action: #selector(ProfileViewController.textFieldDidChange(_:)),
                                  for: .editingChanged)
-        phoneTextField.addTarget(self, action: #selector(RegistrationViewController.textFieldDidChange(_:)),
+        phoneTextField.addTarget(self, action: #selector(ProfileViewController.textFieldDidChange(_:)),
                                 for: .editingChanged)
         newPasswordTextField.addTarget(self, action: #selector(ProfileViewController.textFieldDidChange(_:)),
                                     for: .editingChanged)
@@ -93,12 +135,14 @@ class ProfileViewController: UIViewController,UITextFieldDelegate, UIImagePicker
 //        passwordConfirmLabel.isHidden = true
         customtextfield.borderForTextField(textField: firstNameTextField, validationFlag: false)
         customtextfield.borderForTextField(textField: lastNameTextField, validationFlag: false)
+        customtextfield.borderForTextField(textField: userNameTextField, validationFlag: false)
         customtextfield.borderForTextField(textField: emailTextField, validationFlag: false)
         customtextfield.borderForTextField(textField: phoneTextField, validationFlag: false)
         customtextfield.borderForTextField(textField: newPasswordTextField, validationFlag: false)
         customtextfield.borderForTextField(textField: confirmPasswordTextField, validationFlag: false)
         //customtextfield.borderForTextField(textField: eventCodeTextField, validationFlag: false)
-
+        
+        userNameTextField.isEnabled = false
         
         
 //        self.borderForTextField(textField: firstNameTextField, validationFlag: false)
@@ -109,13 +153,13 @@ class ProfileViewController: UIViewController,UITextFieldDelegate, UIImagePicker
 //        self.borderForTextField(textField: newPasswordTextField, validationFlag: false)
 //        self.borderForTextField(textField: confirmPasswordTextField, validationFlag: false)
         
-        firstNameErrorLabel.isHidden = true
-        lastNameErrorLabel.isHidden = true
-        userNameErrorLabel.isHidden = true
-        emailErrorLabel.isHidden = true
-        phoneErrorLabel.isHidden = true
-        newPasswordErrorLabel.isHidden = true
-        confirmPasswordErrorLabel.isHidden = true
+//        firstNameErrorLabel.isHidden = true
+//        lastNameErrorLabel.isHidden = true
+//        userNameErrorLabel.isHidden = true
+//        emailErrorLabel.isHidden = true
+//        phoneErrorLabel.isHidden = true
+//        newPasswordErrorLabel.isHidden = true
+//        confirmPasswordErrorLabel.isHidden = true
         
         getProfileData()
         // Do any additional setup after loading the view.
@@ -129,7 +173,7 @@ class ProfileViewController: UIViewController,UITextFieldDelegate, UIImagePicker
         myAvatar.layoutIfNeeded()
         myAvatar.layer.borderWidth = 1
         myAvatar.layer.masksToBounds = false
-        myAvatar.layer.borderColor =  UIColor(red: 154/256, green: 211/256, blue: 188/256, alpha: 1.0).cgColor //UIColor.black.cgColor
+        myAvatar.layer.borderColor =  UIColor.black.cgColor //UIColor(red: 154/256, green: 211/256, blue: 188/256, alpha: 1.0).cgColor //UIColor.black.cgColor
         myAvatar.layer.cornerRadius = myAvatar.frame.height/2
         myAvatar.clipsToBounds = true
 
@@ -189,6 +233,48 @@ class ProfileViewController: UIViewController,UITextFieldDelegate, UIImagePicker
         
        
     }
+    override func viewDidAppear(_ animated: Bool) {
+        AppUtility.lockOrientation(.portrait)
+            // Or to rotate and lock
+            // AppUtility.lockOrientation(.portrait, andRotateTo: .portrait)
+        scroll2Top()
+    }
+    
+    override func viewWillDisappear(_ animated: Bool) {
+        super.viewWillDisappear(animated)
+        
+        // Don't forget to reset when view is being removed
+        AppUtility.lockOrientation(.all)
+    }
+    func scroll2Top() {
+        scrollView.contentOffset = CGPoint(x: 0.0, y: 0.0)
+    }
+    
+    @objc func keyboardWillShow(sender: NSNotification) {
+         self.view.frame.origin.y = -150 // Move view 150 points upward
+    }
+
+    @objc func keyboardWillHide(sender: NSNotification) {
+         self.view.frame.origin.y = 0 // Move view to original position
+    }
+    func textFieldShouldReturn(_ textField: UITextField) -> Bool {
+        switch textField{
+            case firstNameTextField:
+                firstNameTextField.resignFirstResponder()
+            case lastNameTextField:
+                lastNameTextField.resignFirstResponder()
+            case emailTextField:
+                emailTextField.resignFirstResponder()
+            case newPasswordTextField:
+                newPasswordTextField.resignFirstResponder()
+            case confirmPasswordTextField:   //passwordConfirmLabel.isHidden = false
+                confirmPasswordTextField.resignFirstResponder()
+            default:
+                break
+        }
+        return true
+    }
+    
     @objc func textFieldDidChange(_ textField: UITextField) {
         let text = textField.text
 
@@ -198,11 +284,11 @@ class ProfileViewController: UIViewController,UITextFieldDelegate, UIImagePicker
                     //firstNameLabel.isHidden = false
                     //firstNameLabel.textColor = UIColor(red: 0/256, green: 128/256, blue: 128/256, alpha: 1.0)
                     customtextfield.borderForTextField(textField: firstNameTextField, validationFlag: false)
-                    firstNameErrorLabel.text = ""
+                    //firstNameErrorLabel.text = ""
 //                    tf2.becomeFirstResponder()
               case lastNameTextField:
                 customtextfield.borderForTextField(textField: lastNameTextField, validationFlag: false)
-                lastNameErrorLabel.text = ""
+                //lastNameErrorLabel.text = ""
 //                    //lastNameLabel.isHidden = false
 //                    //lastNameLabel.textColor = UIColor(red: 0/256, green: 128/256, blue: 128/256, alpha: 1.0)
 //                    customtextfield.borderForTextField(textField: lastNameTextField, validationFlag: false)
@@ -211,7 +297,7 @@ class ProfileViewController: UIViewController,UITextFieldDelegate, UIImagePicker
                     //emailLabel.isHidden = false
                     //emailLabel.textColor = UIColor(red: 0/256, green: 128/256, blue: 128/256, alpha: 1.0)
                     customtextfield.borderForTextField(textField: emailTextField, validationFlag: false)
-                    emailErrorLabel.text = ""
+                    //emailErrorLabel.text = ""
 //                case phoneTextField:
 //                   // phoneLabel.isHidden = false
 //                   // phoneLabel.textColor = UIColor(red: 0/256, green: 128/256, blue: 128/256, alpha: 1.0)
@@ -221,11 +307,11 @@ class ProfileViewController: UIViewController,UITextFieldDelegate, UIImagePicker
                     //passwordLabel.isHidden = false
                     //passwordLabel.textColor = UIColor(red: 0/256, green: 128/256, blue: 128/256, alpha: 1.0)
                     customtextfield.borderForTextField(textField: newPasswordTextField, validationFlag: false)
-                    newPasswordErrorLabel.text = ""
+                   // newPasswordErrorLabel.text = ""
                 case confirmPasswordTextField:   //passwordConfirmLabel.isHidden = false
                     //passwordConfirmLabel.textColor = UIColor(red: 0/256, green: 128/256, blue: 128/256, alpha: 1.0)
                     customtextfield.borderForTextField(textField: confirmPasswordTextField, validationFlag: false)
-                    confirmPasswordErrorLabel.text = ""
+                   // confirmPasswordErrorLabel.text = ""
                 default:
                     break
                 }
@@ -252,9 +338,54 @@ class ProfileViewController: UIViewController,UITextFieldDelegate, UIImagePicker
 //        //textField.layer.addSublayer(bottomLine)
 //
 //    }
+    //set textfield focus and highlight border set
+    func textFieldFocus(textField: UITextField) {
+        textField.becomeFirstResponder()
+        customtextfield.borderForTextField(textField: textField, validationFlag: true)
+    }
+    func displayAlertMessage(displayMessage: String, textField: UITextField) {
+        let alert2 = UIAlertController(title: "Missing Information", message: displayMessage, preferredStyle: .alert)
+        //alert2.addAction(UIAlertAction(title: "Ok", style: .default, handler: nil))
+        
+        alert2.addAction(UIAlertAction(title: "OK", style: .default, handler: { [self] (action) in self.textFieldFocus(textField: textField)}))
+        
+        self.present(alert2, animated: true)
+        
+    }
     
+    func displayAlertMessage2(displayMessage: String, completionAction:String) {
+        
+        if completionAction == "success" {
+            let alert2 = UIAlertController(title: "Information", message: displayMessage, preferredStyle: .alert)
+
+            //alert2.addAction(UIAlertAction(title: "Yes, Let's Do It", style: .default, handler: nil))
+            alert2.addAction(UIAlertAction(title: "Done. Return Home ", style: .default, handler: { (action) in self.launchVC(vcName: "home")}))
+            alert2.addAction(UIAlertAction(title: "Make More Changes", style: .cancel, handler: nil))
+         
+            self.present(alert2, animated: true)
+        } else if completionAction == "error" {
+            let alert2 = UIAlertController(title: "Error", message: displayMessage, preferredStyle: .alert)
+            //alert2.addAction(UIAlertAction(title: "Ok", style: .default, handler: nil))
+            
+            alert2.addAction(UIAlertAction(title: "OK", style: .default, handler:nil))
+            
+            self.present(alert2, animated: true)
+        }
+    }
+    
+    func launchVC(vcName:String) {
+        if vcName == "home" {
+            let nextVC = storyboard?.instantiateViewController(withIdentifier: "HomeViewController") as! HomeViewController
+      
+            nextVC.profileId = profileId
+            nextVC.token = token
+            nextVC.encryptedAPIKey = encryptedAPIKey
+           self.navigationController?.pushViewController(nextVC , animated: true)
+        }
+        
+    }
     func getProfileData() {
-        let request = Request(path: "/api/Profile/41", token: token)
+        let request = Request(path: "/api/Profile/\(profileId)", token: token, apiKey: encryptedAPIKey)
         
         print("request=\(request)")
         Network.shared.send(request) { [self] (result: Result<ProfileData2, Error>)  in
@@ -265,35 +396,88 @@ class ProfileViewController: UIViewController,UITextFieldDelegate, UIImagePicker
             userNameTextField.text = profileData.userName
             emailTextField.text = profileData.email
             phoneTextField.text = profileData.phone
-            let dataString = profileData.avatar!
-            let dataURL = URL(string: dataString)
-            let contents: String?
-            do {
-                contents = try String(contentsOf: dataURL!)
-                //contents = try Data(contentsOf: someURL)
-                print("image 1 = \(profileData.avatar!)")
-                originalAvatar = profileData.avatar!
-            } catch {
-                contents = "dominic"
-                print("image 2 = \(profileData.avatar!)")
-                originalAvatar = profileData.avatar!
+           
+            paymentCustomerId = profileData.paymentCustomerId!
+            //paymentConnectedActId = profileData.paymentConnectedActId!
+            
+            //var paymentConnectedActId: String = ""
+            if let connectedActId = profileData.paymentConnectedActId  {
+                paymentConnectedActId = connectedActId
+            } else {
+                paymentConnectedActId = ""
             }
             
-            //let image = UIImage(data: data)
-            
-            //myAvatar.image = UIImage(named: contents!)
-            
-            let results = dataString.matches(for: "data:image\\/([a-zA-Z]*);base64,([^\\\"]*)")
-            for imageString in results {
-                autoreleasepool {
-                    
-                    let image2 = imageString.base64ToImage()
-                    myAvatar.image = image2
-
-                }
-            
+            //var returnUrl: String = ""
+            if let url1 = profileData.returnUrl {
+                returnUrl = url1
+            } else {
+                returnUrl = ""
             }
             
+            //var refreshUrl: String = ""
+            if let url2 = profileData.refreshUrl{
+                refreshUrl = url2
+            } else {
+                refreshUrl = ""
+            }
+            
+            //avatar = profileData.avatar!
+            
+            //var defaultPaymentMethodCustomName: String = ""
+            if let customName = profileData.defaultPaymentMethodCustomName {
+                defaultPaymentMethodCustomName = customName
+            } else {
+                defaultPaymentMethodCustomName = ""
+            }
+            
+            //defaultPaymentMethodCustomName = profileData.paymentCustomerId!
+            //print("paymentConnectedActId \(paymentConnectedActId)")
+            hasValidPaymentMethod = profileData.hasValidPaymentMethod
+            defaultPaymentMethod = profileData.defaultPaymentMethod
+            
+            if let myAvatar2 = profileData.avatar {
+                
+                myAvatar.image = convertBase64StringToImage(imageBase64String: myAvatar2)
+            } else {
+                myAvatar.image = UIImage(named: "userprofile")
+            }
+            
+//            if let iAvatar = profileData.avatar  {
+//                let dataString = iAvatar
+//
+//                let dataURL = URL(string: dataString)
+//                let contents: String?
+//                do {
+//                    contents = try String(contentsOf: dataURL!)
+//                    //contents = try Data(contentsOf: someURL)
+//                    //print("image 1 = \(profileData.avatar)")
+//                    originalAvatar = profileData.avatar!
+//                } catch {
+//                    contents = "dominic"
+//                    //print("image 2 = \(profileData.avatar)")
+//                    originalAvatar = profileData.avatar!
+//                }
+//
+//                //let image = UIImage(data: data)
+//
+//                //myAvatar.image = UIImage(named: contents!)
+//
+//                let results = dataString.matches(for: "data:image\\/([a-zA-Z]*);base64,([^\\\"]*)")
+//                for imageString in results {
+//                    autoreleasepool {
+//
+//                        let image2 = imageString.base64ToImage()
+//                        myAvatar.image = image2
+//
+//                    }
+//
+//                }
+//
+//            } else {
+//                myAvatar.image = UIImage(named: "userprofile")
+//            }
+//
+           
 //            let imageData = Data.init(base64Encoded: profileData.avatar!, options: .init(rawValue: 0))
 ////               let image = UIImage(data: imageData!)
 ////               return image!
@@ -311,11 +495,13 @@ class ProfileViewController: UIViewController,UITextFieldDelegate, UIImagePicker
     }
     
     @IBAction func updateProfileButtonPressed(_ sender: Any) {
+        self.LoadingStart()
         var isNewPasswordEntered: Bool = false
         var passwordMatch: Bool = false
         
         guard let firstName = firstNameTextField.text,
         let lastName = lastNameTextField.text,
+        let userName = userNameTextField.text,
         let phone = phoneTextField.text,
         let password = newPasswordTextField.text,
         let confirmPassword = confirmPasswordTextField.text,
@@ -325,98 +511,195 @@ class ProfileViewController: UIViewController,UITextFieldDelegate, UIImagePicker
         
         let isValidateFirstName = self.formValidation.validateName2(name2: firstName).isValidate
         
+        let isValidateLastName = self.formValidation.validateName2(name2: lastName).isValidate
         //let isValidateFirstName = self.formValidation.validateName2(name2: firstName)
         if (isValidateFirstName == false) {
-            firstNameTextField.becomeFirstResponder()
-            customtextfield.borderForTextField(textField: firstNameTextField, validationFlag: true)
-            //print("Incorrect First Name")
-            //loadingLabel.text = "Incorrect First Name"
-            firstNameErrorLabel.text = "Incorrect First Name"
+            let message = "FirstName Is Required"
+            //eventCountryTextField.becomeFirstResponder()
+            displayAlertMessage(displayMessage: message, textField: firstNameTextField)
             return
         } else {
             customtextfield.borderForTextField(textField: firstNameTextField, validationFlag: false)
-            firstNameErrorLabel.text = ""
+        }
+        
+        if (isValidateLastName == false) {
+            let message = "Last Name Is Required"
+            //eventCountryTextField.becomeFirstResponder()
+            displayAlertMessage(displayMessage: message, textField: lastNameTextField)
+            return
+        } else {
+            customtextfield.borderForTextField(textField: lastNameTextField, validationFlag: false)
         }
         
         let isValidateEmail = self.formValidation.validateEmailId(emailID: email)
         if (isValidateEmail == false) {
-            emailTextField.becomeFirstResponder()
-            customtextfield.borderForTextField(textField:  emailTextField, validationFlag: true)
-            //print("Incorrect Email")
-            emailErrorLabel.text = "Incorrect Email"
-            //loadingLabel.text = "Incorrect Email"
+          
+            let message = "Email Is Required"
+            //eventCountryTextField.becomeFirstResponder()
+            displayAlertMessage(displayMessage: message, textField: emailTextField)
          return
         }else {
             customtextfield.borderForTextField(textField: emailTextField, validationFlag: false)
-            emailErrorLabel.text = ""
+            
         }
         
         if password != "" {
             isNewPasswordEntered = true
             let isValidatePass = self.formValidation.validatePassword(password: password)
             if (isValidatePass == false) {
-                newPasswordTextField.becomeFirstResponder()
-                customtextfield.borderForTextField(textField:  newPasswordTextField, validationFlag: true)
-                //print("Incorrect Password")
-                newPasswordErrorLabel.text = "Incorrect Password"
+//                newPasswordTextField.becomeFirstResponder()
+//                customtextfield.borderForTextField(textField:  newPasswordTextField, validationFlag: true)
+//                //print("Incorrect Password")
+//                newPasswordErrorLabel.text = "Incorrect Password"
                 //loadingLabel.text = "Incorrect Password"
+                
+                let message = "Incorrect Password"
+                //eventCountryTextField.becomeFirstResponder()
+                displayAlertMessage(displayMessage: message, textField: newPasswordTextField)
+                
                 return
             } else {
                 customtextfield.borderForTextField(textField: newPasswordTextField, validationFlag: false)
-                newPasswordErrorLabel.text = ""
+                //newPasswordErrorLabel.text = ""
             }
 
             
             if password != confirmPassword {
             
                 passwordMatch = false
-                confirmPasswordTextField.becomeFirstResponder()
-                customtextfield.borderForTextField(textField:  confirmPasswordTextField, validationFlag: true)
-                confirmPasswordErrorLabel.text = "Incorrect Mismatch"
+//                confirmPasswordTextField.becomeFirstResponder()
+//                customtextfield.borderForTextField(textField:  confirmPasswordTextField, validationFlag: true)
+//                confirmPasswordErrorLabel.text = "Incorrect Mismatch"
+//
+                let message = "Password Mismatch"
+                //eventCountryTextField.becomeFirstResponder()
+                displayAlertMessage(displayMessage: message, textField: confirmPasswordTextField)
                 //loadingLabel.text = "Password Mismatch"
             } else {
                 passwordMatch = true
+                customtextfield.borderForTextField(textField: confirmPasswordTextField, validationFlag: false)
             }
         }
         
         
         if isNewPasswordEntered == true {
-            if (isValidateFirstName == true && isValidateEmail == true) {
-               var profileData = ProfileAvatar(token: token, profileId: profileId, firstName: firstName, lastName: lastName, userName: email, email: email, phone: phone, avatar: phone, success: true)
+            if (isValidateFirstName == true && isValidateLastName == true && isValidateEmail == true && passwordMatch == true) {
+               //var profileData = ProfileAvatar(token: token, profileId: profileId, firstName: firstName, lastName: lastName, userName: email, email: email, phone: phone, avatar: phone, success: true)
                 
                 //let newImageStr = convertImageToBase64String (img: myAvatar.image!)
+                updateProfile(firstName: firstName, lastName: lastName, userName: userName, phone: phone, newPassword: "", oldPassword: "")
             }
         } else {
-            if (isValidateFirstName == true && isValidateEmail == true) {
+            if (isValidateFirstName == true && isValidateLastName == true && isValidateEmail == true ) {
+//                updateProfile(firstName: firstName, lastName: lastName, userName: userName, email: email, phone: phone, avatar: avatar)
+//                     print("update fields that does NOT includs password")
+                
+                if isNewAvatar == true {
+                    print("This is a new image convert to base64")
+                    avatar = convertImageToBase64String (img: myAvatar.image!)
+                    //print(avatar)
+                } else {
+                    print("orignal image")
+                    let im = "data:image/jpeg;base64"
+                    print(im)
+                    avatar = "data:image/jpg;base64,iVBORw0KGgoAAAANSUhEUgAAAMgAAADIAQAAAACFI5MzAAAB9klEQVR42u2YQYorMQxEBbqWQFc36FoG/6pyOpNZ/J20mGGaTiftF2hbLpWU2PnfYX/k55Jl5vhUVTu8luUdaCeFcydejjdwDUyQ5XV2JOcSZnkHZgiejusK51QGycrl2yIR1BwjjKivSFz8YC7fY91GKIj6PL5pp4/wWL54t3MHt/AjFxoJwmkYwosbh6/UEHE817hvi/vGex8gEkTdVRo1/55BM7kjUIgpoMW1DxB6kD+GtCX4PUFws40OwcUm0/lRYjOB3pG9YcguBFQuO0ISJ9UIrUP5CKy/MriXHDkETYmLDax1+RkgWBglQgUyq6T/HCAHBq7iJHd9KWWAlIKoGpiLc6HNDhDkETNYwqeVhym72snKKxA6BJL4UPM5QPYtgGwZeNZ5O0UvgSb0VGdcmVfJCQwQrM+pRiGnYJ497SUlv2NOYfOCX3qU2Equ7W3JAslsN7oDBDWWojcZq+KbEwQRdRYl1wD3ML52rpGc6w24qCXaKh4DRHWJbUPemqtEGyBMKC4Q/QmWiDWzRxkgO1UtSLh3svMaILeDpEGwrwvZ4Bkg9LynK1Y1LJWQdqKGnm3K7VTCz7vS9hIuUyYRd/xKcYRIHGqAViisQ4S/Uozmqo41Pn6bNRI1xS/fk2fMEKpDZYkpjP6B1T0HyN9/Nb+M/AORXDdE4Lb/mQAAAABJRU5ErkJggg=="
+                    //originalAvatar // convertImageToBase64String (img: myNewAvatar.image!)
+                }
+                
+                updateProfile(firstName: firstName, lastName: lastName, userName: userName, phone: phone, newPassword: "", oldPassword: "")
                      print("update fields that does NOT includs password")
             }
         }
-        if (isValidateFirstName == true && isValidateEmail == true) {
-            
-            if isNewAvatar == true {
-                avatar = convertImageToBase64String (img: myAvatar.image!)
-            } else {
-                avatar = originalAvatar // convertImageToBase64String (img: myNewAvatar.image!)
-            }
-            
-           let profileData = ProfileAvatar(token: token, profileId: profileId, firstName: firstName, lastName: lastName, userName: email, email: email, phone: phone, avatar: avatar, success: true)
-           
-            print("profileData =\(profileData)")
-            let request = PostRequest(path: "/api/Profile/avatar", model: profileData, token: token)
-            Network.shared.send(request) { (result: Result<ProfileAvatar, Error>) in
-                switch result {
-                case .success(let userdata):
-                   // print("avatar \(userdata.avatar)")
-                    break
-           case .failure(let error):
-                    print(error.localizedDescription)
-                }
-            }
-        }
+//        if (isValidateFirstName == true && isValidateLastName == true && isValidateEmail == true) {
+//
+//            if isNewAvatar == true {
+//                print("This is a new image convert to base64")
+//                avatar = convertImageToBase64String (img: myAvatar.image!)
+//                print(avatar)
+//            } else {
+//                print("orignal image")
+//                avatar = "default" //originalAvatar // convertImageToBase64String (img: myNewAvatar.image!)
+//            }
+//
+//            updateProfile(firstName: firstName, lastName: lastName, userName: userName, email: email, phone: phone, avatar: avatar)
+//                 print("update fields that does NOT includs password")
+////
+//        }
 
 
         
     }
+    
+    func updateProfile(firstName: String, lastName: String, userName: String,  phone: String, newPassword: String, oldPassword: String){
+        let profileData = UserUpdateModel(firstName: firstName, lastName: lastName, userName: userName, phone: phone, newPassword: newPassword, oldPassword: oldPassword)
+     
+           //print("profileData =\(profileData)")
+           let request = PostRequest(path: "/api/Profile/\(profileId)", model: profileData, token: token, apiKey: encryptedAPIKey, deviceId: "")
+           Network.shared.send(request) { (result: Result<Data, Error>) in
+               switch result {
+               case .success(let userdata):
+                self.LoadingStop()
+                  // print("avatar \(userdata.avatar)")
+               // print(userdata.firstName)
+                   break
+          case .failure(let error):
+                   print(error.localizedDescription)
+            self.LoadingStop()
+               }
+           }
+    }
+    
+    
+    func updateAvatar(avatar: UIImage){
+        
+        var newAvatarImage: String = ""
+        
+        do {
+                    try avatar.compressImage(100, completion: { (image, compressRatio) in
+                        print("image size = \(image.size)")
+                        let imageData = image.jpegData(compressionQuality: compressRatio)
+                        let base64data = imageData?.base64EncodedString()
+                        newAvatarImage =  (imageData?.base64EncodedString())!
+                        print("base64data dominic\(base64data)")
+
+                    })
+                } catch {
+                         print("Error")
+                }
+        
+        //newAvatarImage = convertImageToBase64String(img: myAvatar.image!)
+        let avatarData = ProfileAvatar(token: token, profileId: profileId, firstName: "", lastName: "", userName: "", email: "", phone: "", avatar: newAvatarImage, paymentCustomerId: paymentCustomerId, paymentConnectedActId: paymentConnectedActId, success: true, returnUrl: returnUrl!, refreshUrl: refreshUrl!, hasValidPaymentMethod: hasValidPaymentMethod!,defaultPaymentMethod: defaultPaymentMethod, defaultPaymentMethodCustomName: defaultPaymentMethodCustomName)
+   
+        //print("profileData =\(avatarData)")
+        print("updateAvatar was called... doing something")
+           let request = PostRequest(path: "/api/Profile/avatar", model: avatarData, token: token, apiKey: encryptedAPIKey, deviceId: "")
+           Network.shared.send(request) { (result: Result<ProfileAvatar, Error>) in
+               switch result {
+               case .success(let avatardata):
+                print("Avatar update was successful")
+                self.LoadingStop()
+                  // print("avatar \(userdata.avatar)")
+                print(avatardata.firstName)
+                   break
+          case .failure(let error):
+                   print(error.localizedDescription)
+            self.LoadingStop()
+               }
+           }
+    }
+    
+//    func loading() {
+//        let alert = UIAlertController(title: nil, message: "Please wait...", preferredStyle: .alert)
+//
+//        let loadingIndicator = UIActivityIndicatorView(frame: CGRect(x: 10, y: 5, width: 50, height: 50))
+//        loadingIndicator.hidesWhenStopped = true
+//        loadingIndicator.style = UIActivityIndicatorView.Style.UIActivityIndicatorView.Style.medium
+//        loadingIndicator.startAnimating();
+//
+//        alert.view.addSubview(loadingIndicator)
+//        present(alert, animated: true, completion: nil)
+//    }
+    
     /*
     // MARK: - Navigation
 
@@ -475,12 +758,41 @@ class ProfileViewController: UIViewController,UITextFieldDelegate, UIImagePicker
                                         didFinishPickingMediaWithInfo info: [UIImagePickerController.InfoKey : Any]) {
         myAvatar.image = info[UIImagePickerController.InfoKey.originalImage] as? UIImage
         isNewAvatar = true
+        print("new image was assigned")
        //myNewAvatar.image = info[UIImagePickerController.InfoKey.originalImage] as? UIImage
-        imagePicker.dismiss(animated: true, completion: nil)
+        
+        
+        print("Image size \(myAvatar.image?.getSizeIn(.megabyte)) mb")
+        
+        // max 300kb
+        var dimage: UIImage?
+       // var base64data: String = ""
+        myAvatar.image!.resizeByByte(maxByte: 800000) { (resizedData) in
+            //print("image size: \(resizedData.count)")
+            //dimage = resizedData
+        }
+        
+      
+        
+        //myAvatar.image?.mediumQualityJPEGNSData
+        /*hold this for now*/
+        imagePicker.dismiss(animated: true, completion: { [self] in action(myimage: (info[UIImagePickerController.InfoKey.originalImage] as? UIImage)!)})
+        //imagePicker.dismiss(animated: true, completion: { [self] in action(myimage: myAvatar.image!.mediumQualityJPEGNSData)})
+        
+        //imagePicker.dismiss(animated: true, completion: { [self] in action(myimage: dimage)})
+        
+        print("i called updateAvata")
+        
         //print("new image =\(convertImageToBase64String(img: myAvatar.image!))")
+      
         
     }
-
+    @objc func action(myimage: UIImage) {
+         print("action")
+        self.LoadingStart()
+        updateAvatar(avatar: myimage)
+    }
+    
     func imagePickerControllerDidCancel(_ picker: UIImagePickerController) {
         print("imagePickerController cancel")
     }
@@ -488,9 +800,13 @@ class ProfileViewController: UIViewController,UITextFieldDelegate, UIImagePicker
     //Encoding Base64 Image
     func convertImageToBase64String (img: UIImage) -> String {
         //return img.jpegData(compressionQuality: 1)?.base64EncodedString() ?? ""
-        let strBase64 =  img.pngData()?.base64EncodedString()
-            return strBase64!
+        //let strBase64 =  img.pngData()?.base64EncodedString()
+        //return strBase64!
         
+        let imageData: Data? = img.jpegData(compressionQuality: 0.4)
+        let imageStr = imageData?.base64EncodedString(options: .lineLength64Characters) ?? ""
+        print(imageStr,"imageString")
+        return imageStr //strBase64!
         //data.base64EncodedStringWithOptions([])
     }
     
@@ -500,6 +816,8 @@ class ProfileViewController: UIViewController,UITextFieldDelegate, UIImagePicker
         let image = UIImage(data: imageData!)
         return image!
     }
+    
+    
 }
 extension String {
     func base64ToImage() -> UIImage? {
@@ -526,3 +844,146 @@ extension String {
     }
 }
 
+extension ProfileViewController{
+   func LoadingStart(){
+        ProgressDialog.alert = UIAlertController(title: nil, message: "Processing...", preferredStyle: .alert)
+    
+    let loadingIndicator = UIActivityIndicatorView(frame: CGRect(x: 10, y: 5, width: 50, height: 50))
+    loadingIndicator.hidesWhenStopped = true
+    loadingIndicator.style = UIActivityIndicatorView.Style.medium
+    loadingIndicator.startAnimating();
+
+    ProgressDialog.alert.view.addSubview(loadingIndicator)
+    present(ProgressDialog.alert, animated: true, completion: nil)
+  }
+
+  func LoadingStop(){
+    ProgressDialog.alert.dismiss(animated: true, completion: nil)
+  }
+}
+
+extension UIImage {
+
+    public enum DataUnits: String {
+        case byte, kilobyte, megabyte, gigabyte
+    }
+
+    func getSizeIn(_ type: DataUnits)-> String {
+
+        guard let data = self.pngData() else {
+            return ""
+        }
+
+        var size: Double = 0.0
+
+        switch type {
+        case .byte:
+            size = Double(data.count)
+        case .kilobyte:
+            size = Double(data.count) / 1024
+        case .megabyte:
+            size = Double(data.count) / 1024 / 1024
+        case .gigabyte:
+            size = Double(data.count) / 1024 / 1024 / 1024
+        }
+
+        return String(format: "%.2f", size)
+    }
+}
+
+extension UIImage {
+    
+    func resizeByByte(maxByte: Int, completion: @escaping (Data) -> Void) {
+        var compressQuality: CGFloat = 1
+        var imageData = Data()
+        var imageByte = self.jpegData(compressionQuality: 1)?.count
+        
+        while imageByte! > maxByte {
+            imageData = self.jpegData(compressionQuality: compressQuality)!
+            imageByte = self.jpegData(compressionQuality: compressQuality)?.count
+            compressQuality -= 0.1
+        }
+        
+        if maxByte > imageByte! {
+            completion(imageData)
+        } else {
+            completion(self.jpegData(compressionQuality: 1)!)
+        }
+    }
+    
+    var highestQualityJPEGNSData: Data { return self.jpegData(compressionQuality: 1.0)! }
+       var highQualityJPEGNSData: Data    { return self.jpegData(compressionQuality: 0.75)!}
+       var mediumQualityJPEGNSData: Data  { return self.jpegData(compressionQuality: 0.5)! }
+       var lowQualityJPEGNSData: Data     { return self.jpegData(compressionQuality: 0.25)!}
+       var lowestQualityJPEGNSData: Data  { return self.jpegData(compressionQuality: 0.0)! }
+}
+
+//5/2 this is what i am using
+extension UIImage {
+
+    enum CompressImageErrors: Error {
+        case invalidExSize
+        case sizeImpossibleToReach
+    }
+    func compressImage(_ expectedSizeKb: Int, completion : (UIImage,CGFloat) -> Void ) throws {
+
+        let minimalCompressRate :CGFloat = 0.4 // min compressRate to be checked later
+
+        if expectedSizeKb == 0 {
+            throw CompressImageErrors.invalidExSize // if the size is equal to zero throws
+        }
+
+        let expectedSizeBytes = expectedSizeKb * 1024
+        let imageToBeHandled: UIImage = self
+        var actualHeight : CGFloat = self.size.height
+        var actualWidth : CGFloat = self.size.width
+        var maxHeight : CGFloat = 841 //A4 default size I'm thinking about a document
+        var maxWidth : CGFloat = 594
+        var imgRatio : CGFloat = actualWidth/actualHeight
+        let maxRatio : CGFloat = maxWidth/maxHeight
+        var compressionQuality : CGFloat = 1
+        var imageData:Data = imageToBeHandled.jpegData(compressionQuality: compressionQuality)!
+        while imageData.count > expectedSizeBytes {
+
+            if (actualHeight > maxHeight || actualWidth > maxWidth){
+                if(imgRatio < maxRatio){
+                    imgRatio = maxHeight / actualHeight;
+                    actualWidth = imgRatio * actualWidth;
+                    actualHeight = maxHeight;
+                }
+                else if(imgRatio > maxRatio){
+                    imgRatio = maxWidth / actualWidth;
+                    actualHeight = imgRatio * actualHeight;
+                    actualWidth = maxWidth;
+                }
+                else{
+                    actualHeight = maxHeight;
+                    actualWidth = maxWidth;
+                    compressionQuality = 1;
+                }
+            }
+            let rect = CGRect(x: 0.0, y: 0.0, width: actualWidth, height: actualHeight)
+            UIGraphicsBeginImageContext(rect.size);
+            imageToBeHandled.draw(in: rect)
+            let img = UIGraphicsGetImageFromCurrentImageContext();
+            UIGraphicsEndImageContext();
+            if let imgData = img!.jpegData(compressionQuality: compressionQuality) {
+                if imgData.count > expectedSizeBytes {
+                    if compressionQuality > minimalCompressRate {
+                        compressionQuality -= 0.1
+                    } else {
+                        maxHeight = maxHeight * 0.9
+                        maxWidth = maxWidth * 0.9
+                    }
+                }
+                imageData = imgData
+            }
+
+
+        }
+
+        completion(UIImage(data: imageData)!, compressionQuality)
+    }
+
+
+}

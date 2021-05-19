@@ -102,13 +102,15 @@ class EventSettingTableViewController: UITableViewController {
     var paymentDescription: String?
     var isReadyToSavePayment: Bool = false
     var isAddNewPayment: Bool = false
-    
+    var currencyCode: String = "usd"
     var isRefreshScreen: Bool = false
     //weak var myDelegate: HomeViewController!
     
     var formValidation =   Validation()
     
     var getIsRefreshDataDelegate: RefreshScreenDelegate?
+    var encryptedAPIKey: String = ""
+    
     //var sprayDelegate: SprayTransactionDelegate?
     override func viewDidLoad() {
         super.viewDidLoad()
@@ -388,7 +390,7 @@ class EventSettingTableViewController: UITableViewController {
         
         var availablebalance: Int = 0
         //var theGifterTotalTransBalance: Int = 0
-        let request = Request(path: "/api/Event/transactiontotal/\(profileId!)/\(eventId!)", token: token!)
+        let request = Request(path: "/api/Event/transactiontotal/\(profileId!)/\(eventId!)", token: token!, apiKey: encryptedAPIKey)
                
         Network.shared.send(request) { [self] (result: Result<Data, Error>)  in
             switch result {
@@ -840,13 +842,13 @@ class EventSettingTableViewController: UITableViewController {
                        //print("Balance is Zero")
             } else if rsvpSwitch.isOn == true && screenIdentifier == "RSVP"{  //this is first time RSVP
                 
-                let addAttendee = AddAttendees(profileId: ownerId!, eventId: eventId!, eventAttendees: [Attendees(profileId: profileId!, eventId: eventId!, isAttending: true)])
+                let addAttendee = AddAttendees(profileId: ownerId!, eventId: eventId!, eventAttendees: [Attendees(profileId: profileId!, firstName: "Test", lastName: "test", email: "email", phone: "123",eventId: eventId!, isAttending: true)])
                 
                 //let updateAttendee = Attendees(profileId: profileId, eventId: eventId, isAttending: true)
                 
                 //print(updateAttendee)
                 isRefreshScreen = true
-                let request = PostRequest(path: "/api/Event/addattendees", model: addAttendee, token: token!)
+                let request = PostRequest(path: "/api/Event/addattendees", model: addAttendee, token: token!, apiKey: encryptedAPIKey, deviceId: "")
                     Network.shared.send(request) { (result: Result<Empty, Error>)  in
                             switch result {
                             case .success( _):
@@ -869,9 +871,9 @@ class EventSettingTableViewController: UITableViewController {
             //to false
             if screenIdentifier == "EventSettings" && rsvpSwitch.isOn == false && isAttendingEventId! != 0 {
                 print("EventSettings IS TURNED OFF SETTING ISATTENDING = FALSE = \(rsvpSwitch.isOn)")
-                let updateAttendee = Attendees(profileId: profileId!, eventId: eventId!, isAttending: false)
+                let updateAttendee = Attendees(profileId: profileId!, firstName: "Test", lastName: "test", email: "email", phone: "123", eventId: eventId!, isAttending: false)
         
-                let request = PostRequest(path: "/api/Event/updateattendee", model: updateAttendee, token: token!)
+                let request = PostRequest(path: "/api/Event/updateattendee", model: updateAttendee, token: token!, apiKey: encryptedAPIKey, deviceId: "")
         
                 Network.shared.send(request) { (result: Result<Empty, Error>)  in
                     switch result {
@@ -888,9 +890,9 @@ class EventSettingTableViewController: UITableViewController {
                 self.isRefreshScreen = true
             } else if screenIdentifier == "EventSettings" && rsvpSwitch.isOn == true && isAttendingEventId! == 0 {
                 print("EventSettings is attending event id = 0 = \(rsvpSwitch.isOn)")
-                let updateAttendee = Attendees(profileId: profileId!, eventId: eventId!, isAttending: true)
+                let updateAttendee = Attendees(profileId: profileId!, firstName: "Test", lastName: "test", email: "email", phone: "123", eventId: eventId!, isAttending: true)
         
-                let request = PostRequest(path: "/api/Event/updateattendee", model: updateAttendee, token: token!)
+                let request = PostRequest(path: "/api/Event/updateattendee", model: updateAttendee, token: token!, apiKey: encryptedAPIKey, deviceId: "")
         
                 Network.shared.send(request) { (result: Result<Empty, Error>)  in
                     switch result {
@@ -1094,10 +1096,10 @@ class EventSettingTableViewController: UITableViewController {
         }
         //print("paymentType= \(paymentType)")
         
-        let addEventPreference = EventPreference(eventId: eventId!, profileId: profileId!, paymentMethod: paymentMethodId, maxSprayAmount: withdrawAmount, replenishAmount: autoReplenishAmount, notificationAmount:  notificationAmount, isAutoReplenish: isAutoReplenish!)
+        let addEventPreference = EventPreference(eventId: eventId!, profileId: profileId!, paymentMethod: paymentMethodId, maxSprayAmount: withdrawAmount, replenishAmount: autoReplenishAmount, notificationAmount:  notificationAmount, isAutoReplenish: isAutoReplenish!,currency: currencyCode)
 
         print("ADD EVENT PREFERENCE \(addEventPreference)")
-        let request = PostRequest(path: "/api/Event/addprefs", model: addEventPreference, token: token!)
+        let request = PostRequest(path: "/api/Event/addprefs", model: addEventPreference, token: token!, apiKey: encryptedAPIKey, deviceId: "")
         Network.shared.send(request) { (result: Result<Data, Error>)  in
             switch result {
             case .success(let eventpref): print(eventpref); break
@@ -1116,7 +1118,7 @@ class EventSettingTableViewController: UITableViewController {
         let addPayment = AddPaymentType(nonce: paymentNonce, customName: paymentNickName, paymentType: paymentOptionType, paymentDescription: paymentDescription, paymentExpiration: paymentExpiration, profileId: profileId)
         
         print("ADD PAYMENT = \(addPayment)")
-        let request = PostRequest(path: "/api/PaymentMethod/add", model: addPayment , token: token!)
+        let request = PostRequest(path: "/api/PaymentMethod/add", model: addPayment , token: token!, apiKey: encryptedAPIKey, deviceId: "")
 
         Network.shared.send(request) { (result: Result<Data, Error>)  in
             switch result {
@@ -1179,7 +1181,7 @@ class EventSettingTableViewController: UITableViewController {
     }
     
     func getPaymentTypeData(paymentTypeId: Int)  {
-        let request = Request(path: "/api/PaymentMethod/all/\(profileId!)", token: token!)
+        let request = Request(path: "/api/PaymentMethod/all/\(profileId!)", token: token!, apiKey: encryptedAPIKey)
                
         Network.shared.send(request) { [self] (result: Result<Data, Error>)  in
             switch result {
@@ -1223,7 +1225,7 @@ class EventSettingTableViewController: UITableViewController {
         
         
         //var eventprefdate:  [EventPreferenceData] = [] //paymentmethod1
-        let request = Request(path: "/api/Event/prefs/\(profileId!)/\(eventId!)", token: token!)
+        let request = Request(path: "/api/Event/prefs/\(profileId!)/\(eventId!)", token: token!, apiKey: encryptedAPIKey)
         
         Network.shared.send(request) { (result: Result<Data, Error>)   in
             switch result {
@@ -1417,7 +1419,7 @@ class EventSettingTableViewController: UITableViewController {
     //hold on this function - using getVentPref3 to test
     func getEventPref2(paymenttypeData: Data) {
         //var eventprefdate:  [EventPreferenceData] = [] //paymentmethod1
-        let request = Request(path: "/api/Event/prefs/\(profileId!)/\(eventId!)", token: token!)
+        let request = Request(path: "/api/Event/prefs/\(profileId!)/\(eventId!)", token: token!, apiKey: encryptedAPIKey)
         
         Network.shared.send(request) { (result: Result<Data, Error>)   in
             switch result {
@@ -1513,7 +1515,7 @@ class EventSettingTableViewController: UITableViewController {
     }
     
     func getPaymenttype() {
-        let request = Request(path: "/api/PaymentMethod/all/\(profileId!)", token: token!)
+        let request = Request(path: "/api/PaymentMethod/all/\(profileId!)", token: token!, apiKey: encryptedAPIKey)
                
                Network.shared.send(request) { (result: Result<Data, Error>)  in
                    
@@ -1566,7 +1568,7 @@ class EventSettingTableViewController: UITableViewController {
     }
     
     func getEventPreference() {
-        let request = Request(path: "/api/Event/prefs/\(profileId!)/\(eventId!)", token: token!)
+        let request = Request(path: "/api/Event/prefs/\(profileId!)/\(eventId!)", token: token!, apiKey: encryptedAPIKey)
         Network.shared.send(request) { (result: Result<Data, Error>)  in
         switch result {
         case .success(let eventPreferenceData):
@@ -1656,14 +1658,16 @@ class EventSettingTableViewController: UITableViewController {
          } else if(segue.identifier == "backToHome") {
             let NextVC = segue.destination as! EventSettingContainerViewController
             NextVC.token = token!
+            NextVC.encryptedAPIKey = encryptedAPIKey
             NextVC.paymentClientToken = paymentClientToken!
             NextVC.profileId = profileId
             NextVC.isRefreshData = isRefreshScreen
          } else if(segue.identifier == "goToHomeScreen") {
             let NextVC = segue.destination as! HomeViewController
             NextVC.token = token!
+            NextVC.encryptedAPIKey = encryptedAPIKey
             NextVC.paymentClientToken = paymentClientToken!
-            NextVC.profileId = profileId
+            NextVC.profileId = profileId!
             NextVC.isRefreshData = isRefreshScreen
          }
         

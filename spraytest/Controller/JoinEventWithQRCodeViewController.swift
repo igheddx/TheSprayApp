@@ -36,7 +36,7 @@ class JoinEventWithQRCodeViewController: UIViewController, UITextFieldDelegate {
     var profileId: String?
     var phone: String = ""
     let customtextfield = CustomTextField()
-    
+    var encryptedAPIKey: String = ""
    
     
     override func viewDidLoad() {
@@ -94,9 +94,10 @@ class JoinEventWithQRCodeViewController: UIViewController, UITextFieldDelegate {
         }
    
         
+        //let encryptedAPIKey = username + "|" + self.encryptedAPIKey
         if (username != "" && password != "" ) {
             let authenticatedUserProfile = AuthenticateUser(username: self.username, password: self.password)
-            let request = PostRequest(path: "/api/Profile/authenticate", model: authenticatedUserProfile, token: "")
+            let request = PostRequest(path: "/api/Profile/authenticate", model: authenticatedUserProfile, token: "", apiKey: encryptedAPIKey, deviceId: "")
                    
             Network.shared.send(request) { (result: Result<UserData, Error>)  in
                switch result {
@@ -146,7 +147,7 @@ class JoinEventWithQRCodeViewController: UIViewController, UITextFieldDelegate {
     //Initialize payment
     func initializePayment(token: String, profileId: Int64, firstName: String, lastName: String, userName: String, email: String, phone: String) {
        let initPayment = InitializePaymentModel(token: token, profileId: profileId, firstName: firstName, lastName: lastName, userName: userName, email: email, phone: phone)
-        let request = PostRequest(path: "/api/Profile/initialize", model: initPayment, token: token)
+        let request = PostRequest(path: "/api/Profile/initialize", model: initPayment, token: token, apiKey: encryptedAPIKey, deviceId: "")
         
        
        
@@ -171,7 +172,7 @@ class JoinEventWithQRCodeViewController: UIViewController, UITextFieldDelegate {
 
              let Invite = JoinEvent(joinList: [JoinEventFields(profileId: profileId, email: email, phone: phone, eventCode: eventCode)])
              
-             let request = PostRequest(path: "/api/Event/joinevent", model: Invite, token: token)
+             let request = PostRequest(path: "/api/Event/joinevent", model: Invite, token: token, apiKey: encryptedAPIKey, deviceId: "")
              
              
              Network.shared.send(request) { (result: Result<Data, Error>)  in
@@ -197,6 +198,7 @@ class JoinEventWithQRCodeViewController: UIViewController, UITextFieldDelegate {
             let NextVC = segue.destination as! MenuTabViewController
             NextVC.profileId = Int64(profileId!)
             NextVC.token = token2pass
+            NextVC.encryptedAPIKey = encryptedAPIKey
             NextVC.paymentClientToken = paymentClientToken
         }
         

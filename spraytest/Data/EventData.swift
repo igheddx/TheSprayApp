@@ -8,20 +8,42 @@
 
 import Foundation
 
+struct CountryList {
+    let countryCode: String
+    let countryName: String
+}
+struct CountryStateList {
+    let countryCode: String
+    let countryName: String
+    let stateCode: String
+    let stateName: String
+}
+struct StateList {
+    let stateCode: String
+    let stateName: String
+}
 struct EventData: Model {
-    var eventId: Int64
-    var ownerId: Int64
-    var name: String
-    var dateTime: String
-    var address1: String
-    var address2: String
-    var city: String
-    var zipCode: String
-    var country: String
-    var state: String
-    var eventState: Int
-    var eventCode: String
-    var isActive: Bool
+    let eventId: Int64
+    let ownerId: Int64
+    let name: String
+    let dateTime: String
+    let address1: String
+    let address2: String
+    let city: String
+    let zipCode: String
+    let country: String
+    let state: String
+    let eventState: Int
+    let eventCode: String
+    let isActive: Bool
+    let eventType: Int
+    let isRsvprequired: Bool
+    let isSingleReceiver: Bool
+    let defaultEventPaymentMethod: Int
+    let defaultEventPaymentCustomName: String?
+    let success: Bool
+    let errorCode: String?
+    let errorMessage: String?
 }
 
 
@@ -80,6 +102,41 @@ struct EventResult: Codable {
     let eventsInvited: [EventsInvited]
 }
 
+struct InfoBoardMetrics: Model {
+    let available: [AmountCurrency]?
+    let pending: [AmountCurrency]?
+    let success: Bool
+    let errorCode: String?
+    let errorMessage: String?
+}
+
+struct StripeBalance: Codable {
+    let available: [AmountCurrency]
+    let pending: [AmountCurrency]
+    let success: Bool
+    let errorCode: String
+    let errorMessage: String
+}
+
+struct InfoScreenMetric: Codable {
+    let outstandingTransferAmt: [AmountCurrency]
+    let pendingPayoutAmt: [AmountCurrency]
+    let totalGiftedAmt: [AmountCurrency]
+    let totalReceivedAmt: [AmountCurrency]
+    let success: Bool
+    let errorCode: String?
+    let errorMessage: String?
+}
+struct AmountCurrency: Model  {
+    let amount: Float?
+    let currency: String?
+}
+
+struct BalanceAmountCurrency: Codable  {
+    let metricType: String
+    let amount: Float
+    let currency: String
+}
 struct EventList: Codable {
     let result: EventResult
     var id: Int64
@@ -235,4 +292,10 @@ struct eventsInvited1: Codable  {
        var eventState: Int
        var eventCode: String?
        var isActive: Bool
+}
+
+struct eventPaymentMethod: Codable {
+    let eventId: Int64
+    let hasEventPaymentMethod: Bool
+    let category: String
 }

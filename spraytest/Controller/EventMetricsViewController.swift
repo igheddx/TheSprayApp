@@ -54,6 +54,8 @@ class EventMetricsViewController: UIViewController, ChartViewDelegate, UITableVi
     var eventmetricsspraydetails: [EventMetricsSprayDetails] = []
     var eventmetricsspraydetails2: [EventMetricsSprayDetails] = []
     var eventmetricsspraydetails3: [EventMetricsSprayDetails] = []
+    var encryptedAPIKey: String = ""
+    
     override func viewDidLoad() {
         super.viewDidLoad()
         tableView.delegate = self
@@ -61,10 +63,14 @@ class EventMetricsViewController: UIViewController, ChartViewDelegate, UITableVi
         thePieChart.delegate = self
        
         //pieChart.delegate = self
+        self.navigationItem.title = "Event Metrics"
+   
+        navigationItem.largeTitleDisplayMode = .automatic
+        navigationController?.navigationBar.prefersLargeTitles = true
         
         eventNameLabel.text = eventName
         eventDateLabel.text = eventDate
-        eventCodeLabel.text = eventCode
+        //eventCodeLabel.text = eventCode
         eventImage.image = UIImage(named: eventTypeIcon!)
        // eventIdLabel.text = String(describing: eventId)
         //profileIdLabel.text = String(describing: profileId)
@@ -80,6 +86,12 @@ class EventMetricsViewController: UIViewController, ChartViewDelegate, UITableVi
         super.viewDidLayoutSubviews()
             
         
+    }
+    override func viewDidAppear(_ animated: Bool) {
+        AppUtility.lockOrientation(.portrait)
+    }
+    override func viewDidDisappear(_ animated: Bool) {
+        AppUtility.lockOrientation(.all)
     }
     func setupPieChart() {
         thePieChart.chartDescription?.enabled = false
@@ -120,8 +132,14 @@ class EventMetricsViewController: UIViewController, ChartViewDelegate, UITableVi
     
         //dataSet.colors = colors
         var  colors: [UIColor] = []
-             colors.append(UIColor(red: 190/255, green: 219/255, blue: 187/255, alpha: 1))
-             colors.append(UIColor(red: 141/255, green: 181/255, blue: 150/255, alpha: 1))
+            //old colors
+             //colors.append(UIColor(red: 190/255, green: 219/255, blue: 187/255, alpha: 1))
+             //colors.append(UIColor(red: 141/255, green: 181/255, blue: 150/255, alpha: 1))
+            
+        //new colors
+        colors.append(UIColor(red: 61/256, green: 126/256, blue: 166/256, alpha: 1.0)) //light blue
+        colors.append(UIColor(red: 138/256, green: 196/256, blue: 208/256, alpha: 1.0)) //dark blue
+        
              //colors.append(UIColor.black)
             //UIColor(red: CGFloat(190/255), green: CGFloat(219/255), blue: CGFloat(187/255), alpha: 1)
         //pieChartDataSet.colors = colors
@@ -183,8 +201,8 @@ class EventMetricsViewController: UIViewController, ChartViewDelegate, UITableVi
         //LegendEntry
         let formSize =  CGFloat.nan
 
-        let legendEntry1 = LegendEntry(label: "Gifted \(gifted)", form: .default, formSize: formSize, formLineWidth: .nan, formLineDashPhase: .nan, formLineDashLengths: .none, formColor: UIColor(red: 141/255, green: 181/255, blue: 150/255, alpha: 1))  //set formSize, formLizeWidth, and formLineDashLengths to .nan to use default
-        let legendEntry2 = LegendEntry(label: "Received \(received)", form: .default, formSize: formSize, formLineWidth: .nan, formLineDashPhase: .nan, formLineDashLengths: .none, formColor: UIColor(red: 190/255, green: 219/255, blue: 187/255, alpha: 1))
+        let legendEntry1 = LegendEntry(label: "Gifted $\(gifted)", form: .default, formSize: formSize, formLineWidth: .nan, formLineDashPhase: .nan, formLineDashLengths: .none, formColor: UIColor(red: 61/256, green: 126/256, blue: 166/256, alpha: 1.0))  //set formSize, formLizeWidth, and formLineDashLengths to .nan to use default
+        let legendEntry2 = LegendEntry(label: "Received $\(received)", form: .default, formSize: formSize, formLineWidth: .nan, formLineDashPhase: .nan, formLineDashLengths: .none, formColor: UIColor(red: 138/256, green: 196/256, blue: 208/256, alpha: 1.0))
         let customLegendEntries = [legendEntry1, legendEntry2]
         l.setCustom(entries: customLegendEntries)
         //l.orientation = .horizontal
@@ -200,12 +218,15 @@ class EventMetricsViewController: UIViewController, ChartViewDelegate, UITableVi
         chartData
             .setValueFormatter(DefaultValueFormatter(formatter: formatter))
         chartData.setValueFont(UIFont(name: "HelveticaNeue", size: 12)!)
-        chartData.setValueTextColor(.black)
+        chartData.setValueTextColor(.white)
         //let colors = [UIColor(named: .red), UIColor(named: .blue)]
         var  colors: [UIColor] = []
-             colors.append(UIColor(red: 190/255, green: 219/255, blue: 187/255, alpha: 1))
-             colors.append(UIColor(red: 141/255, green: 181/255, blue: 150/255, alpha: 1))
-        
+//             colors.append(UIColor(red: 190/255, green: 219/255, blue: 187/255, alpha: 1))
+//             colors.append(UIColor(red: 141/255, green: 181/255, blue: 150/255, alpha: 1))
+//
+        //new colors
+        colors.append(UIColor(red: 61/256, green: 126/256, blue: 166/256, alpha: 1.0)) //gifted dark blue
+        colors.append(UIColor(red: 138/256, green: 196/256, blue: 208/256, alpha: 1.0)) //received  lgith blue
         chartDataSet.colors = colors // ChartColorTemplates.material()
         
         
@@ -277,7 +298,7 @@ class EventMetricsViewController: UIViewController, ChartViewDelegate, UITableVi
     func getMyEventStats() {
       
         
-        let request = Request(path: "/api/Event/profilestats/\(profileId!)/\(eventId!)", token: token!)
+        let request = Request(path: "/api/Event/profilestats/\(profileId!)/\(eventId!)", token: token!, apiKey: encryptedAPIKey)
         Network.shared.send(request) { [self] (result: Result<Data, Error>)  in
         switch result {
         case .success(let eventStatsData):
@@ -309,7 +330,7 @@ class EventMetricsViewController: UIViewController, ChartViewDelegate, UITableVi
         //clear object data
         eventmetricsspraydetails.removeAll()
         
-        let request = Request(path: "/api/SprayTransaction/sendertotal/\(profileId!)/\(eventId!)", token: token!)
+        let request = Request(path: "/api/SprayTransaction/sendertotal/\(profileId!)/\(eventId!)", token: token!, apiKey: encryptedAPIKey)
 
         Network.shared.send(request) { [self] (result: Result<Data, Error>)  in
         switch result {
@@ -351,7 +372,7 @@ class EventMetricsViewController: UIViewController, ChartViewDelegate, UITableVi
     func getSenderSprayDetails(isForSearch: Bool) {
       
         eventmetricsspraydetails.removeAll()
-        let request = Request(path: "/api/SprayTransaction/recipienttotal/\(profileId!)/\(eventId!)", token: token!)
+        let request = Request(path: "/api/SprayTransaction/recipienttotal/\(profileId!)/\(eventId!)", token: token!, apiKey: encryptedAPIKey)
 
         Network.shared.send(request) { [self] (result: Result<Data, Error>)  in
         switch result {
@@ -472,12 +493,13 @@ extension EventMetricsViewController: UISearchBarDelegate {
     func searchBarCancelButtonClicked(_ searchBar: UISearchBar) {
         searching = false
         searchBar.text = ""
-        eventmetricsspraydetails2.removeAll()
-        tableView.reloadData()
-        
-        //reload data
-        getSenderSprayDetails(isForSearch: true)
-        getReceiverSprayDetails(isForSearch: true)
+        //eventmetricsspraydetails2.removeAll()
+        eventmetricsspraydetails3.removeAll()
+//        tableView.reloadData()
+//
+//        //reload data
+//        getSenderSprayDetails(isForSearch: true)
+//        getReceiverSprayDetails(isForSearch: true)
     }
 }
 

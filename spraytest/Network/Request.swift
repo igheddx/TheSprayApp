@@ -27,14 +27,17 @@ struct Request: Requestable {
     let path: String
     let method: String
     let token: String
+    let apiKey: String
     //let model: Model
     
-    init(path: String, method: String = "GET", token: String) {
+    init(path: String, method: String = "GET", token: String, apiKey: String) {
         self.path = path
         self.method = method
         self.token = token
+        self.apiKey = apiKey
         //self.model = model
     }
+
 
     func urlRequest() -> URLRequest {
         //guard let url = URL(string: "https://projectxapiapp.azurewebsites.net")?.appendingPathComponent(path) else {
@@ -61,6 +64,7 @@ struct Request: Requestable {
         urlRequest.setValue("application/json", forHTTPHeaderField: "Accept")
         urlRequest.setValue("application/json", forHTTPHeaderField: "Content-Type")
         urlRequest.setValue("Bearer " + token, forHTTPHeaderField: "Authorization")
+        urlRequest.setValue(apiKey, forHTTPHeaderField: "X-Api-Key")
 //
 //        do {
 //                   let encoder = JSONEncoder()
@@ -80,12 +84,14 @@ struct RequestQR: Requestable {
     let path: String
     let method: String
     let token: String
+    //let apiKey: String
     //let model: Model
     
     init(path: String, method: String = "GET", token: String) {
         self.path = path
         self.method = method
         self.token = token
+        //self.apiKey = apiKey
         //self.model = model
     }
 
@@ -115,6 +121,8 @@ struct RequestQR: Requestable {
         urlRequest.setValue("application/json", forHTTPHeaderField: "Accept")
         urlRequest.setValue("application/json", forHTTPHeaderField: "Content-Type")
         urlRequest.setValue("Bearer " + token, forHTTPHeaderField: "Authorization")
+        //urlRequest.setValue(apiKey, forHTTPHeaderField: "X-Api-Key")
+        //urlRequest.setValue(deviceId, forHTTPHeaderField: "X-DeviceId")
 //
 //        do {
 //                   let encoder = JSONEncoder()
@@ -136,6 +144,8 @@ struct PostRequest<Model: Encodable>: Requestable {
     let path: String
     let model: Model
     let token: String
+    let apiKey: String
+    let deviceId: String
     
 
     func urlRequest() -> URLRequest {
@@ -151,14 +161,17 @@ struct PostRequest<Model: Encodable>: Requestable {
 //            accessToken = ""
 //        }
        
+        print("apikey from request = \(apiKey)")
+        print("deviceId from request = \(deviceId)")
         
         var urlRequest = URLRequest(url: url)
         urlRequest.httpMethod = "POST"
-        urlRequest.setValue("application/json", forHTTPHeaderField: "Accept")
+        urlRequest.setValue("*/*", forHTTPHeaderField: "Accept")
         urlRequest.setValue("application/json", forHTTPHeaderField: "Content-Type")
         urlRequest.setValue("Bearer " + token, forHTTPHeaderField: "Authorization")
+        urlRequest.setValue(apiKey, forHTTPHeaderField: "X-Api-Key")
+        urlRequest.setValue(deviceId, forHTTPHeaderField: "X-DeviceId")
         
-
         do {
             let encoder = JSONEncoder()
             let data = try encoder.encode(model)
