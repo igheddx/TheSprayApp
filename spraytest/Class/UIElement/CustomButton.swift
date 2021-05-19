@@ -9,6 +9,14 @@
 import Foundation
 import UIKit
 
+class LblWhite: UILabel {
+    override func awakeFromNib() {
+        super.awakeFromNib()
+        
+        tintColor = UIColor.white
+        
+    }
+}
 class SelectPaymentButton: UIButton {
     override func awakeFromNib() {
         super.awakeFromNib()
@@ -41,13 +49,21 @@ class SelectPaymentButton: UIButton {
 class EventUIView: UIButton {
     override func awakeFromNib() {
         super.awakeFromNib()
-    //layer.borderColor  = UIColor.lightGray.cgColor
-    layer.shadowOffset = CGSize(width: 1, height: 1.0)
-    layer.shadowOpacity  = 0.5
-    layer.masksToBounds = false
-    layer.cornerRadius = 3.0
-    backgroundColor = UIColor(red: 244/256, green: 209/256, blue: 96/256, alpha: 1.0)
+        //layer.borderColor  = UIColor.lightGray.cgColor
+        layer.shadowOffset = CGSize(width: 1, height: 1.0)
+        layer.shadowOpacity  = 0.5
+        layer.masksToBounds = false
+        layer.cornerRadius = 3.0
+        //backgroundColor = UIColor(red: 244/256, green: 209/256, blue: 96/256, alpha: 1.0)
+        backgroundColor = UIColor(red: 40/256, green: 82/256, blue: 122/256, alpha: 1.0)
         //244209,96
+        //setTitleColor(UIColor(red: 255/256, green: 255/256, blue: 255/256, alpha: 1.0), for: .normal)
+        //setTitleColor(UIColor.white, for: .normal)
+        
+        tintColor = UIColor.white
+        setTitleColor(UIColor.white, for: .normal)
+        titleLabel?.font = UIFont.systemFont(ofSize: 14.0, weight: .regular)
+        
     }
 }
 class RSVPYesBtn: UIButton {

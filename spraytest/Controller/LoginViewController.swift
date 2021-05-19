@@ -10,53 +10,22 @@ import UIKit
 import AVFoundation
 import LocalAuthentication
 import CommonCrypto
-struct PaymentPref {
-    let paymentId: Int
-    let profileId: Int
-    let paymentName: String
-}
-
-struct EventPref {
-    let eventId: Int
-    let profileId: Int
-    let paymentId: Int
-    let amount: Int
-}
 
 
 class LoginViewController: UIViewController, UITextFieldDelegate {
-    
-    var paymentpref: [PaymentPref] = []
-    var eventpref: [EventPref] = []
-    
     let customtextfield = CustomTextField()
-    
-    
-    var text: String = ""
-    
     @IBOutlet weak var usernameTextField: UITextField!
     @IBOutlet weak var passwordTextField: UITextField!
-    
-    //@IBOutlet weak var eventCodeTextField: UITextField!
-    
-    //@IBOutlet weak var signInWithCodeSwitch: Switch1!
-    
-    //@IBOutlet weak var signIntWithCodeLbl: UILabel!
     @IBOutlet weak var rememberMeSwitch: Switch1!
-   
     @IBOutlet weak var rememberMeLbl: UILabel!
     @IBOutlet weak var labelMessage: UILabel!
     @IBOutlet weak var dataToSendTextField: UILabel!
-    
     @IBOutlet weak var usernameErrorLabel: UILabel!
     @IBOutlet weak var passwordErrorLabel: UILabel!
-    
     @IBOutlet weak var loginButton: MyCustomButton! //UIButton!
-    
     @IBOutlet weak var signUpBtn: NoNActiveActionButton!
     let defaults = UserDefaults.standard
-   // @IBOutlet weak var eventCodeTextField: UITextField!
-    
+
     //declare input variable
     var username: String = ""
     var password: String = ""
@@ -89,21 +58,9 @@ class LoginViewController: UIViewController, UITextFieldDelegate {
     
     override func viewDidLoad() {
         super.viewDidLoad()
-        
-        
-        //let decrypt = EncryptDecrpyt()
-        
+
         encryptedAPIKey = encryptdecrypt.encryptDecryptAPIKey(type: "", value: "", action: "encrypt") //encryptData(value: apiKeyValue)
-//        encryptedDeviceId = device.getDeviceId()
-//      
-//        device.sendDeviceInfo(encryptedAPIKey: encryptedAPIKey, encryptedDeviceId: encryptedDeviceId)
-        //sendDeviceInfo(encryptedAPIKey: self.encryptedAPIKey, encryptedDeviceId: self.encryptedDeviceId)
-        
-//        let data2Decrypt: Data? = "wr/YeiR6I2ZkB+hmCarcvq5nGE10ApfzwqFUnXkQGftQ2t/uf6IuyBl1RgEwqY7uI6D7d5O0vyPnLQRqNZ0EPg==".data(using: .utf8) // non-nil
-//        
-//        print("DECRYPT = \(decrypt.decryptData(value:data2Decrypt!))")
-//        
-        
+   
         print("encryptedAPIKey = \(encryptedAPIKey)")
         NotificationCenter.default.addObserver(self, selector: #selector(keyboardWillShow(sender:)), name: UIResponder.keyboardWillShowNotification, object: nil);
 
@@ -164,100 +121,12 @@ class LoginViewController: UIViewController, UITextFieldDelegate {
         //removing existing data from object
         myprofiledata.removeAll()
         
-        //reset default value of certain default user data
-        defaults.set(false, forKey: "isEditEventSettingRefresh")  //indicates that a refresh should be performed after returing to spray select attendee vc
-        defaults.set(false, forKey: "isEditEventSettingRefreshSprayVC") //indicates that a refresh should be performed after returing to spray vc
-        defaults.set(false, forKey: "isContinueAutoReplenish") //when auto replish is enabled while using app
-        defaults.set(false, forKey: "isPaymentMethodAvailable") //at least 1 payment is available
-        
-        //reset the flag to continue autoreplenis
-        defaults.set(false, forKey: "isContinueAutoReplenish")
-        
+
+       
         cleanUserDefaults()
     }
-//    func getDeviceInfo() -> String{
-//        // Do any additional setup after loading the view, typically from a nib.
-//        let udid = UIDevice.current.identifierForVendor?.uuidString
-//        let name = UIDevice.current.name
-//        //let version = UIDevice.current.systemVersion
-//        let modelName = UIDevice.current.model
-//
-//        deviceUID = udid! + name + modelName
-//        print("device \(deviceUID)")
-//        let encryptedDeviceId = encryptData(value: deviceUID)
-//        return encryptedDeviceId
-//    }
-    
-//    func encryptData(value: String) ->String {
-//        let inputValue = value //"UserPassword1!"
-//        let key128   = "1234567890123456"                   // 16 bytes for AES128
-//        let key256   = "CHqcPp7MN3mTY3nF6TWHdG8dHPVSgJBj"   // 32 bytes for AES256
-//        let iv       = "F5cEUty4UwQL2EyW"                   // 16 bytes for AES128
-//
-//
-//        do {
-//            let aes128 = AES(key: key128, iv: iv)
-//            let aes256 = AES(key: key256, iv: iv)
-//
-//            let encryptedInputValue128 = aes128?.encrypt(string: inputValue)
-//            aes128?.decrypt(data: encryptedInputValue128)
-//
-//            let encryptedInputValue256 = aes256?.encrypt(string: inputValue)
-//            aes256?.decrypt(data: encryptedInputValue256)
-//
-//
-//            //print(encryptedInputValue256?.base64EncodedString())
-////            let encryptedInputValue256 = aes256?.encrypt(string: inputValue)
-//            return (encryptedInputValue256?.base64EncodedString())!
-////
-////            let aes = try AES(keyString: key256)
-////
-////            let stringToEncrypt: String = inputValue
-////            print("String to encrypt:\t\t\t\(stringToEncrypt)")6t
-////
-////            let encryptedData: Data = try aes.encrypt(stringToEncrypt)
-////            print("String encrypted (base64):\t\(encryptedData.base64EncodedString())")
-////
-////            let decryptedData: String = try aes.decrypt(encryptedData)
-////            print("String decrypted:\t\t\t\(decryptedData)")
-//
-//        } catch {
-//            var errMsg: String = "Something went wrong: \(error)"
-//            print("Something went wrong: \(error)")
-//            return errMsg
-//        }
-//    }
-//    
-//    func sendDeviceInfoOLD(encryptedAPIKey: String, encryptedDeviceId: String) {
-//        let myDeviceId = DeviceInfoId(deviceUniqueId: encryptedDeviceId)
-//        print("myDeviceId \(myDeviceId)")
-//        let request = PostRequest(path: "/api/device/add", model: myDeviceId, token: "", apiKey: encryptedAPIKey, deviceId: "")
-//
-//        Network.shared.send(request) { [self] (result: Result<DeviceInfoData, Error>)  in
-//            switch result {
-//            case .success(let deviceId):
-//                //deviceId.sucess
-//                print(deviceId)
-//               print("it is good")
-//                
-//            case .failure(let error):
-//                print(error.localizedDescription)
-//                //self.theAlertView(alertType: "Error", message: error.localizedDescription)
-//                break
-//            }
-//        }
-//    }
 
-    
-    func loadPaymentPref() -> ([PaymentPref]) {
-        let data1 = PaymentPref(paymentId: 1, profileId: 1, paymentName: "Visa")
-        paymentpref.append(data1)
-        let data2 = PaymentPref(paymentId: 2, profileId: 1, paymentName: "Master")
-        paymentpref.append(data2)
-        let data3 = PaymentPref(paymentId: 3, profileId: 1, paymentName: "Amex")
-        paymentpref.append(data3)
-        return paymentpref
-    }
+
 
     override func viewDidAppear(_ animated: Bool) {
         navigationItem.hidesBackButton = true
@@ -493,18 +362,6 @@ class LoginViewController: UIViewController, UITextFieldDelegate {
                 defaultEventPaymentCustomName = ""
             }
             
-           // let decoder = JSONDecoder()
-           //                do {
-           //                    let urlJson: OnboardingUrl = try decoder.decode(OnboardingUrl.self, from: urldata)
-           //                    //for url in urlJson {
-           //                        //           url.redirectUrl
-           //                        print("MY URL = \( urlJson.redirectUrl)")
-           //                    //}
-           //
-           //                } catch {
-           //                    print(error)
-           //                }
-            
             
             //add profile record into object to be used later
             let data1 = MyProfile(token: "", profileId: profileId1, firstName: profileData.firstName, lastName: profileData.lastName, userName: profileData.userName, email: profileData.email, phone: profileData.phone, avatar: profileData.avatar, paymentCustomerId: profileData.paymentCustomerId, paymentConnectedActId: profileData.paymentConnectedActId, success: true, returnUrl: "", refreshUrl: "",  hasValidPaymentMethod: profileData.hasValidPaymentMethod, defaultPaymentMethod: profileData.defaultPaymentMethod, defaultPaymentMethodCustomName: defaultEventPaymentCustomName)
@@ -671,31 +528,7 @@ class LoginViewController: UIViewController, UITextFieldDelegate {
         self.navigationController?.pushViewController(nextVC , animated: true)
     }
 
-//    func getPaymentMethodRecord(profileId: Int64, token: String) {
-//        let request = Request(path: "/api/PaymentMethod/all/\(profileId)", token: token)
-//        Network.shared.send(request) { (result: Result<Data, Error>)  in
-//        switch result {
-//            case .success(let paymentmethod1):
-//                       //self.parse(json: event)
-//                let decoder = JSONDecoder()
-//                do {
-//                    let paymentJson: [PaymentTypeData] = try decoder.decode([PaymentTypeData].self, from: paymentmethod1)
-//                        
-//                    //check if user has paymentmethod onfile - at least 1
-//                    print("paymentJson.count = \(paymentJson.count)")
-//                    if paymentJson.count > 0 {
-//                        UserDefaults.standard.set(true, forKey: "isPaymentMethodAvailable")
-//                    } else {
-//                        UserDefaults.standard.set(false, forKey: "isPaymentMethodAvailable")
-//                    }
-//                } catch {
-//                    print(error)
-//                }
-//            case .failure(let error):
-//                print(" DOMINIC A IGHEDOSA ERROR \(error.localizedDescription)")
-//            }
-//        }
-//    }
+
     
     /*may need to move this to initialization - app start once we figure it out
     1/25/2020 */
@@ -704,7 +537,8 @@ class LoginViewController: UIViewController, UITextFieldDelegate {
         //UserDefaults.standard.removeObject(forKey: "isPaymentMethodAvailable")
         
         UserDefaults.standard.removeObject(forKey: "isAccountConnected")
-        
+        defaults.set(false, forKey: "isContinueAutoReplenish") //when auto replish is enabled
+
     }
     
     //**************** good code hold ***********************

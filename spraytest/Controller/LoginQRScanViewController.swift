@@ -11,42 +11,12 @@
 import UIKit
 import AVFoundation
 
-//struct PaymentPref {
-//    let paymentId: Int
-//    let profileId: Int
-//    let paymentName: String
-//}
-//
-//struct EventPref {
-//    let eventId: Int
-//    let profileId: Int
-//    let paymentId: Int
-//    let amount: Int
-//}
-
-
 class LoginQRScanViewController: UIViewController, UITextFieldDelegate {
-    
-    var paymentpref: [PaymentPref] = []
-    var eventpref: [EventPref] = []
-    
     let customtextfield = CustomTextField()
-    
     @IBOutlet weak var eventUIView: UIView!
-    
-    var text: String = ""
-    
     @IBOutlet weak var usernameTextField: UITextField!
-    //@IBOutlet weak var usernameTextField: UITextField!
-    
     @IBOutlet weak var passwordTextField: UITextField!
-    
-    //@IBOutlet weak var eventCodeTextField: UITextField!
-    
-    //@IBOutlet weak var signInWithCodeSwitch: Switch1!
-    
-    //@IBOutlet weak var signIntWithCodeLbl: UILabel!
-    //@IBOutlet weak var rememberMeSwitch: Switch1!
+
     @IBOutlet weak var rememberMeSwitch: Switch1!
     
     @IBOutlet weak var rememberMeLbl: UILabel!
@@ -190,66 +160,12 @@ class LoginQRScanViewController: UIViewController, UITextFieldDelegate {
         defaults.set(false, forKey: "isEditEventSettingRefreshSprayVC") //indicates that a refresh should be performed after returing to spray vc
         defaults.set(false, forKey: "isContinueAutoReplenish") //when auto replish is enabled while using app
     }
-    func loadPaymentPref() -> ([PaymentPref]) {
-        let data1 = PaymentPref(paymentId: 1, profileId: 1, paymentName: "Visa")
-        paymentpref.append(data1)
-        let data2 = PaymentPref(paymentId: 2, profileId: 1, paymentName: "Master")
-        paymentpref.append(data2)
-        let data3 = PaymentPref(paymentId: 3, profileId: 1, paymentName: "Amex")
-        paymentpref.append(data3)
-        return paymentpref
-    }
 
-    func loadEventPref() -> ([EventPref]) {
-        let data1 = EventPref(eventId: 5, profileId: 1, paymentId: 1, amount: 50)
-        eventpref.append(data1)
-        let data2 = EventPref(eventId: 6, profileId: 1, paymentId: 2, amount: 50)
-        eventpref.append(data2)
-        let data3 = EventPref(eventId: 7, profileId: 1, paymentId: 3, amount: 50)
-        eventpref.append(data3)
-        
-        return eventpref
-    }
-
-   
-    func fetchBigData(){
-        for index in 1...1000 {
-            print("Dominic \(index)")
-        }
-        
-        print("ok, I am done")
-    }
-    func fetchData(closure:()->Void) {
-        
-   
-        
-        var eventpref2: [EventPref] = []
-        var paymentpref2 : [PaymentPref] =  []
-        
-        eventpref2  = loadEventPref()
-        paymentpref2 = loadPaymentPref()
-        
-    //
-
-        for i in eventpref2 {
-            for j in paymentpref2 {
-                if (i.profileId == j.profileId && i.paymentId == j.paymentId && i.eventId == 5) {
-                    print("my event Id =\(i.eventId) paymentId = \(j.paymentId)")
-                }
-                print()
-            }
-            print("profile = \(i.profileId) eventId = \(i.eventId) amount = \(i.amount)")
-        }
-        closure()
-        print("I am fetching date")
-    }
-    
 
     override func viewDidAppear(_ animated: Bool) {
         navigationItem.hidesBackButton = true
         if logout == true {
-                 logoutCleanUp()
-            
+            logoutCleanUp()
         }
         
         //labelMessage.text = labelMessageInput - hold this 1/16/2021
