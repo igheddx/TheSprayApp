@@ -2125,7 +2125,7 @@ extension HomeViewController: UITableViewDataSource, UITableViewDelegate {
                 let jsonData = redirectURL2.data(using: .utf8)!
                 let connectedaccount: ConnectedAccount = try! JSONDecoder().decode(ConnectedAccount.self, from: jsonData)
                 
-                print("MY URL IS \(connectedaccount.url!)")
+                //print("MY URL IS \(connectedaccount.url!)")
                 print("IS ACCOUNT CONNECTED \(connectedaccount.isAccountConnected)")
 //                if let jsonData = try? JSONSerialization.data(withJSONObject: redirectURL2, options: JSONSerialization.WritingOptions.prettyPrinted)
 //                {

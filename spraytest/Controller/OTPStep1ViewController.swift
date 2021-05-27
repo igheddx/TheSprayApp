@@ -10,6 +10,7 @@ import UIKit
 
 class OTPStep1ViewController: UIViewController {
 
+    @IBOutlet weak var screenTitle: UILabel!
     @IBOutlet weak var phoneNumberTextField: UITextField!
     var formValidation =   Validation()
     let customtextfield = CustomTextField()
@@ -34,25 +35,80 @@ class OTPStep1ViewController: UIViewController {
     var eventType: String =  ""
     var action: String = ""
     var encryptedAPIKey: String = ""
+    var encryptedDeviceId: String = ""
+    let device = Device()
+    let encryptdecrypt = EncryptDecrpyt()
+    //let navBackButton = BackButtonOnNavBar()
+    //var flowType: String =  ""
     
     override func viewDidLoad() {
         super.viewDidLoad()
+        setNavigationBar()
+        encryptedAPIKey = encryptdecrypt.encryptDecryptAPIKey(type: "", value: "", action: "encrypt")
+        encryptedDeviceId = device.getDeviceId(userName: "")
         
+        
+        //navBackButton.currentVC
+        
+        
+//        let backButtonImage = UIImage(named: "backicon")?.withRenderingMode(.alwaysTemplate)
+//
+//            let backButton = UIButton(type: .custom)
+//            backButton.setImage(backButtonImage, for: .normal)
+//            backButton.tintColor = .white
+//            backButton.setTitle("  Back", for: .normal)
+//            backButton.setTitleColor(.white, for: .normal)
+//        backButton.addTarget(self, action: Selector(("backAction")), for: .touchUpInside)
+//
+//
+//            self.navigationItem.leftBarButtonItem = UIBarButtonItem(customView: backButton)
+
+        if action == "forgotPassword" {
+            screenTitle.text = "Reset Password - Let's Do Verification"
+        } else {
+            screenTitle.text = "Let's Do Verification"
+        }
         NotificationCenter.default.addObserver(self, selector: #selector(keyboardWillShow(sender:)), name: UIResponder.keyboardWillShowNotification, object: nil);
 
         NotificationCenter.default.addObserver(self, selector: #selector(keyboardWillHide(sender:)), name: UIResponder.keyboardWillHideNotification, object: nil);
         
         self.phoneNumberTextField.delegate = self
        
-        if let myImage = UIImage(named: "phone-icon") {
-            phoneNumberTextField.withImage(direction: .Left, image: myImage, colorSeparator: UIColor.lightGray, colorBorder: UIColor.black)
-        }
+//        if let myImage = UIImage(named: "phone-icon") {
+//            phoneNumberTextField.withImage(direction: .Left, image: myImage, colorSeparator: UIColor.lightGray, colorBorder: UIColor.black)
+//        }
+        
        phoneNumberTextField.addTarget(self, action: #selector(OTPStep1ViewController.textFieldDidChange(_:)),
                                   for: .editingChanged)
 
         // Do any additional setup after loading the view.
         
     }
+ 
+    func setNavigationBar() {
+        print("I was called")
+        let screenSize: CGRect = UIScreen.main.bounds
+        let navBar = UINavigationBar(frame: CGRect(x: 0, y: 35, width: screenSize.width, height: 44))
+        let navItem = UINavigationItem(title: "")
+        let image = UIImage(named: "closeicon")!.withRenderingMode(.alwaysOriginal)
+        let doneItem = UIBarButtonItem(image: image, style: .plain, target: nil, action: #selector(done))
+           navItem.leftBarButtonItem = doneItem
+           navBar.setItems([navItem], animated: false)
+           self.view.addSubview(navBar)
+    }
+    
+    //returns user to login when back button is pressed
+    @objc func done() {
+        let loginVC = self.storyboard?.instantiateViewController(withIdentifier: "LoginViewController") as? LoginViewController
+        let window = UIApplication.shared.windows.first
+
+        // Embed loginVC in Navigation Controller and assign the Navigation Controller as windows root
+        let nav = UINavigationController(rootViewController: loginVC!)
+        window?.rootViewController = nav
+
+       self.navigationController?.popToRootViewController(animated: true)
+    }
+    
     
     @objc func keyboardWillShow(sender: NSNotification) {
          self.view.frame.origin.y = -150 // Move view 150 points upward
@@ -62,6 +118,12 @@ class OTPStep1ViewController: UIViewController {
          self.view.frame.origin.y = 0 // Move view to original position
     }
     
+    override func viewWillAppear(_ animated: Bool) {
+        //setNavigationBar()
+    }
+    @IBAction func privacyPolicyBtnPressed(_ sender: Any) {
+        launchPrivacyPolicyTermsConditions()
+    }
     @objc func textFieldDidChange(_ textField: UITextField) {
         let text = textField.text
 
@@ -77,6 +139,17 @@ class OTPStep1ViewController: UIViewController {
         }
     }
 
+    func launchPrivacyPolicyTermsConditions() {
+      
+        let storyboard: UIStoryboard = UIStoryboard(name: "Main", bundle: Bundle.main)
+            let nextVC = storyboard.instantiateViewController(withIdentifier: "PrivacyPolicyTermsConditionsViewController") as! PrivacyPolicyTermsConditionsViewController
+
+        nextVC.modalPresentationStyle = UIModalPresentationStyle.formSheet
+        nextVC.navigationController?.modalPresentationStyle = UIModalPresentationStyle.currentContext
+
+        self.present(nextVC, animated: true, completion: nil)
+
+    }
     @IBAction func getVerificationCode(_ sender: Any) {
         guard let phone = phoneNumberTextField.text else {
             return
@@ -92,31 +165,90 @@ class OTPStep1ViewController: UIViewController {
            //phoneNumberTextField.borderForTextField(textField: nameTextField, validationFlag: true)
             //print("Incorrect First Name")
             //call UI Alert
-           phoneNumberTextField.isEnabled = true
-            presentUIAlert(alertMessage: "Incorrect Phone Number", alertTitle: "Missing Information", errorMessage: validationMessage, alertType: "formvalidation")
+            phoneNumberTextField.isEnabled = true
+            //self.presentUIAlert(alertMessage: "Incorrect Phone Number", alertTitle: "Missing Information", errorMessage: validationMessage, alertType: "formvalidation")
+            
+        
             return
         } else {
             customtextfield.borderForTextField(textField: phoneNumberTextField, validationFlag: false)
             
         }
         if isValidatePhone == true {
-            getOTPCode()
+            requestOTPCode()
         }
+    }
+    
+    func convertPhoneToString(phone: String) -> String {
+        let phonestr1 = phone.replacingOccurrences(of: "[\\(\\)^^+-]", with: "", options: .regularExpression, range: nil)
+        let phonestr2 = "+ \(phonestr1.replacingOccurrences(of: " ", with: ""))"
+        return phonestr2
+    }
+
+
+    func requestOTPCode() {
+        print("get OTCode was called")
+        //let phone = phoneNumberTextField.text!
+        //launchOTPVerifyVC(otpCode: otpCode, phone: phone)
         
+        let phone = convertPhoneToString(phone: phoneNumberTextField.text!)
         
+        let otpModel = OTPModel(phone: phone, email: "", code: "", message: "", profileId: 0)
+        let request = PostRequest(path: "/api/otpverify/add", model: otpModel, token: "", apiKey: encryptedAPIKey, deviceId: encryptedDeviceId)
+
+        print("request \(request)")
+        Network.shared.send(request) { [self] (result: Result<OTPData, Error>)  in
+        switch result {
+        case .success(let otpdata):
+            if otpdata.success == true {
+                launchOTPVerifyVC(phone: phone)
+            } else  {
+                theAlertView(alertType: "otpcode", message: "")
+            }
+            print("success")
+        case .failure(let error):
+
+            theAlertView(alertType: "otpcode", message: error.localizedDescription)
+            }
+        }
         
     }
     
-    func getOTPCode() {
-        print("get OTCode was called")
-        let otpCode = 12345
-        let phone = phoneNumberTextField.text!
-        launchOTPVerifyVC(otpCode: otpCode, phone: phone)
+    func theAlertView(alertType: String, message: String){
+        var alertTitle: String = ""
+        var alertMessage: String = ""
+        if alertType == "otpcode" {
+            alertTitle = "OTP"
+            alertMessage = "Something went wrong with the OTP Code. Please try again."
+            
+            
+            
+        } else if alertType == "MissingFields" {
+            alertTitle = "Login Error"
+            alertMessage = "You entered an invalid login ID or Password. \n"
+        } else if alertType == "InitializeError" {
+            alertTitle = "Login Error"
+            alertMessage = "Something went wrong with the initialization. Please try again. \n"
+        }
+        //self.dismiss(animated: true, completion: nil)
+//        self.loginButton.isEnabled = true
+//        self.loginButton.setTitle("Sign In", for: .normal)
+//        self.usernameTextField.isEnabled = true
+//        self.passwordTextField.isEnabled = true
+//        //self.loginButton.loadIndicator(false)
+//        self.loginButton.loadIndicator(false)
+        
+        let alert2 = UIAlertController(title: alertTitle, message: "\(alertMessage) \n \(message)", preferredStyle: .alert)
+
+        alert2.addAction(UIAlertAction(title: "Close", style: .default, handler: nil))
+        //alert2.addAction(UIAlertAction(title: "No", style: .cancel, handler: nil))
+        self.present(alert2, animated: true)
     }
-    func launchOTPVerifyVC(otpCode: Int, phone: String) {
+        
+    func launchOTPVerifyVC(phone: String) {
         print("launchOTPVerifyVC was called")
         let nextVC = storyboard?.instantiateViewController(withIdentifier: "OTPStep2ViewController") as! OTPStep2ViewController
-        nextVC.otpCode = otpCode
+        //nextVC.otpCode = otpCode
         nextVC.otpPhone = phone
         nextVC.eventName = eventName
         nextVC.eventDateTime = eventDateTime
@@ -124,7 +256,7 @@ class OTPStep1ViewController: UIViewController {
         nextVC.eventCode = eventCode
         nextVC.eventType = eventType
         nextVC.action = action
-        
+        //nextVC.flowType = flowType
         self.navigationController?.pushViewController(nextVC, animated: true)
     }
     func presentUIAlert(alertMessage: String, alertTitle: String, errorMessage: String, alertType: String) {

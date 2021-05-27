@@ -18,6 +18,8 @@ class CustomTextField {
 //        self.validationflag = validationFlag
 //    }
 //
+  
+    
     func borderForLabel(label: UILabel) {
         label.layer.cornerRadius = 6.0
         label.layer.masksToBounds = true
@@ -59,4 +61,14 @@ class CustomTextField {
 
         
     
+}
+
+
+//this textfiled enlarges the cursor
+class CustomTextField2: UITextField {
+    override func caretRect(for position: UITextPosition) -> CGRect {
+        var rect = super.caretRect(for: position)
+        rect = CGRect(x: rect.origin.x+2, y: 4, width: 1, height: 35)
+        return rect
+    }
 }

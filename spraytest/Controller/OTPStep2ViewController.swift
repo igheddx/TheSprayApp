@@ -33,7 +33,7 @@ class OTPStep2ViewController: UIViewController {
     var eventType: String =  ""
     var action: String = ""
     var encryptedAPIKey: String = ""
-    
+    //var flowType: String =  ""
     
     @IBOutlet weak var otpTextField1: UITextField!
     @IBOutlet weak var otpTextField2: UITextField!
@@ -41,20 +41,26 @@ class OTPStep2ViewController: UIViewController {
     @IBOutlet weak var otpTextField4: UITextField!
     @IBOutlet weak var otpTextField5: UITextField!
     
+    @IBOutlet weak var otpTextField6: UITextField!
     override func viewDidLoad() {
         super.viewDidLoad()
+        
+        setNavigationBar()
         
         self.otpTextField1.delegate = self
         self.otpTextField2.delegate = self
         self.otpTextField3.delegate = self
         self.otpTextField4.delegate = self
         self.otpTextField5.delegate = self
+        self.otpTextField6.delegate = self
         
         self.otpTextField1.addTarget(self, action: #selector(self.changeCharacter), for: .editingChanged)
         self.otpTextField2.addTarget(self, action: #selector(self.changeCharacter), for: .editingChanged)
         self.otpTextField3.addTarget(self, action: #selector(self.changeCharacter), for: .editingChanged)
         self.otpTextField4.addTarget(self, action: #selector(self.changeCharacter), for: .editingChanged)
         self.otpTextField5.addTarget(self, action: #selector(self.changeCharacter), for: .editingChanged)
+        
+        self.otpTextField6.addTarget(self, action: #selector(self.changeCharacter), for: .editingChanged)
         
         otpTextField1.becomeFirstResponder()
         
@@ -76,6 +82,29 @@ class OTPStep2ViewController: UIViewController {
          self.view.frame.origin.y = 0 // Move view to original position
     }
     
+    func setNavigationBar() {
+        print("I was called")
+        let screenSize: CGRect = UIScreen.main.bounds
+        let navBar = UINavigationBar(frame: CGRect(x: 0, y: 35, width: screenSize.width, height: 44))
+        let navItem = UINavigationItem(title: "")
+        let image = UIImage(named: "closeicon")!.withRenderingMode(.alwaysOriginal)
+        let doneItem = UIBarButtonItem(image: image, style: .plain, target: nil, action: #selector(done))
+           navItem.leftBarButtonItem = doneItem
+           navBar.setItems([navItem], animated: false)
+           self.view.addSubview(navBar)
+    }
+    
+    //returns user to login when back button is pressed
+    @objc func done() {
+        let loginVC = self.storyboard?.instantiateViewController(withIdentifier: "LoginViewController") as? LoginViewController
+        let window = UIApplication.shared.windows.first
+
+        // Embed loginVC in Navigation Controller and assign the Navigation Controller as windows root
+        let nav = UINavigationController(rootViewController: loginVC!)
+        window?.rootViewController = nav
+
+       self.navigationController?.popToRootViewController(animated: true)
+    }
     @objc func changeCharacter(textField: UITextField) {
         if textField.text?.utf8.count == 1 {
             switch textField {
@@ -88,6 +117,8 @@ class OTPStep2ViewController: UIViewController {
             case otpTextField4:
                 otpTextField5.becomeFirstResponder()
             case otpTextField5:
+                otpTextField6.becomeFirstResponder()
+            case otpTextField6:
                 //otpTextField2.becomeFirstResponder()
                 print("print value")
             default:
@@ -95,6 +126,8 @@ class OTPStep2ViewController: UIViewController {
             }
         } else {
             switch textField {
+            case otpTextField6:
+                otpTextField5.becomeFirstResponder()
             case otpTextField5:
                 otpTextField4.becomeFirstResponder()
             case otpTextField4:
@@ -156,6 +189,11 @@ class OTPStep2ViewController: UIViewController {
         } else if action == "createAccount" {
             let nextVC = storyboard?.instantiateViewController(withIdentifier: "CreateAccountViewController") as! CreateAccountViewController
             nextVC.phoneFromOTP = otpPhone
+            self.navigationController?.pushViewController(nextVC , animated: true)
+        } else if action == "forgotPassword" {
+            let nextVC = storyboard?.instantiateViewController(withIdentifier: "ForgotPasswordViewController") as! ForgotPasswordViewController
+            nextVC.phoneFromOTP = otpPhone
+            nextVC.action = action 
             self.navigationController?.pushViewController(nextVC , animated: true)
         }
     }

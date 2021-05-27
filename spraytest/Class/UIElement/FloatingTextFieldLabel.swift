@@ -10,6 +10,13 @@ import Foundation
 import UIKit
 
 class FloatingLabelInput: UITextField {
+    
+    override func caretRect(for position: UITextPosition) -> CGRect {
+        var rect = super.caretRect(for: position)
+        rect = CGRect(x: rect.origin.x+2, y: 4, width: 1, height: 35)
+        return rect
+    }
+    
     var floatingLabel: UILabel!// = UILabel(frame: CGRect.zero)
     var floatingLabelHeight: CGFloat = 7
     var button = UIButton(type: .custom)

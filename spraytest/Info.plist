@@ -4,6 +4,8 @@
 <dict>
 	<key>CFBundleDevelopmentRegion</key>
 	<string>$(DEVELOPMENT_LANGUAGE)</string>
+	<key>CFBundleDisplayName</key>
+	<string>Spray App</string>
 	<key>CFBundleExecutable</key>
 	<string>$(EXECUTABLE_NAME)</string>
 	<key>CFBundleIdentifier</key>
@@ -15,16 +17,14 @@
 	<key>CFBundlePackageType</key>
 	<string>$(PRODUCT_BUNDLE_PACKAGE_TYPE)</string>
 	<key>CFBundleShortVersionString</key>
-	<string>1.0</string>
+	<string>$(MARKETING_VERSION)</string>
 	<key>CFBundleURLTypes</key>
 	<array>
 		<dict>
 			<key>CFBundleURLSchemes</key>
 			<array>
-				<string>appcenter-{ec81818c-6d8c-452d-9011-85b7ecbf8a5e}</string>
+				<string>appcenter-ec81818c-6d8c-452d-9011-85b7ecbf8a5e</string>
 			</array>
-			<key>CFBundleURLName</key>
-			<string></string>
 		</dict>
 		<dict>
 			<key>CFBundleIdentifier</key>
@@ -32,10 +32,10 @@
 			<key>CFBundleTypeRole</key>
 			<string>Editor</string>
 			<key>CFBundleURLName</key>
-			<string>com.sprayapp</string>
+			<string>com.sprayapp.thesprayapp2</string>
 			<key>CFBundleURLSchemes</key>
 			<array>
-				<string>thesprayapp</string>
+				<string>thesprayapp2</string>
 			</array>
 		</dict>
 	</array>
@@ -47,6 +47,8 @@
 	<string>Use to scan QR and Barcode</string>
 	<key>NSContactsUsageDescription</key>
 	<string>Let me use contact</string>
+	<key>NSFaceIDUsageDescription</key>
+	<string>Identify yourself!</string>
 	<key>NSPhotoLibraryUsageDescription</key>
 	<string>This app requires access to the photo library</string>
 	<key>UIApplicationSceneManifest</key>
@@ -89,7 +91,5 @@
 		<string>UIInterfaceOrientationLandscapeLeft</string>
 		<string>UIInterfaceOrientationLandscapeRight</string>
 	</array>
-	<key>NSFaceIDUsageDescription</key>
-	<string>Identify yourself!</string>
 </dict>
 </plist>

@@ -73,7 +73,7 @@ class LoginQRScanViewController: UIViewController, UITextFieldDelegate {
     
     override func viewDidLoad() {
         super.viewDidLoad()
-        
+        setNavigationBar()
         encryptedAPIKey = encryptdecrypt.encryptDecryptAPIKey(type: "", value: "", action: "encrypt")
         
         print("LoginQR = \(encryptedAPIKey)")
@@ -153,6 +153,49 @@ class LoginQRScanViewController: UIViewController, UITextFieldDelegate {
          self.view.frame.origin.y = 0 // Move view to original position
     }
     
+    @IBAction func privacyPolicyBtnPressed(_ sender: Any) {
+        launchPrivacyPolicyTermsConditions()
+    }
+    
+    @IBAction func termOfUseBtnPressed(_ sender: Any) {
+        launchPrivacyPolicyTermsConditions()
+    }
+    
+    func setNavigationBar() {
+        print("I was called")
+        let screenSize: CGRect = UIScreen.main.bounds
+        let navBar = UINavigationBar(frame: CGRect(x: 0, y: 35, width: screenSize.width, height: 44))
+        let navItem = UINavigationItem(title: "")
+        let image = UIImage(named: "closeicon")!.withRenderingMode(.alwaysOriginal)
+        let doneItem = UIBarButtonItem(image: image, style: .plain, target: nil, action: #selector(done))
+           navItem.leftBarButtonItem = doneItem
+           navBar.setItems([navItem], animated: false)
+           self.view.addSubview(navBar)
+    }
+    
+    //returns user to login when back button is pressed
+    @objc func done() {
+        let loginVC = self.storyboard?.instantiateViewController(withIdentifier: "LoginViewController") as? LoginViewController
+        let window = UIApplication.shared.windows.first
+
+        // Embed loginVC in Navigation Controller and assign the Navigation Controller as windows root
+        let nav = UINavigationController(rootViewController: loginVC!)
+        window?.rootViewController = nav
+
+       self.navigationController?.popToRootViewController(animated: true)
+    }
+    
+    func launchPrivacyPolicyTermsConditions() {
+      
+        let storyboard: UIStoryboard = UIStoryboard(name: "Main", bundle: Bundle.main)
+            let nextVC = storyboard.instantiateViewController(withIdentifier: "PrivacyPolicyTermsConditionsViewController") as! PrivacyPolicyTermsConditionsViewController
+
+        nextVC.modalPresentationStyle = UIModalPresentationStyle.formSheet
+        nextVC.navigationController?.modalPresentationStyle = UIModalPresentationStyle.currentContext
+
+        self.present(nextVC, animated: true, completion: nil)
+
+    }
     //1/25/21 hold this func for now... we may move it somewhere else
     func  appInitilialization() {
         //reset default value of certain default user data

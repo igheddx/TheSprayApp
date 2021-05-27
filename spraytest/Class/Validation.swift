@@ -41,7 +41,7 @@ class Validation {
             isValidate = false
             errorMessage = "Text Field Cannot Be Empty Less Than 3 Characters"
             return (isValidate, errorMessage)
-        } else if name2.count > 30  {
+        } else if name2.count > 35  {
             isValidate = false
             errorMessage = "Text Field Cannot Be Empty Exceed 30 Characters"
             return (isValidate, errorMessage)

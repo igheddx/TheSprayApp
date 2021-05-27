@@ -80,7 +80,8 @@ class DisplayQRCodeViewController: UIViewController {
         } else  {
             isSingleReceiverEventStr = "false"
         }
-        let qrData = "\(eventName)| \(eventDate)| \(eventCode)| \(eventTypeIcon)| \(eventId)| \(ownerId)| \(eventType)| \(isSingleReceiverEventStr)"
+        let newName = eventName.replacingOccurrences(of: "'", with: "")
+        let qrData = "\(newName)| \(eventDate)| \(eventCode)| \(eventTypeIcon)| \(eventId)| \(ownerId)| \(eventType)| \(isSingleReceiverEventStr)"
         print(qrData)
       generateCode(qrData,                                                      foregroundColor: UIColor(red:0.00, green:0.00, blue:0.00, alpha:1.00),
                                                         backgroundColor: UIColor(red:1.00, green:1.00, blue:1.00, alpha:1.00))

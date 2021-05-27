@@ -76,7 +76,7 @@ class CreateAccountQRScanViewController: UIViewController {
     
     override func viewDidLoad() {
         super.viewDidLoad()
-        
+        setNavigationBar()
         encryptedAPIKey = encryptdecrypt.encryptDecryptAPIKey(type: "", value: "", action: "encrypt") //encryptData(value: apiKeyValue)
         //let devicedata = DeviceData()
 //        let encryptdecrypt = EncryptDecrpyt()
@@ -122,6 +122,30 @@ class CreateAccountQRScanViewController: UIViewController {
 
     @objc func keyboardWillHide(sender: NSNotification) {
          self.view.frame.origin.y = 0 // Move view to original position
+    }
+    
+    func setNavigationBar() {
+        print("I was called")
+        let screenSize: CGRect = UIScreen.main.bounds
+        let navBar = UINavigationBar(frame: CGRect(x: 0, y: 35, width: screenSize.width, height: 44))
+        let navItem = UINavigationItem(title: "")
+        let image = UIImage(named: "closeicon")!.withRenderingMode(.alwaysOriginal)
+        let doneItem = UIBarButtonItem(image: image, style: .plain, target: nil, action: #selector(done))
+           navItem.leftBarButtonItem = doneItem
+           navBar.setItems([navItem], animated: false)
+           self.view.addSubview(navBar)
+    }
+    
+    //returns user to login when back button is pressed
+    @objc func done() {
+        let loginVC = self.storyboard?.instantiateViewController(withIdentifier: "LoginViewController") as? LoginViewController
+        let window = UIApplication.shared.windows.first
+
+        // Embed loginVC in Navigation Controller and assign the Navigation Controller as windows root
+        let nav = UINavigationController(rootViewController: loginVC!)
+        window?.rootViewController = nav
+
+       self.navigationController?.popToRootViewController(animated: true)
     }
     
     func initializationTasks() {

@@ -462,7 +462,7 @@ class CreateEventViewController: UIViewController {
     
     @objc func donePressed() {
         let dateFormatter = DateFormatter()
-        dateFormatter.dateFormat = "E, d MMM yyyy HH:mm a" //yyyy-MM-dd'T'HH:mm"
+        dateFormatter.dateFormat = "E, d MMM yyyy h:mm a" //E, d MMM yyyy hh:mm a" //yyyy-MM-dd'T'HH:mm"
         eventDateTextField.text   = dateFormatter.string(from: datePicker.date)
         self.view.endEditing(true)
         
@@ -773,15 +773,16 @@ class CreateEventViewController: UIViewController {
             
             let dateFormatter = DateFormatter()
             dateFormatter.locale = Locale(identifier: "en_US_POSIX")
-            dateFormatter.dateFormat = "E, d MMM yyyy HH:mm a"
+            dateFormatter.dateFormat = "E, d MMM yyyy h:mm a" //E, d MMM yyyy HH:mm a"
             let date = dateFormatter.date(from:String(eventDateTime))!
 
 
-            let formatedEventDateTime  = getFormattedDate(date: date, format: "yyyy-MM-dd'T'HH:mm:ss")
+            let formatedEventDateTime  = getFormattedDate(date: date, format: "yyyy-MM-dd'T'HH:mm")
 
             
             //let formatedEventDateTime  = getFormattedDate(date: Date(), format: "yyyy-MM-dd HH:mm")
-            print("format event date\(formatedEventDateTime)")
+            print("event date = \(eventDateTextField.text)")
+            print("format event date = \(formatedEventDateTime)")
             var eventTypeId: Int
             eventTypeId = getEventTypeId(eventTypeName: eventType)
             

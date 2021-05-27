@@ -9,6 +9,19 @@
 import Foundation
 import Contacts
 
+struct OTPModel: Model {
+    let phone: String
+    let email: String
+    let code: String
+    let message: String
+    let profileId: Int64
+}
+struct OTPData: Model {
+    let success: Bool
+    let errorCode: String?
+    let errorMessage: String?
+}
+
 struct UserUpdateModel: Model {
     let firstName: String
     var lastName: String

@@ -59,6 +59,33 @@ class LoginViewController: UIViewController, UITextFieldDelegate {
     override func viewDidLoad() {
         super.viewDidLoad()
 
+//        let startPosition: UITextPosition = usernameTextField.beginningOfDocument
+//        let endPosition: UITextPosition = usernameTextField.endOfDocument
+//        let selectedRange: UITextRange? = usernameTextField.selectedTextRange
+//
+//        if let selectedRange = usernameTextField.selectedTextRange {
+//
+//            let cursorPosition = usernameTextField.offset(from: usernameTextField.beginningOfDocument, to: selectedRange.start)
+//
+//            print("\(cursorPosition)")
+//        }
+//        
+//        let newPosition = usernameTextField.beginningOfDocument
+//        usernameTextField.selectedTextRange = usernameTextField.textRange(from: newPosition, to: newPosition)
+//        
+//        let arbitraryValue: Int = 5
+//        if let newPosition = usernameTextField.position(from: usernameTextField.beginningOfDocument, offset: arbitraryValue) {
+//
+//            usernameTextField.selectedTextRange = usernameTextField.textRange(from: newPosition, to: newPosition)
+//        }
+//        
+//        UITextField.appearance().tintColor = UIColor.black
+//        usernameTextField.becomeFirstResponder()
+        
+        //UITextField.appearance().tintColor = UIColor(red: 0/256, green: 0/256, blue: 0/256, alpha: 1.0)
+        
+        //UITextField.tintColor = UIColor.blackColor()
+        
         encryptedAPIKey = encryptdecrypt.encryptDecryptAPIKey(type: "", value: "", action: "encrypt") //encryptData(value: apiKeyValue)
    
         print("encryptedAPIKey = \(encryptedAPIKey)")
@@ -77,6 +104,8 @@ class LoginViewController: UIViewController, UITextFieldDelegate {
 
         self.passwordTextField.delegate = self
         self.usernameTextField.delegate = self
+        
+   
         //self.eventCodeTextField.delegate = self
         
         //toggleTorch(on: true)
@@ -230,6 +259,13 @@ class LoginViewController: UIViewController, UITextFieldDelegate {
     @IBAction func launchScanner(_ sender: Any) {
     }
     
+    @IBAction func privacyPolicyBtnPressed(_ sender: Any) {
+        launchPrivacyPolicyTermsConditions()
+    }
+    
+    @IBAction func termOfUseBtnPressed(_ sender: Any) {
+        launchPrivacyPolicyTermsConditions()
+    }
     //not going to use this remove
     @IBAction func joinEventWithCodeButtonPressed(_ sender: Any) {
         //performSegue(withIdentifier: "goToLoginWithCode", sender: self)
@@ -345,6 +381,45 @@ class LoginViewController: UIViewController, UITextFieldDelegate {
         }
     }
     
+    
+    func launchPrivacyPolicyTermsConditions() {
+      
+        let storyboard: UIStoryboard = UIStoryboard(name: "Main", bundle: Bundle.main)
+            let nextVC = storyboard.instantiateViewController(withIdentifier: "PrivacyPolicyTermsConditionsViewController") as! PrivacyPolicyTermsConditionsViewController
+
+       
+
+        nextVC.modalPresentationStyle = UIModalPresentationStyle.formSheet
+        nextVC.navigationController?.modalPresentationStyle = UIModalPresentationStyle.currentContext
+    
+
+//        nextVC.eventId = self.eventId
+//        nextVC.profileId = self.profileId
+//        nextVC.token = token
+//        nextVC.encryptedAPIKey = encryptedAPIKey
+//        nextVC.eventName = eventName
+//        nextVC.eventDateTime = eventDateTime
+//        nextVC.eventTypeIcon = eventTypeIcon
+//        nextVC.autoReplenishFlg = autoReplenishFlg
+//        nextVC.autoReplenishAmt = autoReplenishAmt
+//        
+//
+//        nextVC.refreshscreendelegate = self
+//        nextVC.setuppaymentmethoddelegate = self
+//        nextVC.paymentClientToken = paymentClientToken
+//        nextVC.currentAvailableCredit =  availableBalance
+        self.present(nextVC, animated: true, completion: nil)
+        
+//        let nextVC = storyboard?.instantiateViewController(withIdentifier: "PrivacyPolicyTermsConditionsViewController") as! PrivacyPolicyTermsConditionsViewController
+//
+//        self.navigationController?.pushViewController(nextVC , animated: true)
+//
+        //let nextVC = storyboard?.instantiateViewController(withIdentifier: "SetupPaymentMethodViewController") as! SetupPaymentMethodViewController
+      
+            
+       // self.navigationController?.pushViewController(nextVC , animated: true)
+        //}
+    }
     func getProfileData(profileId1: Int64, token1: String) {
         let request = Request(path: "/api/profile/\(profileId1)", token: token1, apiKey: encryptedAPIKeyUserName)
         
@@ -455,9 +530,8 @@ class LoginViewController: UIViewController, UITextFieldDelegate {
             case .failure(let error):
                 UserDefaults.standard.set(false, forKey: "isAccountConnected")
             print(" DOMINIC H IGHEDOSA 1 ERROR \(error.localizedDescription)")
+            }
         }
-    }
-    
     }
     func theAlertView(alertType: String, message: String){
         var alertTitle: String = ""
@@ -528,7 +602,15 @@ class LoginViewController: UIViewController, UITextFieldDelegate {
         self.navigationController?.pushViewController(nextVC , animated: true)
     }
 
-
+    
+    @IBAction func forgetPassword(_ sender: Any) {
+        let nextVC = storyboard?.instantiateViewController(withIdentifier: "OTPStep1ViewController") as! OTPStep1ViewController
+        nextVC.action = "forgotPassword"
+        //let nextVC = storyboard?.instantiateViewController(withIdentifier: "CreateAccountViewController") as! CreateAccountViewController
+        
+        //nextVC.flowType = "forgotPassword"
+        self.navigationController?.pushViewController(nextVC , animated: true)
+    }
     
     /*may need to move this to initialization - app start once we figure it out
     1/25/2020 */

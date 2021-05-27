@@ -18,7 +18,8 @@ struct Device {
         //let version = UIDevice.current.systemVersion
         let modelName = UIDevice.current.model
 
-        let deviceUID = udid! + name + modelName + userName
+        //let deviceUID = udid! + name + modelName + userName //old hold this for now 5/26
+        let deviceUID = udid! + name + modelName //does not include userName
         print("device \(deviceUID)")
         
         let encryptdecrypt =  EncryptDecrpyt()
