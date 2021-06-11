@@ -5,8 +5,8 @@
 //  Created by Ighedosa, Dominic on 7/24/20.
 //  Copyright © 2020 Ighedosa, Dominic. All rights reserved.
 //
-import BraintreeDropIn
-import Braintree
+//import BraintreeDropIn
+//import Braintree
 import UIKit
 
 class AddPaymentViewController: UIViewController {
@@ -45,28 +45,28 @@ class AddPaymentViewController: UIViewController {
     
     
     func showDropIn(clientTokenOrTokenizationKey: String) {
-        let request =  BTDropInRequest()
-        let dropIn = BTDropInController(authorization: clientTokenOrTokenizationKey, request: request)
-        { (controller, result, error) in
-            if (error != nil) {
-                print("ERROR")
-            } else if (result?.isCancelled == true) {
-                print("CANCELLED")
-            } else if let result = result {
-                // Use the BTDropInResult properties to update your UI
-                let paymentOption = result.paymentOptionType
-                let paymentMethod = result.paymentMethod
-                let paymentIcon = result.paymentIcon
-                let paymentDescription = result.paymentDescription
-                
-                print("paymentOption= \(paymentOption.rawValue)")
-                print("paymentMethod! = \(paymentMethod!.nonce)")
-                print("paymentIcon = \(paymentIcon)")
-                print("paymentDescription = \(paymentDescription)")
-            }
-            controller.dismiss(animated: true, completion: nil)
-        }
-        self.present(dropIn!, animated: true, completion: nil)
+//        let request =  BTDropInRequest()
+//        let dropIn = BTDropInController(authorization: clientTokenOrTokenizationKey, request: request)
+//        { (controller, result, error) in
+//            if (error != nil) {
+//                print("ERROR")
+//            } else if (result?.isCancelled == true) {
+//                print("CANCELLED")
+//            } else if let result = result {
+//                // Use the BTDropInResult properties to update your UI
+//                let paymentOption = result.paymentOptionType
+//                let paymentMethod = result.paymentMethod
+//                let paymentIcon = result.paymentIcon
+//                let paymentDescription = result.paymentDescription
+//                
+//                print("paymentOption= \(paymentOption.rawValue)")
+//                print("paymentMethod! = \(paymentMethod!.nonce)")
+//                print("paymentIcon = \(paymentIcon)")
+//                print("paymentDescription = \(paymentDescription)")
+//            }
+//            controller.dismiss(animated: true, completion: nil)
+//        }
+//        self.present(dropIn!, animated: true, completion: nil)
     }
     /*
     // MARK: - Navigation

@@ -7,8 +7,8 @@
 //
 
 import UIKit
-import BraintreeDropIn
-import Braintree
+//import BraintreeDropIn
+//import Braintree
 
 
 class EventSettingTableViewController: UITableViewController {
@@ -97,8 +97,8 @@ class EventSettingTableViewController: UITableViewController {
     var gifterTotalTransAmount: Int = 0
     
     
-    var paymentOptionType: BTUIKPaymentOptionType?
-    var paymentMethodNonce: BTPaymentMethodNonce?
+//    var paymentOptionType: BTUIKPaymentOptionType?
+//    var paymentMethodNonce: BTPaymentMethodNonce?
     var paymentDescription: String?
     var isReadyToSavePayment: Bool = false
     var isAddNewPayment: Bool = false
@@ -618,13 +618,13 @@ class EventSettingTableViewController: UITableViewController {
                         
                         if isAddNewPayment == true {
                             
-                            print("1. isAddNewPayment = true")
-                            //add payment
-                            addPayment(paymentNonce: paymentMethodNonce!.nonce, paymentOptionType: Int64(paymentOptionType!.rawValue), paymentDescription: paymentDescription!, paymentExpiration: "12/31/2099")
-                            
-                            //get the latest payment data
-                            getPaymentTypeData(paymentTypeId: self.paymentOptionType!.rawValue)
-                            
+//                            print("1. isAddNewPayment = true")
+//                            //add payment
+//                            addPayment(paymentNonce: paymentMethodNonce!.nonce, paymentOptionType: Int64(paymentOptionType!.rawValue), paymentDescription: paymentDescription!, paymentExpiration: "12/31/2099")
+//
+//                            //get the latest payment data
+//                            getPaymentTypeData(paymentTypeId: self.paymentOptionType!.rawValue)
+//
                             //get the paymenttheodId of the new paymentmethod
                             //self.newPaymentMethodId = getPaymentMethodId(paymentTypeData: paymentTypeData!, paymentType: self.paymentOptionType!.rawValue)!
                             
@@ -635,10 +635,10 @@ class EventSettingTableViewController: UITableViewController {
                             saveEventPreference(paymentMethodId: orignalPaymentMethodId )
                             isRefreshScreen = true
                         } else if paymentTypeFromPaymentType! > 0 && isAddNewPayment == true  {
-                            addPayment(paymentNonce: paymentMethodNonce!.nonce, paymentOptionType: Int64(paymentOptionType!.rawValue), paymentDescription: paymentDescription!, paymentExpiration: "12/31/2099")
-                            
-                            //get the latest payment data
-                            getPaymentTypeData(paymentTypeId: Int(paymentOptionType!.rawValue))
+//                            addPayment(paymentNonce: paymentMethodNonce!.nonce, paymentOptionType: Int64(paymentOptionType!.rawValue), paymentDescription: paymentDescription!, paymentExpiration: "12/31/2099")
+//
+//                            //get the latest payment data
+//                            getPaymentTypeData(paymentTypeId: Int(paymentOptionType!.rawValue))
                             
                             //get the paymenttheodId of the new paymentmethod
                             //self.newPaymentMethodId = getPaymentMethodId(paymentTypeData: paymentTypeData!, paymentType: self.paymentOptionType!.rawValue)!
@@ -657,12 +657,12 @@ class EventSettingTableViewController: UITableViewController {
                 } else {
                     if isAddNewPayment == true {
     
-                        //add payment
-                        addPayment(paymentNonce: paymentMethodNonce!.nonce, paymentOptionType: Int64(paymentOptionType!.rawValue), paymentDescription: paymentDescription!, paymentExpiration: "12/31/2099")
-                        
-                        //get the latest payment data
-                        getPaymentTypeData(paymentTypeId: paymentOptionType!.rawValue)
-                        
+//                        //add payment
+//                        addPayment(paymentNonce: paymentMethodNonce!.nonce, paymentOptionType: Int64(paymentOptionType!.rawValue), paymentDescription: paymentDescription!, paymentExpiration: "12/31/2099")
+//
+//                        //get the latest payment data
+//                        getPaymentTypeData(paymentTypeId: paymentOptionType!.rawValue)
+//
                         //get the paymenttheodId of the new paymentmethod
                         //self.newPaymentMethodId = getPaymentMethodId(paymentTypeData: paymentTypeData!, paymentType: self.paymentOptionType!.rawValue)!
                         
@@ -672,10 +672,10 @@ class EventSettingTableViewController: UITableViewController {
                         saveEventPreference(paymentMethodId: orignalPaymentMethodId)
                         isRefreshScreen = true
                     } else if paymentTypeFromPaymentType! > 0 && isAddNewPayment == true  {
-                        addPayment(paymentNonce: paymentMethodNonce!.nonce, paymentOptionType: Int64(paymentOptionType!.rawValue), paymentDescription: paymentDescription!, paymentExpiration: "12/31/2099")
-                        
-                        //get the latest payment data
-                        getPaymentTypeData(paymentTypeId: paymentOptionType!.rawValue)
+//                        addPayment(paymentNonce: paymentMethodNonce!.nonce, paymentOptionType: Int64(paymentOptionType!.rawValue), paymentDescription: paymentDescription!, paymentExpiration: "12/31/2099")
+//
+//                        //get the latest payment data
+//                        getPaymentTypeData(paymentTypeId: paymentOptionType!.rawValue)
                         
                         //get the paymenttheodId of the new paymentmethod
                         //self.newPaymentMethodId = getPaymentMethodId(paymentTypeData: paymentTypeData!, paymentType: self.paymentOptionType!.rawValue)!
@@ -1021,61 +1021,61 @@ class EventSettingTableViewController: UITableViewController {
 //
     
     func showDropIn(clientTokenOrTokenizationKey: String) {
-        let request =  BTDropInRequest()
-        let dropIn = BTDropInController(authorization: clientTokenOrTokenizationKey, request: request)
-        { [self] (controller, result, error) in
-            if (error != nil) {
-                print("ERROR")
-            } else if (result?.isCancelled == true) {
-                print("CANCELLED")
-            } else if let result = result {
-                // Use the BTDropInResult properties to update your UI
-                self.paymentOptionType = result.paymentOptionType
-                self.paymentMethodNonce = result.paymentMethod
-                let paymentIcon = result.paymentIcon
-                self.paymentDescription = result.paymentDescription
-                
-                
-        
-                self.paymentSelectedLabel.text = self.paymentDescription
-                let size = CGSize(width: 20, height: 20)
-                let view = result.paymentIcon as? BTUIKVectorArtView
-                self.paymentIconImageView.image = view?.image(of: size)
-                
-                //self.addEditPaymentButton.setBackgroundImage(UIImage(named: "editIcon"), for: UIControl.State.normal)
-                self.addEditPaymentButton.setImage(UIImage(named: "editIcon"), for: .normal)
-                self.paymentActionMessageLabel.text = "edit payment Information for this event..."
-                self.paymentNickNameTextField.text = ""
-                self.paymentErrorLabel.text = ""
-                print("paymentOption= \(self.paymentOptionType!.rawValue)")
-                print("paymentMethod Nonce! = \(self.paymentMethodNonce!.nonce)")
-                print("paymentIcon = \(paymentIcon)")
-                print("paymentDescription = \(self.paymentDescription!)")
-                self.isReadyToSavePayment = true
-                self.isAddNewPayment = true
-                self.isRefreshScreen = true
-              
-                print("self.paymentOptionType!.rawValue = \(self.paymentOptionType!.rawValue)")
-                print("The new paymentMethodId = \(self.newPaymentMethodId )")
-                
-                print("orignalPaymentMethodId = \(orignalPaymentMethodId)")
-                
-                //only request newpaymentmethodIf if paymentmethod exist for the event
-                if orignalPaymentMethodId > 0 {
-                    self.newPaymentMethodId = getPaymentMethodId(paymentTypeData: paymentTypeData!, paymentType: self.paymentOptionType!.rawValue)!
-                    //call get paymentTypeData when the selected
-                    //payment already exist and populate paymentnicknamefield
-                    if newPaymentMethodId > 0 {
-                        getPaymentTypeData(paymentTypeId: self.paymentOptionType!.rawValue)
-                        print("I am in newPaymentMethodId > 0 \(self.paymentOptionType!.rawValue)")
-                        //getEventPref3()
-                    }
-                }
-                
-            }
-            controller.dismiss(animated: true, completion: nil)
-        }
-        self.present(dropIn!, animated: true, completion: nil)
+//        let request =  BTDropInRequest()
+//        let dropIn = BTDropInController(authorization: clientTokenOrTokenizationKey, request: request)
+//        { [self] (controller, result, error) in
+//            if (error != nil) {
+//                print("ERROR")
+//            } else if (result?.isCancelled == true) {
+//                print("CANCELLED")
+//            } else if let result = result {
+//                // Use the BTDropInResult properties to update your UI
+//                self.paymentOptionType = result.paymentOptionType
+//                self.paymentMethodNonce = result.paymentMethod
+//                let paymentIcon = result.paymentIcon
+//                self.paymentDescription = result.paymentDescription
+//
+//
+//
+//                self.paymentSelectedLabel.text = self.paymentDescription
+//                let size = CGSize(width: 20, height: 20)
+//                let view = result.paymentIcon as? BTUIKVectorArtView
+//                self.paymentIconImageView.image = view?.image(of: size)
+//
+//                //self.addEditPaymentButton.setBackgroundImage(UIImage(named: "editIcon"), for: UIControl.State.normal)
+//                self.addEditPaymentButton.setImage(UIImage(named: "editIcon"), for: .normal)
+//                self.paymentActionMessageLabel.text = "edit payment Information for this event..."
+//                self.paymentNickNameTextField.text = ""
+//                self.paymentErrorLabel.text = ""
+//                print("paymentOption= \(self.paymentOptionType!.rawValue)")
+//                print("paymentMethod Nonce! = \(self.paymentMethodNonce!.nonce)")
+//                print("paymentIcon = \(paymentIcon)")
+//                print("paymentDescription = \(self.paymentDescription!)")
+//                self.isReadyToSavePayment = true
+//                self.isAddNewPayment = true
+//                self.isRefreshScreen = true
+//
+//                print("self.paymentOptionType!.rawValue = \(self.paymentOptionType!.rawValue)")
+//                print("The new paymentMethodId = \(self.newPaymentMethodId )")
+//
+//                print("orignalPaymentMethodId = \(orignalPaymentMethodId)")
+//
+//                //only request newpaymentmethodIf if paymentmethod exist for the event
+//                if orignalPaymentMethodId > 0 {
+//                    self.newPaymentMethodId = getPaymentMethodId(paymentTypeData: paymentTypeData!, paymentType: self.paymentOptionType!.rawValue)!
+//                    //call get paymentTypeData when the selected
+//                    //payment already exist and populate paymentnicknamefield
+//                    if newPaymentMethodId > 0 {
+//                        getPaymentTypeData(paymentTypeId: self.paymentOptionType!.rawValue)
+//                        print("I am in newPaymentMethodId > 0 \(self.paymentOptionType!.rawValue)")
+//                        //getEventPref3()
+//                    }
+//                }
+//
+//            }
+//            controller.dismiss(animated: true, completion: nil)
+//        }
+//        self.present(dropIn!, animated: true, completion: nil)
     }
     
     
@@ -1125,7 +1125,7 @@ class EventSettingTableViewController: UITableViewController {
             case .success( _):
                 //after adding new card get the new PaymentmethodId
                 //get the paymenttheodId of the new paymentmethod
-                self.newPaymentMethodId = self.getPaymentMethodId(paymentTypeData: self.paymentTypeData!, paymentType: self.paymentOptionType!.rawValue)!
+               // self.newPaymentMethodId = self.getPaymentMethodId(paymentTypeData: self.paymentTypeData!, paymentType: self.paymentOptionType!.rawValue)!
                 
                 print("inside ADD PAYMENT = self.newPaymentMethodId \(self.newPaymentMethodId )")
                 self.saveEventPreference(paymentMethodId: self.newPaymentMethodId)

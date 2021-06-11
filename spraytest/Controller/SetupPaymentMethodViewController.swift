@@ -42,6 +42,8 @@ class SetupPaymentMethodViewController: UIViewController, STPAuthenticationConte
     var eventOwnerId: Int64 = 0
     //var completionAction: String = ""
     var encryptedAPIKey: String = ""
+    var cardImage1: String = ""
+    var image = UIImage(named: "")
     
     lazy var cardTextField: STPPaymentCardTextField = {
         let cardTextField = STPPaymentCardTextField()
@@ -83,6 +85,21 @@ class SetupPaymentMethodViewController: UIViewController, STPAuthenticationConte
         return button
     }()
 
+    lazy var cardImageView: UIImageView = {
+        //let imageView = UIImageView(type: .custom)
+        //image = UIImage(named: cardImage1)
+        let imageView = UIImageView(frame: CGRect(x: 5, y: 5, width:50, height: 50))
+        imageView.image?.withRenderingMode(UIImage.RenderingMode.alwaysTemplate)
+        imageView.tintColor = .black
+//        button.layer.cornerRadius = 5
+//        button.backgroundColor = UIColor(red: 138/256, green: 196/256, blue: 208/256, alpha: 1.0)//.systemBlue
+//        button.titleLabel?.font = UIFont.systemFont(ofSize: 22)
+//        button.setTitle("Add Payment Method", for: .normal)
+//        button.layer.borderWidth = 1.0
+        //imageView.addTarget(self, action: #selector(pay), for: .touchUpInside)
+        return imageView
+    }()
+    
     override func viewDidLoad() {
         super.viewDidLoad()
     
@@ -104,7 +121,7 @@ class SetupPaymentMethodViewController: UIViewController, STPAuthenticationConte
         StripeAPI.defaultPublishableKey = "pk_test_51I4w7tH6yOvhR5k1FrjaRKUcGG3LLzcuTx1LOWJj6bprUylHErpYHXsSRFxfdepAxz3KDbPLp2cDjpP54AWdc9qG00C8jcO2o4" //"pk_test_51I4w7tH6yOvhR5k1FrjaRKUcGG3LLzcuTx1LOWJj6bprUylHErpYHXsSRFxfdepAxz3KDbPLp2cDjpP54AWdc9qG00C8jcO2o4"
 
         view.backgroundColor = .white
-        let stackView = UIStackView(arrangedSubviews: [paymentTitle, cardTextField, cardNickNameTextField, payButton])
+        let stackView = UIStackView(arrangedSubviews: [paymentTitle, cardTextField, cardNickNameTextField, payButton, cardImageView])
         stackView.axis = .vertical
         stackView.spacing = 20
         stackView.translatesAutoresizingMaskIntoConstraints = false
@@ -165,6 +182,14 @@ class SetupPaymentMethodViewController: UIViewController, STPAuthenticationConte
         }
         return true
     }
+    
+    func paymentCardTextFieldDidChange(_ textField: STPPaymentCardTextField) {
+       print("NUMBER", cardTextField.cardNumber)
+       print("EXP MONTH", cardTextField.expirationMonth)
+       print("EXP YEAR", cardTextField.expirationYear)
+       print("CVC", cardTextField.cvc)
+        print("Brand Type", STPCardValidator.brand(forNumber: cardTextField.cardNumber!))
+    }
   func displayAlert(title: String, message: String, restartDemo: Bool = false) {
     DispatchQueue.main.async {
       let alert = UIAlertController(title: title, message: message, preferredStyle: .alert)
@@ -182,7 +207,8 @@ class SetupPaymentMethodViewController: UIViewController, STPAuthenticationConte
     let url = URL(string: backendUrl + "create-payment-intent")!
     let json: [String: Any] = [
       "items": [
-          ["id": "xl-shirt"]
+          ["id": "Spray-Transaction"]
+        //["id": "xl-shirt"]
       ]
     ]
     var request = URLRequest(url: url)
@@ -228,6 +254,8 @@ class SetupPaymentMethodViewController: UIViewController, STPAuthenticationConte
         }
         return thePaymentMethodName
     }
+    
+    
     
     //check if name of paymentmethod exist
     func paymentmethodCustNameExist(customName: String) -> Bool {
@@ -299,26 +327,36 @@ class SetupPaymentMethodViewController: UIViewController, STPAuthenticationConte
     }
     
     @objc func pay() {
-        guard let cardNickName = cardNickNameTextField.text
+//        guard let cardNickName = cardNickNameTextField.text
+//
+//        else {
+//            return
+//        }
+//        let isValidateCardNickName = self.formValidation.validateName2(name2: cardNickName).isValidate
+//        if (isValidateCardNickName == false) {
+//
+//            let message = "Card Nick Name is Required"
+//            displayAlertMessage(displayMessage: message, textField: cardNickNameTextField)
+//
+//            return
+//        } else {
+//            customtextfield.borderForTextField(textField: cardNickNameTextField, validationFlag: false)
+//        }
 
-        else {
-            return
-        }
-        let isValidateCardNickName = self.formValidation.validateName2(name2: cardNickName).isValidate
-        if (isValidateCardNickName == false) {
-
-            let message = "Card Nick Name is Required"
-            displayAlertMessage(displayMessage: message, textField: cardNickNameTextField)
-
-            return
-        } else {
-            customtextfield.borderForTextField(textField: cardNickNameTextField, validationFlag: false)
-        }
-
-        
-        if isValidateCardNickName == true {
+        //let isValidateCardNickName = true //set to true temporarily - remove later 6/9
+       // if isValidateCardNickName == true {
             // Collect card details
             let cardParams = cardTextField.cardParams
+            let cardIcon = cardTextField.brandImage
+            
+            let last4Digit = cardParams.last4
+            //let cardimage = STPImageLibrary.cardBrandImage(for: cardIcon)
+            let cardNumber = cardTextField.cardNumber
+            let cardBrand = STPCardValidator.brand(forNumber: cardNumber!)
+        
+            let cardImage = STPImageLibrary.cardBrandImage(for: cardBrand)
+            //let cardImageType = convertImageToBase64String (img: cardImage)
+            //self.IBImageViewCardType?.image = cardImage
             
             print("setupIntentClientSecret = \(setupIntentClientSecret)")
             print("description = \(cardParams.description)")
@@ -328,7 +366,10 @@ class SetupPaymentMethodViewController: UIViewController, STPAuthenticationConte
             print("number = \(cardParams.number)")
             print("token = \(cardParams.token)")
             print("token = \(cardParams.additionalAPIParameters["card"])")
-            // Fill in any billing details...
+            
+        
+        print("Brand Type", STPCardValidator.brand(forNumber: cardTextField.cardNumber!))
+        // Fill in any billing details...
             let billingDetails = STPPaymentMethodBillingDetails()
 
             // Create SetupIntent confirm parameters with the above
@@ -349,18 +390,48 @@ class SetupPaymentMethodViewController: UIViewController, STPAuthenticationConte
                 break
             case .succeeded:
                 // Setup succeeded
-                last4Digit = cardParams.last4!
-                expireDate = "02-24-2024" //cardParams.expMonth!.stringValue + "-" + "24-20" + cardParams.expYear!.stringValue
+                let last4Digit = "**** **** **** \(cardParams.last4!)"
+                //expireDate = "02-24-2024" //cardParams.expMonth!.stringValue + "-" + "24-20" +
+                
+                let cardExpirationYear = Int(cardTextField.formattedExpirationYear!)
+                let cardExpirationMonth = Int(cardTextField.formattedExpirationMonth!)
+                let day = lastDay(ofMonth: cardExpirationMonth!, year: cardExpirationYear!)  // 28
+                //lastDay(ofMonth: 06, year: 23)  // 29
+
+//
+//
+//                let month = 06
+//                let year = 23
+//                print(lastDay(ofMonth: 06, year: 23) )
+//                print(lastDay(ofMonth: 07, year: 23))
+//
+//                //let day = lastDay(ofMonth: month, year: year)
+//                print(day)
+                let expireDateString = "\(day)/\(cardExpirationMonth ?? 12)/\(cardExpirationYear ?? 2999)"
+                expireDate = formattedDateFromString(dateString:expireDateString, withFormat: "yyyy-MM-dd")!
+                print("my expiration date =\(expireDate)")
+                
+                cardParams.expYear!.stringValue
                 //self.displayAlert(title: "Payment succeeded", message: setupIntent?.description ?? "")
                 print("setupIntent?.paymentMethodID \(setupIntent?.paymentMethodID)")
-                
-                let paymentCustName = cardNickNameTextField.text! + " ... " + last4Digit
-                let paymentNickName = cardNickNameTextField.text!
-                if paymentmethodCustNameExist(customName: paymentCustName) == false {
+                print("last 4 \(last4Digit)")
+//               12
+               // if paymentmethodCustNameExist(customName: paymentCustName) == false {
                     
+                print("DOMINIC \(cardParams.description)")
+                //print(" IMAGE = \(cardimage?.description)")
+                print(" IMAGE2 = \(cardImage)")
+               // image = cardImage
+                
+                print("cardExpirationYear \(cardExpirationYear)")
+                print("cardExpirationMonth \(cardExpirationMonth)")
+                
+                
+                //cardImage1 = cardimage?.
                     print(" i am calling add my payment")
-                    addMyPayment(paymentMethodToken: (setupIntent?.paymentMethodID)!, customName: paymentCustName, paymentOptionType: 0, paymentDescription:  paymentNickName, paymentExpiration: expireDate)
-                   } else {
+                    //comment this out for now 6/9
+                    addMyPayment(paymentMethodToken: (setupIntent?.paymentMethodID)!, customName: last4Digit, paymentOptionType: 1, paymentDescription: "", paymentExpiration: expireDate)
+                  // } else {
                        print("DUPLICATE PAYMENT METHOD")
                        //giftAmountSegConrol.selectedSegmentIndex = 2
                        //segmentedControl.selectedSegmentIndex = index
@@ -374,18 +445,58 @@ class SetupPaymentMethodViewController: UIViewController, STPAuthenticationConte
                
                
                        //self.completionAlert(message: "Payment Method \(paymentMethod.label) Already Exist. Please Update Your Available Credit and Continue.", timer: 5, completionAction: completionAction)
-                   }
+                  // }
                    
                 //print(setupIntent?.allResponseFields["card"].)
                 break
             @unknown default:
                 fatalError()
                 break
-            }
+           // }
         }
     }
     
   }
+    
+    func convertImageToBase64String (img: UIImage) -> String {
+        //return img.jpegData(compressionQuality: 1)?.base64EncodedString() ?? ""
+        //let strBase64 =  img.pngData()?.base64EncodedString()
+        //return strBase64!
+        
+        let imageData: Data? = img.jpegData(compressionQuality: 0.4)
+        let imageStr = imageData?.base64EncodedString(options: .lineLength64Characters) ?? ""
+        print(imageStr,"imageString")
+        return imageStr //strBase64!
+        //data.base64EncodedStringWithOptions([])
+    }
+    
+    func lastDay(ofMonth m: Int, year y: Int) -> Int {
+        let cal = Calendar.current
+        var comps = DateComponents(calendar: cal, year: y, month: m)
+        comps.setValue(m + 1, for: .month)
+        comps.setValue(0, for: .day)
+        let date = cal.date(from: comps)!
+        return cal.component(.day, from: date)
+    }
+
+    func formattedDateFromString(dateString: String, withFormat format: String) -> String? {
+
+        let inputFormatter = DateFormatter()
+        inputFormatter.dateFormat = "dd/MM/yy"
+
+        if let date = inputFormatter.date(from: dateString) {
+
+            let outputFormatter = DateFormatter()
+          outputFormatter.dateFormat = format
+
+            return outputFormatter.string(from: date)
+        }
+        return nil
+    }
+   
+
+    
+    
     func completionAlert(message: String, timer: Int, completionAction:String) -> Void {
         let delay = Double(timer) //* Double(NSEC_PER_SEC)
         let alert = UIAlertController(title: "", message: message, preferredStyle: UIAlertController.Style.alert)

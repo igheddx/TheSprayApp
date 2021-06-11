@@ -49,6 +49,7 @@ class CreateAccountQRScanViewController: UIViewController {
     var email: String = ""
     var phone: String = ""
     var phoneFromOTP: String = ""
+    var otpCode: String =  ""
     var userdata: UserData?
     var token2pass: String?
     var profileId: String?
@@ -77,7 +78,7 @@ class CreateAccountQRScanViewController: UIViewController {
     override func viewDidLoad() {
         super.viewDidLoad()
         setNavigationBar()
-        encryptedAPIKey = encryptdecrypt.encryptDecryptAPIKey(type: "", value: "", action: "encrypt") //encryptData(value: apiKeyValue)
+        //encryptedAPIKey = encryptdecrypt.encryptDecryptAPIKey(type: "", value: "", action: "encrypt") //encryptData(value: apiKeyValue)
         //let devicedata = DeviceData()
 //        let encryptdecrypt = EncryptDecrpyt()
 //        let device = Device()
@@ -150,6 +151,7 @@ class CreateAccountQRScanViewController: UIViewController {
     
     func initializationTasks() {
         termsConditionSwitch.isOn = false
+        emailTextField.text = email
         
         nameTextField.addTarget(self, action: #selector(RegistrationViewController.textFieldDidChange(_:)),
                                   for: .editingChanged)

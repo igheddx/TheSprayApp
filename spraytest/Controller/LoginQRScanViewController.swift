@@ -363,6 +363,16 @@ class LoginQRScanViewController: UIViewController, UITextFieldDelegate {
         
       
         if username != "" {
+            encryptedDeviceId = device.getDeviceId(userName: username)
+            //encryptedDeviceId = device.getDeviceId(userName: self.username!)
+            //device.sendDeviceInfo(encryptedAPIKey: encryptedAPIKey, encryptedDeviceId: encryptedDeviceId)
+            
+    
+            print("I send device DEVICE")
+            /*5/29 this code will be removed before production. no need to sendDevice Info during loing
+            this is already establishe dwhen account was created */
+            device.sendDeviceInfo(encryptedAPIKey: encryptedAPIKey, encryptedDeviceId: encryptedDeviceId)
+            
             usernameFieldIsEmpty = false
             //usernameErrorLabel.text = ""
         } else {

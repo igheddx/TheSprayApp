@@ -85,7 +85,7 @@ class UpdateEventViewController: UIViewController {
     var refreshscreendelegate: RefreshScreenDelegate?
     var isRSVPRequired: Bool = false
     var isSingleReceiverEvent: Bool = false
-    var eventCurrentState: Int = 99 //99 is default
+    var eventCurrentState: Int = 2 //99 is default
     var isRefreshScreen: Bool = false
 //    var eventName: String?
 //    var eventDateTime: String?
@@ -728,11 +728,23 @@ class UpdateEventViewController: UIViewController {
         
     }
     
+    func getFormattedDateToDate(dateinput: String) -> Date {
+        let dateFormatter = DateFormatter()
+        //dateFormatter.locale = Locale(identifier: "en_US_POSIX") // set locale to reliable US_POSIX
+        dateFormatter.dateFormat = "yyyy-MM-dd'T'HH:mm:ss"
+        dateFormatter.locale = Locale(identifier: "en_US_POSIX")
+        dateFormatter.timeZone = TimeZone(abbreviation: "UTC")
+        
+        dateFormatter.locale = Locale.current
+        let date = dateFormatter.date(from:dateinput)!
+        return date
+    }
+    
 
     
     @IBAction func eventSaveButtonPressed(_ sender: Any) {
         
-        self.LoadingStart(message: "Updating Event...")
+        //self.LoadingStart(message: "Updating Event...")
         print("this is the 3rd event name \(eventNameTextField.text)")
         guard let eventName = eventNameTextField.text,
               //print("This is the second event name \(eventName!)")
@@ -819,7 +831,7 @@ class UpdateEventViewController: UIViewController {
         }
         
         if (isValidateEventDateTime == false) {
-            self.LoadingStop()
+            //self.LoadingStop()
             //customtextfield.borderForTextField(textField: eventDateTextField, validationFlag: true)
             let message = "Event Date & Time is Required"
             displayAlertMessage(displayMessage: message, textField: eventDateTextField)
@@ -831,6 +843,25 @@ class UpdateEventViewController: UIViewController {
            
             return
         } else {
+            
+            //let isValidateEventDateTime = false
+            let currentDate = getFormattedDateToDate(dateinput: Date.getCurrentDate())
+            
+            let dateFormatter = DateFormatter()
+            dateFormatter.locale = Locale(identifier: "en_US_POSIX")
+            dateFormatter.dateFormat = "E, d MMM yyyy h:mm a" //E, d MMM yyyy HH:mm a"
+            let date = dateFormatter.date(from:String(eventDateTime))!
+
+            let formatedEventDateTime  = getFormattedDate(date: date, format: "yyyy-MM-dd'T'HH:mm:ss")
+            let newEventDateTime = getFormattedDateToDate(dateinput: formatedEventDateTime)
+            
+            print("newEventDateTime \(newEventDateTime) and currentDate = \(currentDate)")
+            if newEventDateTime <= currentDate {
+                print("DATE ISSUE")
+                LoadingStop()
+                let message = "Event date & time must be greater than the current date & time"
+                displayAlertMessage(displayMessage: message, textField: eventDateTextField)
+            }
             print("isValidateEventDateTime = true")
             customtextfield.borderForTextField(textField: eventDateTextField, validationFlag: false)
             //eventDateTimeErrorLabel.text = self.formValidation.validateName2(name2: eventDateTime).errorMsg
@@ -963,7 +994,7 @@ class UpdateEventViewController: UIViewController {
             }
             
             print("new event name \(eventName)")
-            let eventData = EventModelEdit(ownerId: profileId, name: eventName, dateTime: formatedEventDateTime, address1: eventAddress1, address2: eventAddress2, city: eventCity, zipCode: eventZipCode, country: eventCountry, state: eventState, eventType: eventTypeId,  isRsvprequired: isRSVPRequiredSwitch.isOn, isSingleReceiver: isSingleReceiverSwitch.isOn, eventId: eventId!, isActive: eventStatus!, eventState: Int64(eventCurrentStateUpdated!))
+            let eventData = EventModelEdit(ownerId: profileId, name: eventName, dateTime: formatedEventDateTime, address1: eventAddress1, address2: eventAddress2, city: eventCity, zipCode: eventZipCode, country: eventCountry, state: eventState, eventType: eventTypeId,  isRsvprequired: isRSVPRequiredSwitch.isOn, isSingleReceiver: isSingleReceiverSwitch.isOn, eventId: eventId!, isActive: eventStatus!, eventState: Int64(eventCurrentState))
             
             /*
              isSingleReceiverSwitch.isOn = isSingleReceiverEvent

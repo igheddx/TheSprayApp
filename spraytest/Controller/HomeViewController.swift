@@ -103,6 +103,7 @@ class HomeViewController: UIViewController, UITextFieldDelegate {
     var paymentCustomerId: String?
     var paymentConnectedActId: String?
     var encryptedAPIKey: String = ""
+   // var myProfileData: [MyProfile] = []
     //var refreshscreendelegate: RefreshScreenDelegate?
     
     override func viewDidLoad() {
@@ -164,19 +165,27 @@ class HomeViewController: UIViewController, UITextFieldDelegate {
         //get profileName
         var avatarStr: String = ""
         var newAvatarImage: UIImage?
-        
+        var userDisplayName: String = ""
         if myProfileData.isEmpty {
-            avatarStr = "noimage"
+            UserDefaults.standard.set("userprofile", forKey: "userProfileImage")
+            UserDefaults.standard.set("", forKey: "userDisplayName")
+            avatarStr = UserDefaults.standard.string(forKey: "userProfileImage")! //"noimage"
+            displayName = UserDefaults.standard.string(forKey: "userDisplayName")!
             print("no avatar")
         } else {
             for name in myProfileData {
-                displayName = name.firstName
+                UserDefaults.standard.set(name.firstName, forKey: "userDisplayName")
+                userDisplayName = UserDefaults.standard.string(forKey: "userDisplayName")!
+                displayName = userDisplayName //name.firstName
+                
                 print("I am inside myProfile loop")
                 if let avatarStr1 = name.avatar {
                     avatarStr = avatarStr1
-                  
+                    UserDefaults.standard.set(avatarStr, forKey: "userProfileImage")
+                   
                 } else {
                     avatarStr = "noimage"
+                    UserDefaults.standard.set("userprofile", forKey: "userProfileImage")
                     print("no image here")
                     break
                 }
@@ -186,11 +195,15 @@ class HomeViewController: UIViewController, UITextFieldDelegate {
        
         
         if avatarStr == "noimage" {
-            newAvatarImage = UIImage(named: "userprofile")
+            let userProfileImage = UserDefaults.standard.string(forKey: "userProfileImage")
+            newAvatarImage = UIImage(named: userProfileImage!)
             print("noimage")
             
         } else {
-            newAvatarImage = convertBase64StringToImage(imageBase64String: avatarStr)
+            let userProfileImage = UserDefaults.standard.string(forKey: "userProfileImage")
+            //newAvatarImage = UIImage(named: userProfileImage!)
+            
+            newAvatarImage = convertBase64StringToImage(imageBase64String: userProfileImage!)
             print("there is an image???")
         }
        
@@ -366,6 +379,7 @@ class HomeViewController: UIViewController, UITextFieldDelegate {
     }
     override func viewWillAppear(_ animated: Bool) {
         print("View will appear was called")
+        //LoadingStart(message: "Loading...")
        
     }
     override func viewWillDisappear(_ animated: Bool) {
@@ -385,6 +399,18 @@ class HomeViewController: UIViewController, UITextFieldDelegate {
     
     @objc func handleClick() {
         print("do notheing")
+    }
+    
+    func getFormattedDateToDate(dateinput: String) -> Date {
+        let dateFormatter = DateFormatter()
+        //dateFormatter.locale = Locale(identifier: "en_US_POSIX") // set locale to reliable US_POSIX
+        dateFormatter.dateFormat = "yyyy-MM-dd'T'HH:mm:ss"
+        dateFormatter.locale = Locale(identifier: "en_US_POSIX")
+        dateFormatter.timeZone = TimeZone(abbreviation: "UTC")
+        
+        dateFormatter.locale = Locale.current
+        let date = dateFormatter.date(from:dateinput)!
+        return date
     }
     
     //Decoding Base64 Image
@@ -1209,7 +1235,8 @@ class HomeViewController: UIViewController, UITextFieldDelegate {
 //        var totalGiftReceivedAmt: String = ""
         
         
-    
+        let currentDateTime = getFormattedDateToDate(dateinput: Date.getCurrentDate())
+       
         let decoder = JSONDecoder()
         
         do {
@@ -1217,34 +1244,40 @@ class HomeViewController: UIViewController, UITextFieldDelegate {
             let eventjson = try decoder.decode(EventListModel.self, from: json)
 //                let isActive = eventjson.result.eventsOwned[i].isActive
             var j: Int = 0
+          
                 for i in eventjson.result.eventsOwned {
                     j = j + 1
                     if i.isActive == true {
-                        let eventId = i.eventId// eventjson[i].result.eventsOwned[i].eventId
-                        let ownerId = i.ownerId //eventjson[i].result.eventsOwned[i].ownerId
-                        let name = i.name //eventjson[i].result.eventsOwned[i].name
-                        let dateTime = i.dateTime //eventjson[i].result.eventsOwned[i].dateTime
-                        let address1 = i.address1 //eventjson[i].result.eventsOwned[i].address1
-                        let address2 = i.address2 //eventjson[i].result.eventsOwned[i].address2
-                        let city = i.city //eventjson[i].result.eventsOwned[i].city
-                        let zipCode = i.zipCode //eventjson[i].result.eventsOwned[i].zipCode
-                        let country = i.country //eventjson[i].result.eventsOwned[i].country
-                        let state = i.state //eventjson[i].result.eventsOwned[i].state
-                        let eventState = i.eventState //eventjson[i].result.eventsOwned[i].eventState
-                        let eventCode = i.eventCode //eventjson[i].result.eventsOwned[i].eventCode
-                        let isActive = i.isActive //eventjson[i].result.eventsOwned[i].isActive
-                        let eventType = i.eventType
-                        let isRsvprequired = i.isRsvprequired
-                        let isSingleReceiver = i.isSingleReceiver
-                        let defaultEventPaymentMethod =  i.defaultEventPaymentMethod
-                        let defaultEventPaymentCustomName = i.defaultEventPaymentCustomName
-                        let hasPaymentMethod = false
-                     
-                        let dataCollection = EventProperty(eventId: eventId, ownerId: ownerId, name: name, dateTime: dateTime, address1: address1, address2: address2, city: city, zipCode: zipCode, country: country, state: state, eventState: eventState, eventCode: eventCode, isActive: isActive, eventType: eventType, isRsvprequired: isRsvprequired!, isSingleReceiver: isSingleReceiver!, defaultEventPaymentMethod: defaultEventPaymentMethod, defaultEventPaymentCustomName: defaultEventPaymentCustomName, isAttending: nil, dataCategory: "owned", hasPaymentMethod: hasPaymentMethod, outstandingTransferAmt1: self.outstandingTransferAmt, pendingPayoutAmt1: pendingPayoutAmt2, totalGiftedAmt1: self.totalGiftedAmt, totalReceivedAmt1: totalGiftReceivedAmt, currency1: self.currency, paymentCustomerId1: paymentCustomerId!, paymentConnectedActId1: paymentCustomerId!)
-                     
-                        homescreeneventdata.append(dataCollection)
-                        print("MY COUNTER = \(j) = \(dataCollection)")
-                        //eventsownedmodel.append(dataCollection)
+                        let eventDateTime =  getFormattedDateToDate(dateinput: i.dateTime)
+                        print(" eventDateTime \( eventDateTime) and currentDate = \(currentDateTime)")
+                        if eventDateTime >= currentDateTime  {
+                            let eventId = i.eventId// eventjson[i].result.eventsOwned[i].eventId
+                            let ownerId = i.ownerId //eventjson[i].result.eventsOwned[i].ownerId
+                            let name = i.name //eventjson[i].result.eventsOwned[i].name
+                            let dateTime = i.dateTime //eventjson[i].result.eventsOwned[i].dateTime
+                            let address1 = i.address1 //eventjson[i].result.eventsOwned[i].address1
+                            let address2 = i.address2 //eventjson[i].result.eventsOwned[i].address2
+                            let city = i.city //eventjson[i].result.eventsOwned[i].city
+                            let zipCode = i.zipCode //eventjson[i].result.eventsOwned[i].zipCode
+                            let country = i.country //eventjson[i].result.eventsOwned[i].country
+                            let state = i.state //eventjson[i].result.eventsOwned[i].state
+                            let eventState = i.eventState //eventjson[i].result.eventsOwned[i].eventState
+                            let eventCode = i.eventCode //eventjson[i].result.eventsOwned[i].eventCode
+                            let isActive = i.isActive //eventjson[i].result.eventsOwned[i].isActive
+                            let eventType = i.eventType
+                            let isRsvprequired = i.isRsvprequired
+                            let isSingleReceiver = i.isSingleReceiver
+                            let defaultEventPaymentMethod =  i.defaultEventPaymentMethod
+                            let defaultEventPaymentCustomName = i.defaultEventPaymentCustomName
+                            let hasPaymentMethod = false
+                         
+                            let dataCollection = EventProperty(eventId: eventId, ownerId: ownerId, name: name, dateTime: dateTime, address1: address1, address2: address2, city: city, zipCode: zipCode, country: country, state: state, eventState: eventState, eventCode: eventCode, isActive: isActive, eventType: eventType, isRsvprequired: isRsvprequired!, isSingleReceiver: isSingleReceiver!, defaultEventPaymentMethod: defaultEventPaymentMethod, defaultEventPaymentCustomName: defaultEventPaymentCustomName, isAttending: nil, dataCategory: "owned", hasPaymentMethod: hasPaymentMethod, outstandingTransferAmt1: self.outstandingTransferAmt, pendingPayoutAmt1: pendingPayoutAmt2, totalGiftedAmt1: self.totalGiftedAmt, totalReceivedAmt1: totalGiftReceivedAmt, currency1: self.currency, paymentCustomerId1: paymentCustomerId!, paymentConnectedActId1: paymentCustomerId!)
+                         
+                            homescreeneventdata.append(dataCollection)
+                            print("MY COUNTER = \(j) = \(dataCollection)")
+                            //eventsownedmodel.append(dataCollection)
+                        }
+                      
 
                     }
             }
@@ -1309,30 +1342,35 @@ class HomeViewController: UIViewController, UITextFieldDelegate {
                 if x.isActive == true {
                     /* this contain method seem to work to remove events that a person has already RSVP for few more events are still show - iOS Destruction party and Brian Birthday - need to talk to Karl about why they are still showing 3/19/21*/
                     if eventIdsattendingmodel.contains(Int(x.eventId)) == false {
-                    
-                        print("Idsattending count = 0 ")
-                        let eventId = x.eventId// eventjson[i].result.eventsOwned[i].eventId
-                        let ownerId = x.ownerId //eventjson[i].result.eventsOwned[i].ownerId
-                        let name = x.name //eventjson[i].result.eventsOwned[i].name
-                        let dateTime = x.dateTime //eventjson[i].result.eventsOwned[i].dateTime
-                        let address1 = x.address1 //eventjson[i].result.eventsOwned[i].address1
-                        let address2 = x.address2 //eventjson[i].result.eventsOwned[i].address2
-                        let city = x.city //eventjson[i].result.eventsOwned[i].city
-                        let zipCode = x.zipCode //eventjson[i].result.eventsOwned[i].zipCode
-                        let country = x.country //eventjson[i].result.eventsOwned[i].country
-                        let state = x.state //eventjson[i].result.eventsOwned[i].state
-                        let eventState = x.eventState //eventjson[i].result.eventsOwned[i].eventState
-                        let eventCode = x.eventCode //eventjson[i].result.eventsOwned[i].eventCode
-                        let isActive = x.isActive //eventjson[i].result.eventsOwned[i].isActive
-                        let eventType = x.eventType
-                        let isRsvprequired = x.isRsvprequired
-                        let isSingleReceiver = x.isSingleReceiver
-                        let defaultEventPaymentMethod =  x.defaultEventPaymentMethod
-                        let defaultEventPaymentCustomName = x.defaultEventPaymentCustomName
-                        let hasPaymentMethod = false //checkEventPayment(eventId: x.eventId)
-                        let dataCollection2 = EventProperty(eventId: eventId, ownerId: ownerId, name: name, dateTime: dateTime, address1: address1, address2: address2, city: city, zipCode: zipCode, country: country, state: state, eventState: eventState, eventCode: eventCode, isActive: isActive, eventType: eventType, isRsvprequired: isRsvprequired!, isSingleReceiver: isSingleReceiver!, defaultEventPaymentMethod: defaultEventPaymentMethod, defaultEventPaymentCustomName: defaultEventPaymentCustomName, isAttending: nil, dataCategory: "invited", hasPaymentMethod: hasPaymentMethod, outstandingTransferAmt1: self.outstandingTransferAmt, pendingPayoutAmt1: pendingPayoutAmt2, totalGiftedAmt1: self.totalGiftedAmt, totalReceivedAmt1: totalGiftReceivedAmt, currency1: self.currency, paymentCustomerId1: paymentCustomerId!, paymentConnectedActId1: paymentCustomerId!)
-                        homescreeneventdata.append(dataCollection2)
-                        //eventsinvitedmodel.append(dataCollection2)
+                        
+                        let eventDateTime =  getFormattedDateToDate(dateinput: x.dateTime!)
+                        print(" eventDateTime \( eventDateTime) and currentDate = \(currentDateTime)")
+                        if eventDateTime >= currentDateTime  {
+                            print("Idsattending count = 0 ")
+                            let eventId = x.eventId// eventjson[i].result.eventsOwned[i].eventId
+                            let ownerId = x.ownerId //eventjson[i].result.eventsOwned[i].ownerId
+                            let name = x.name //eventjson[i].result.eventsOwned[i].name
+                            let dateTime = x.dateTime //eventjson[i].result.eventsOwned[i].dateTime
+                            let address1 = x.address1 //eventjson[i].result.eventsOwned[i].address1
+                            let address2 = x.address2 //eventjson[i].result.eventsOwned[i].address2
+                            let city = x.city //eventjson[i].result.eventsOwned[i].city
+                            let zipCode = x.zipCode //eventjson[i].result.eventsOwned[i].zipCode
+                            let country = x.country //eventjson[i].result.eventsOwned[i].country
+                            let state = x.state //eventjson[i].result.eventsOwned[i].state
+                            let eventState = x.eventState //eventjson[i].result.eventsOwned[i].eventState
+                            let eventCode = x.eventCode //eventjson[i].result.eventsOwned[i].eventCode
+                            let isActive = x.isActive //eventjson[i].result.eventsOwned[i].isActive
+                            let eventType = x.eventType
+                            let isRsvprequired = x.isRsvprequired
+                            let isSingleReceiver = x.isSingleReceiver
+                            let defaultEventPaymentMethod =  x.defaultEventPaymentMethod
+                            let defaultEventPaymentCustomName = x.defaultEventPaymentCustomName
+                            let hasPaymentMethod = false //checkEventPayment(eventId: x.eventId)
+                            let dataCollection2 = EventProperty(eventId: eventId, ownerId: ownerId, name: name, dateTime: dateTime, address1: address1, address2: address2, city: city, zipCode: zipCode, country: country, state: state, eventState: eventState, eventCode: eventCode, isActive: isActive, eventType: eventType, isRsvprequired: isRsvprequired!, isSingleReceiver: isSingleReceiver!, defaultEventPaymentMethod: defaultEventPaymentMethod, defaultEventPaymentCustomName: defaultEventPaymentCustomName, isAttending: nil, dataCategory: "invited", hasPaymentMethod: hasPaymentMethod, outstandingTransferAmt1: self.outstandingTransferAmt, pendingPayoutAmt1: pendingPayoutAmt2, totalGiftedAmt1: self.totalGiftedAmt, totalReceivedAmt1: totalGiftReceivedAmt, currency1: self.currency, paymentCustomerId1: paymentCustomerId!, paymentConnectedActId1: paymentCustomerId!)
+                            homescreeneventdata.append(dataCollection2)
+                            //eventsinvitedmodel.append(dataCollection2)
+                        }
+                        
                     }
                 }
             }
@@ -1346,32 +1384,37 @@ class HomeViewController: UIViewController, UITextFieldDelegate {
                 if y.isActive == true {
                     //find event with paymentMethod already assigned
                    
+                    let eventDateTime =  getFormattedDateToDate(dateinput: y.dateTime!)
+                    print(" eventDateTime \( eventDateTime) and currentDate = \(currentDateTime)")
+                    if eventDateTime >= currentDateTime  {
+                        let eventId = y.eventId// eventjson[i].result.eventsOwned[i].eventId
+                        let ownerId = y.ownerId //eventjson[i].result.eventsOwned[i].ownerId
+                        let name = y.name //eventjson[i].result.eventsOwned[i].name
+                        let dateTime = y.dateTime //eventjson[i].result.eventsOwned[i].dateTime
+                        let address1 = y.address1 //eventjson[i].result.eventsOwned[i].address1
+                        let address2 = y.address2 //eventjson[i].result.eventsOwned[i].address2
+                        let city = y.city //eventjson[i].result.eventsOwned[i].city
+                        let zipCode = y.zipCode //eventjson[i].result.eventsOwned[i].zipCode
+                        let country = y.country //eventjson[i].result.eventsOwned[i].country
+                        let state = y.state //eventjson[i].result.eventsOwned[i].state
+                        let eventState = y.eventState //eventjson[i].result.eventsOwned[i].eventState
+                        let eventCode = y.eventCode //eventjson[i].result.eventsOwned[i].eventCode
+                        let isActive = y.isActive //eventjson[i].result.eventsOwned[i].isActive
+                        let eventType = y.eventType
+                        let isRsvprequired = y.isRsvprequired
+                        let isSingleReceiver = y.isSingleReceiver
+                        let defaultEventPaymentMethod =  y.defaultEventPaymentMethod
+                        let defaultEventPaymentCustomName = y.defaultEventPaymentCustomName
+                        let hasPaymentMethod = false //checkEventPayment(eventId: y.eventId)
+                    
+                        let dataCollection3 =  EventProperty(eventId: eventId, ownerId: ownerId, name: name, dateTime: dateTime, address1: address1, address2: address2, city: city, zipCode: zipCode, country: country, state: state, eventState: eventState, eventCode: eventCode, isActive: isActive, eventType: eventType, isRsvprequired: isRsvprequired!, isSingleReceiver: isSingleReceiver!, defaultEventPaymentMethod: defaultEventPaymentMethod, defaultEventPaymentCustomName: defaultEventPaymentCustomName, isAttending: nil, dataCategory: "attending", hasPaymentMethod: hasPaymentMethod, outstandingTransferAmt1: self.outstandingTransferAmt, pendingPayoutAmt1: pendingPayoutAmt2, totalGiftedAmt1: self.totalGiftedAmt, totalReceivedAmt1: totalGiftReceivedAmt, currency1: self.currency, paymentCustomerId1: paymentCustomerId!, paymentConnectedActId1: paymentConnectedActId!)
                     
                     
-                    let eventId = y.eventId// eventjson[i].result.eventsOwned[i].eventId
-                    let ownerId = y.ownerId //eventjson[i].result.eventsOwned[i].ownerId
-                    let name = y.name //eventjson[i].result.eventsOwned[i].name
-                    let dateTime = y.dateTime //eventjson[i].result.eventsOwned[i].dateTime
-                    let address1 = y.address1 //eventjson[i].result.eventsOwned[i].address1
-                    let address2 = y.address2 //eventjson[i].result.eventsOwned[i].address2
-                    let city = y.city //eventjson[i].result.eventsOwned[i].city
-                    let zipCode = y.zipCode //eventjson[i].result.eventsOwned[i].zipCode
-                    let country = y.country //eventjson[i].result.eventsOwned[i].country
-                    let state = y.state //eventjson[i].result.eventsOwned[i].state
-                    let eventState = y.eventState //eventjson[i].result.eventsOwned[i].eventState
-                    let eventCode = y.eventCode //eventjson[i].result.eventsOwned[i].eventCode
-                    let isActive = y.isActive //eventjson[i].result.eventsOwned[i].isActive
-                    let eventType = y.eventType
-                    let isRsvprequired = y.isRsvprequired
-                    let isSingleReceiver = y.isSingleReceiver
-                    let defaultEventPaymentMethod =  y.defaultEventPaymentMethod
-                    let defaultEventPaymentCustomName = y.defaultEventPaymentCustomName
-                    let hasPaymentMethod = false //checkEventPayment(eventId: y.eventId)
-                
-                    let dataCollection3 =  EventProperty(eventId: eventId, ownerId: ownerId, name: name, dateTime: dateTime, address1: address1, address2: address2, city: city, zipCode: zipCode, country: country, state: state, eventState: eventState, eventCode: eventCode, isActive: isActive, eventType: eventType, isRsvprequired: isRsvprequired!, isSingleReceiver: isSingleReceiver!, defaultEventPaymentMethod: defaultEventPaymentMethod, defaultEventPaymentCustomName: defaultEventPaymentCustomName, isAttending: nil, dataCategory: "attending", hasPaymentMethod: hasPaymentMethod, outstandingTransferAmt1: self.outstandingTransferAmt, pendingPayoutAmt1: pendingPayoutAmt2, totalGiftedAmt1: self.totalGiftedAmt, totalReceivedAmt1: totalGiftReceivedAmt, currency1: self.currency, paymentCustomerId1: paymentCustomerId!, paymentConnectedActId1: paymentConnectedActId!)
-                
-                
-                homescreeneventdata.append(dataCollection3)
+                        
+                        homescreeneventdata.append(dataCollection3)
+                    }
+                    
+                   
                 //eventsattendingmodel.append(dataCollection3)
                 
                 //y = y + 1
@@ -1425,7 +1468,8 @@ class HomeViewController: UIViewController, UITextFieldDelegate {
             noActivityLabel.isHidden = true
         }
         
-        //LoadingStop()
+        LoadingStop()
+        print("Loading Stop")
         tableView.delegate = self
         tableView.dataSource = self
         tableView.reloadData()
@@ -2126,7 +2170,7 @@ extension HomeViewController: UITableViewDataSource, UITableViewDelegate {
                 let connectedaccount: ConnectedAccount = try! JSONDecoder().decode(ConnectedAccount.self, from: jsonData)
                 
                 //print("MY URL IS \(connectedaccount.url!)")
-                print("IS ACCOUNT CONNECTED \(connectedaccount.isAccountConnected)")
+                print("IS ACCOUNT CONNECTED HOME \(connectedaccount.isAccountConnected)")
 //                if let jsonData = try? JSONSerialization.data(withJSONObject: redirectURL2, options: JSONSerialization.WritingOptions.prettyPrinted)
 //                {
 //                    do {
@@ -2789,3 +2833,4 @@ extension HomeViewController: UITabBarControllerDelegate {
             }
        }
 }
+

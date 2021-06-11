@@ -47,10 +47,10 @@
 	<string>Use to scan QR and Barcode</string>
 	<key>NSContactsUsageDescription</key>
 	<string>Let me use contact</string>
-	<key>NSFaceIDUsageDescription</key>
-	<string>Identify yourself!</string>
 	<key>NSPhotoLibraryUsageDescription</key>
 	<string>This app requires access to the photo library</string>
+	<key>NSFaceIDUsageDescription</key>
+	<string>Identify yourself!</string>
 	<key>UIApplicationSceneManifest</key>
 	<dict>
 		<key>UIApplicationSupportsMultipleScenes</key>

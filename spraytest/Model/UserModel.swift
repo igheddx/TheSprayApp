@@ -9,6 +9,12 @@
 import Foundation
 import Contacts
 
+struct ProfileResetModel: Model {
+    let email: String
+    let phone: String
+    let code: String
+    let password: String
+}
 struct OTPModel: Model {
     let phone: String
     let email: String

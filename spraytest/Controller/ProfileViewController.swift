@@ -39,8 +39,8 @@ class ProfileViewController: UIViewController,UITextFieldDelegate, UIImagePicker
     @IBOutlet weak var userNameTextField: UITextField!
     @IBOutlet weak var emailTextField: UITextField!
     @IBOutlet weak var phoneTextField: UITextField!
-    @IBOutlet weak var newPasswordTextField: UITextField!
-    @IBOutlet weak var confirmPasswordTextField: UITextField!
+//    @IBOutlet weak var newPasswordTextField: UITextField!
+//    @IBOutlet weak var confirmPasswordTextField: UITextField!
     
 //    @IBOutlet weak var firstNameErrorLabel: UILabel!
 //    @IBOutlet weak var lastNameErrorLabel: UILabel!
@@ -93,8 +93,8 @@ class ProfileViewController: UIViewController,UITextFieldDelegate, UIImagePicker
         lastNameTextField.delegate = self
         emailTextField.delegate = self
         userNameTextField.delegate = self
-        newPasswordTextField.delegate = self
-        confirmPasswordTextField.delegate = self
+        //newPasswordTextField.delegate = self
+        //confirmPasswordTextField.delegate = self
         
 //        myAvatar.image = UIImage(named: "dominic")
 //        myAvatar.contentMode = UIView.ContentMode.scaleAspectFit
@@ -121,10 +121,10 @@ class ProfileViewController: UIViewController,UITextFieldDelegate, UIImagePicker
                                  for: .editingChanged)
         phoneTextField.addTarget(self, action: #selector(ProfileViewController.textFieldDidChange(_:)),
                                 for: .editingChanged)
-        newPasswordTextField.addTarget(self, action: #selector(ProfileViewController.textFieldDidChange(_:)),
-                                    for: .editingChanged)
-        confirmPasswordTextField.addTarget(self, action: #selector(ProfileViewController.textFieldDidChange(_:)),
-                                           for: .editingChanged)
+//        newPasswordTextField.addTarget(self, action: #selector(ProfileViewController.textFieldDidChange(_:)),
+//                                    for: .editingChanged)
+//        confirmPasswordTextField.addTarget(self, action: #selector(ProfileViewController.textFieldDidChange(_:)),
+//                                           for: .editingChanged)
         
         
 //        firstNameLabel.isHidden = true
@@ -138,8 +138,8 @@ class ProfileViewController: UIViewController,UITextFieldDelegate, UIImagePicker
         customtextfield.borderForTextField(textField: userNameTextField, validationFlag: false)
         customtextfield.borderForTextField(textField: emailTextField, validationFlag: false)
         customtextfield.borderForTextField(textField: phoneTextField, validationFlag: false)
-        customtextfield.borderForTextField(textField: newPasswordTextField, validationFlag: false)
-        customtextfield.borderForTextField(textField: confirmPasswordTextField, validationFlag: false)
+//        customtextfield.borderForTextField(textField: newPasswordTextField, validationFlag: false)
+//        customtextfield.borderForTextField(textField: confirmPasswordTextField, validationFlag: false)
         //customtextfield.borderForTextField(textField: eventCodeTextField, validationFlag: false)
         
         userNameTextField.isEnabled = false
@@ -265,10 +265,10 @@ class ProfileViewController: UIViewController,UITextFieldDelegate, UIImagePicker
                 lastNameTextField.resignFirstResponder()
             case emailTextField:
                 emailTextField.resignFirstResponder()
-            case newPasswordTextField:
-                newPasswordTextField.resignFirstResponder()
-            case confirmPasswordTextField:   //passwordConfirmLabel.isHidden = false
-                confirmPasswordTextField.resignFirstResponder()
+//            case newPasswordTextField:
+//                newPasswordTextField.resignFirstResponder()
+//            case confirmPasswordTextField:   //passwordConfirmLabel.isHidden = false
+//                confirmPasswordTextField.resignFirstResponder()
             default:
                 break
         }
@@ -303,15 +303,15 @@ class ProfileViewController: UIViewController,UITextFieldDelegate, UIImagePicker
 //                   // phoneLabel.textColor = UIColor(red: 0/256, green: 128/256, blue: 128/256, alpha: 1.0)
 //                    customtextfield.borderForTextField(textField: phoneTextField, validationFlag: false)
 //                    phoneErrorLabel.text = ""
-                case newPasswordTextField:
-                    //passwordLabel.isHidden = false
-                    //passwordLabel.textColor = UIColor(red: 0/256, green: 128/256, blue: 128/256, alpha: 1.0)
-                    customtextfield.borderForTextField(textField: newPasswordTextField, validationFlag: false)
-                   // newPasswordErrorLabel.text = ""
-                case confirmPasswordTextField:   //passwordConfirmLabel.isHidden = false
-                    //passwordConfirmLabel.textColor = UIColor(red: 0/256, green: 128/256, blue: 128/256, alpha: 1.0)
-                    customtextfield.borderForTextField(textField: confirmPasswordTextField, validationFlag: false)
-                   // confirmPasswordErrorLabel.text = ""
+//                case newPasswordTextField:
+//                    //passwordLabel.isHidden = false
+//                    //passwordLabel.textColor = UIColor(red: 0/256, green: 128/256, blue: 128/256, alpha: 1.0)
+//                    customtextfield.borderForTextField(textField: newPasswordTextField, validationFlag: false)
+//                   // newPasswordErrorLabel.text = ""
+//                case confirmPasswordTextField:   //passwordConfirmLabel.isHidden = false
+//                    //passwordConfirmLabel.textColor = UIColor(red: 0/256, green: 128/256, blue: 128/256, alpha: 1.0)
+//                    customtextfield.borderForTextField(textField: confirmPasswordTextField, validationFlag: false)
+//                   // confirmPasswordErrorLabel.text = ""
                 default:
                     break
                 }
@@ -503,8 +503,8 @@ class ProfileViewController: UIViewController,UITextFieldDelegate, UIImagePicker
         let lastName = lastNameTextField.text,
         let userName = userNameTextField.text,
         let phone = phoneTextField.text,
-        let password = newPasswordTextField.text,
-        let confirmPassword = confirmPasswordTextField.text,
+//        let password = newPasswordTextField.text,
+//        let confirmPassword = confirmPasswordTextField.text,
         let email = emailTextField.text else {
             return
         }
@@ -543,73 +543,73 @@ class ProfileViewController: UIViewController,UITextFieldDelegate, UIImagePicker
             
         }
         
-        if password != "" {
-            isNewPasswordEntered = true
-            let isValidatePass = self.formValidation.validatePassword(password: password)
-            if (isValidatePass == false) {
-//                newPasswordTextField.becomeFirstResponder()
-//                customtextfield.borderForTextField(textField:  newPasswordTextField, validationFlag: true)
-//                //print("Incorrect Password")
-//                newPasswordErrorLabel.text = "Incorrect Password"
-                //loadingLabel.text = "Incorrect Password"
-                
-                let message = "Incorrect Password"
-                //eventCountryTextField.becomeFirstResponder()
-                displayAlertMessage(displayMessage: message, textField: newPasswordTextField)
-                
-                return
-            } else {
-                customtextfield.borderForTextField(textField: newPasswordTextField, validationFlag: false)
-                //newPasswordErrorLabel.text = ""
-            }
-
-            
-            if password != confirmPassword {
-            
-                passwordMatch = false
-//                confirmPasswordTextField.becomeFirstResponder()
-//                customtextfield.borderForTextField(textField:  confirmPasswordTextField, validationFlag: true)
-//                confirmPasswordErrorLabel.text = "Incorrect Mismatch"
+//        if password != "" {
+//            isNewPasswordEntered = true
+//            let isValidatePass = self.formValidation.validatePassword(password: password)
+//            if (isValidatePass == false) {
+////                newPasswordTextField.becomeFirstResponder()
+////                customtextfield.borderForTextField(textField:  newPasswordTextField, validationFlag: true)
+////                //print("Incorrect Password")
+////                newPasswordErrorLabel.text = "Incorrect Password"
+//                //loadingLabel.text = "Incorrect Password"
 //
-                let message = "Password Mismatch"
-                //eventCountryTextField.becomeFirstResponder()
-                displayAlertMessage(displayMessage: message, textField: confirmPasswordTextField)
-                //loadingLabel.text = "Password Mismatch"
-            } else {
-                passwordMatch = true
-                customtextfield.borderForTextField(textField: confirmPasswordTextField, validationFlag: false)
-            }
-        }
-        
-        
-        if isNewPasswordEntered == true {
-            if (isValidateFirstName == true && isValidateLastName == true && isValidateEmail == true && passwordMatch == true) {
-               //var profileData = ProfileAvatar(token: token, profileId: profileId, firstName: firstName, lastName: lastName, userName: email, email: email, phone: phone, avatar: phone, success: true)
-                
-                //let newImageStr = convertImageToBase64String (img: myAvatar.image!)
-                updateProfile(firstName: firstName, lastName: lastName, userName: userName, phone: phone, newPassword: "", oldPassword: "")
-            }
-        } else {
+//                let message = "Incorrect Password"
+//                //eventCountryTextField.becomeFirstResponder()
+//                displayAlertMessage(displayMessage: message, textField: newPasswordTextField)
+//
+//                return
+//            } else {
+//                customtextfield.borderForTextField(textField: newPasswordTextField, validationFlag: false)
+//                //newPasswordErrorLabel.text = ""
+//            }
+//
+//
+//            if password != confirmPassword {
+//
+//                passwordMatch = false
+////                confirmPasswordTextField.becomeFirstResponder()
+////                customtextfield.borderForTextField(textField:  confirmPasswordTextField, validationFlag: true)
+////                confirmPasswordErrorLabel.text = "Incorrect Mismatch"
+////
+//                let message = "Password Mismatch"
+//                //eventCountryTextField.becomeFirstResponder()
+//                displayAlertMessage(displayMessage: message, textField: confirmPasswordTextField)
+//                //loadingLabel.text = "Password Mismatch"
+//            } else {
+//                passwordMatch = true
+//                customtextfield.borderForTextField(textField: confirmPasswordTextField, validationFlag: false)
+//            }
+//        }
+//
+//
+//        if isNewPasswordEntered == true {
+//            if (isValidateFirstName == true && isValidateLastName == true && isValidateEmail == true) {
+//               //var profileData = ProfileAvatar(token: token, profileId: profileId, firstName: firstName, lastName: lastName, userName: email, email: email, phone: phone, avatar: phone, success: true)
+//
+//                //let newImageStr = convertImageToBase64String (img: myAvatar.image!)
+//                updateProfile(firstName: firstName, lastName: lastName, userName: userName, phone: phone, newPassword: "", oldPassword: "")
+//            }
+//        } else {
             if (isValidateFirstName == true && isValidateLastName == true && isValidateEmail == true ) {
 //                updateProfile(firstName: firstName, lastName: lastName, userName: userName, email: email, phone: phone, avatar: avatar)
 //                     print("update fields that does NOT includs password")
                 
-                if isNewAvatar == true {
-                    print("This is a new image convert to base64")
-                    avatar = convertImageToBase64String (img: myAvatar.image!)
-                    //print(avatar)
-                } else {
-                    print("orignal image")
-                    let im = "data:image/jpeg;base64"
-                    print(im)
-                    avatar = "data:image/jpg;base64,iVBORw0KGgoAAAANSUhEUgAAAMgAAADIAQAAAACFI5MzAAAB9klEQVR42u2YQYorMQxEBbqWQFc36FoG/6pyOpNZ/J20mGGaTiftF2hbLpWU2PnfYX/k55Jl5vhUVTu8luUdaCeFcydejjdwDUyQ5XV2JOcSZnkHZgiejusK51QGycrl2yIR1BwjjKivSFz8YC7fY91GKIj6PL5pp4/wWL54t3MHt/AjFxoJwmkYwosbh6/UEHE817hvi/vGex8gEkTdVRo1/55BM7kjUIgpoMW1DxB6kD+GtCX4PUFws40OwcUm0/lRYjOB3pG9YcguBFQuO0ISJ9UIrUP5CKy/MriXHDkETYmLDax1+RkgWBglQgUyq6T/HCAHBq7iJHd9KWWAlIKoGpiLc6HNDhDkETNYwqeVhym72snKKxA6BJL4UPM5QPYtgGwZeNZ5O0UvgSb0VGdcmVfJCQwQrM+pRiGnYJ497SUlv2NOYfOCX3qU2Equ7W3JAslsN7oDBDWWojcZq+KbEwQRdRYl1wD3ML52rpGc6w24qCXaKh4DRHWJbUPemqtEGyBMKC4Q/QmWiDWzRxkgO1UtSLh3svMaILeDpEGwrwvZ4Bkg9LynK1Y1LJWQdqKGnm3K7VTCz7vS9hIuUyYRd/xKcYRIHGqAViisQ4S/Uozmqo41Pn6bNRI1xS/fk2fMEKpDZYkpjP6B1T0HyN9/Nb+M/AORXDdE4Lb/mQAAAABJRU5ErkJggg=="
-                    //originalAvatar // convertImageToBase64String (img: myNewAvatar.image!)
-                }
+//                if isNewAvatar == true {
+//                    print("This is a new image convert to base64")
+//                    avatar = convertImageToBase64String (img: myAvatar.image!)
+//                    //print(avatar)
+//                } else {
+//                    print("orignal image")
+//                    let im = "data:image/jpeg;base64"
+//                    print(im)
+//                    avatar = "data:image/jpg;base64,iVBORw0KGgoAAAANSUhEUgAAAMgAAADIAQAAAACFI5MzAAAB9klEQVR42u2YQYorMQxEBbqWQFc36FoG/6pyOpNZ/J20mGGaTiftF2hbLpWU2PnfYX/k55Jl5vhUVTu8luUdaCeFcydejjdwDUyQ5XV2JOcSZnkHZgiejusK51QGycrl2yIR1BwjjKivSFz8YC7fY91GKIj6PL5pp4/wWL54t3MHt/AjFxoJwmkYwosbh6/UEHE817hvi/vGex8gEkTdVRo1/55BM7kjUIgpoMW1DxB6kD+GtCX4PUFws40OwcUm0/lRYjOB3pG9YcguBFQuO0ISJ9UIrUP5CKy/MriXHDkETYmLDax1+RkgWBglQgUyq6T/HCAHBq7iJHd9KWWAlIKoGpiLc6HNDhDkETNYwqeVhym72snKKxA6BJL4UPM5QPYtgGwZeNZ5O0UvgSb0VGdcmVfJCQwQrM+pRiGnYJ497SUlv2NOYfOCX3qU2Equ7W3JAslsN7oDBDWWojcZq+KbEwQRdRYl1wD3ML52rpGc6w24qCXaKh4DRHWJbUPemqtEGyBMKC4Q/QmWiDWzRxkgO1UtSLh3svMaILeDpEGwrwvZ4Bkg9LynK1Y1LJWQdqKGnm3K7VTCz7vS9hIuUyYRd/xKcYRIHGqAViisQ4S/Uozmqo41Pn6bNRI1xS/fk2fMEKpDZYkpjP6B1T0HyN9/Nb+M/AORXDdE4Lb/mQAAAABJRU5ErkJggg=="
+//                    //originalAvatar // convertImageToBase64String (img: myNewAvatar.image!)
+//                }
                 
                 updateProfile(firstName: firstName, lastName: lastName, userName: userName, phone: phone, newPassword: "", oldPassword: "")
                      print("update fields that does NOT includs password")
             }
-        }
+        //}
 //        if (isValidateFirstName == true && isValidateLastName == true && isValidateEmail == true) {
 //
 //            if isNewAvatar == true {

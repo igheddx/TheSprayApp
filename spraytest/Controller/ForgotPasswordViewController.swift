@@ -15,9 +15,11 @@ class ForgotPasswordViewController: UIViewController, UITextFieldDelegate {
     @IBOutlet weak var passwordConfirmTextField: UITextField!
     @IBOutlet weak var resetPasswordBtn: MyCustomButton!
     var username: String?
+    var email: String = ""
     var formValidation =   Validation()
     let customtextfield = CustomTextField()
     var phoneFromOTP: String = ""
+    var otpCode: String = ""
     var action: String = ""
     var token2pass: String = ""
     var paymentClientToken: String = ""
@@ -37,6 +39,8 @@ class ForgotPasswordViewController: UIViewController, UITextFieldDelegate {
     }
     
     func initializationTasks() {
+        //encryptedAPIKey = encryptdecrypt.encryptDecryptAPIKey(type: "", value: "", action: "encrypt")
+        
         emailTextField.delegate = self
         passwordTextField.delegate = self
         passwordConfirmTextField.delegate = self
@@ -51,6 +55,8 @@ class ForgotPasswordViewController: UIViewController, UITextFieldDelegate {
         customtextfield.borderForTextField(textField: emailTextField, validationFlag: false)
         customtextfield.borderForTextField(textField: passwordTextField, validationFlag: false)
         customtextfield.borderForTextField(textField: passwordConfirmTextField, validationFlag: false)
+        
+        emailTextField.text = email
     }
     
     func textFieldShouldReturn(_ textField: UITextField) -> Bool {
@@ -195,7 +201,7 @@ class ForgotPasswordViewController: UIViewController, UITextFieldDelegate {
         }else {
             customtextfield.borderForTextField(textField: emailTextField, validationFlag: false)
             //emailErrorLabel.text = ""
-            encryptedDeviceId = device.getDeviceId(userName: self.username!)
+            encryptedDeviceId = device.getDeviceId(userName: "")
           
             print("I CALLED DEVICE")
             device.sendDeviceInfo(encryptedAPIKey: encryptedAPIKey, encryptedDeviceId: encryptedDeviceId)
@@ -231,59 +237,47 @@ class ForgotPasswordViewController: UIViewController, UITextFieldDelegate {
         if isValidateEmail == true && isValidatePass == true && passwordMatch == true  {
             encryptedDeviceId = device.getDeviceId(userName: self.username!)
             
-            resetPasswordBtn.loadIndicator(true)
-            resetPasswordBtn.setTitle("Processing...", for: .normal)
-            resetPasswordBtn.isEnabled = false
-
-            let authenticatedUserProfile = AuthenticateUser(username: self.username!, password: password)
-            let request = PostRequest(path: "/api/profile/authenticate", model: authenticatedUserProfile, token: "", apiKey: encryptedAPIKey, deviceId: encryptedDeviceId)
-
+            spinerTaskStart()
+            
+            
+            let resetPasswordModel = ProfileResetModel(email: email, phone: phoneFromOTP, code: otpCode, password: password)
+            print("resetPasswordModel \(resetPasswordModel)")
+            let request = PostRequest(path: "/api/profile/reset", model: resetPasswordModel, token: "", apiKey: encryptedAPIKey, deviceId: encryptedDeviceId)
+            
+        
             print("request \(request)")
-            Network.shared.send(request) { [self] (result: Result<UserData, Error>)  in
-                switch result {
-                case .success(let user):
+            Network.shared.send(request) { [self] (result: Result<OTPData, Error>)  in
+            switch result {
+            case .success(let resetdata):
+                if resetdata.success == true {
+                    //LoadingStop()
+                    authenticate(userName: username!, password: password)
+                    print("success")
+                    print("Message: \(resetdata.errorMessage)")
                     
-                    if let thetoken = user.token {
-                        self.token2pass = thetoken
-                        
-                        self.userdata = user
-                        self.profileId = String(user.profileId!)
-                        
-                        let encryptdecrypt = EncryptDecrpyt()
-                        encryptedAPIKeyUserName = encryptdecrypt.encryptDecryptAPIKey(type: "username", value: self.username!, action: "encrypt")
-                        
-                        print("encryptedAPIKeyUserName DOMINIC \(encryptedAPIKeyUserName)")
-                        //encryptData(value: "\(user.userName)|\(apiKeyValue)")
-                        
-                        //call payment initialization
-                        self.initializePayment(token: user.token!, profileId: user.profileId!, firstName: user.firstName!, lastName: user.lastName!, userName: user.email!, email: user.email!, phone: "")
-                       
-                        
-                        //call func to get payment record onfile
-                        //self.getPaymentMethodRecord(profileId: user.profileId!, token: user.token!)
-                        
-                        //capture profile data
-                        self.getProfileData(profileId1: user.profileId!, token1: user.token!)
-                        
-                        print(" this is dominic \(user)")
-                    } else {
-                        self.resetPasswordBtn.loadIndicator(false)
-                        self.resetPasswordBtn.isEnabled = true
-                        self.resetPasswordBtn.setTitle("Processing...", for: .normal)
-                        self.emailTextField.isEnabled = true
-                        self.passwordTextField.isEnabled = true
-                        //self.loginButton.loadIndicator(false)
-                        
-                        theAlertView(alertType: "MissingFields", message: "")
-                    }
-              
+                    print("Message: \(resetdata.errorCode)")
+                } else  {
+                    //LoadingStop()
+                    print("Message: \(resetdata.errorMessage)")
                     
-                case .failure(let error):
-
-                    self.theAlertView(alertType: "IncorrecUserNamePassword", message: error.localizedDescription)
+                    print("Message: \(resetdata.errorCode)")
+                    
+                    spinerTaskEnd()
+                  
+                    
+                    theAlertView(alertType: "otpcode2", message: resetdata.errorMessage!)
+                    print("failed")
+                }
+               
+            case .failure(let error):
+                //LoadingStart()
+                spinerTaskEnd()
+                theAlertView(alertType: "otpcode", message: error.localizedDescription)
                 }
             }
+            
         } else {
+            spinerTaskEnd()
             theAlertView(alertType: "MissingFields", message: "")
         }
   
@@ -293,7 +287,7 @@ class ForgotPasswordViewController: UIViewController, UITextFieldDelegate {
             
             
             //eventCode = eventCodeTextField.text!
-            self.loadingIndicatorAction(actionType: "displayloadingmsg")
+           // self.loadingIndicatorAction(actionType: "displayloadingmsg")
             
 
             //default phone number - to be changed later
@@ -316,6 +310,74 @@ class ForgotPasswordViewController: UIViewController, UITextFieldDelegate {
 //                    self.loadingIndicatorAction(actionType: "error")
 //                }
 //            }
+        }
+    }
+    
+    //call this function to perform task when spiner start
+    func spinerTaskStart() {
+        
+        resetPasswordBtn.loadIndicator(true)
+        resetPasswordBtn.setTitle("Processing...", for: .normal)
+        resetPasswordBtn.isEnabled = false
+        self.emailTextField.isEnabled = false
+        self.passwordTextField.isEnabled = false
+        self.passwordConfirmTextField.isEnabled = false
+        
+    }
+    
+    //call this function to perform task when spiner ends
+    func spinerTaskEnd() {
+        self.resetPasswordBtn.loadIndicator(false)
+        self.resetPasswordBtn.isEnabled = true
+        self.resetPasswordBtn.setTitle("Reset Password ", for: .normal)
+        self.emailTextField.isEnabled = true
+        self.passwordTextField.isEnabled = true
+        self.passwordConfirmTextField.isEnabled = true
+        
+    }
+    func authenticate(userName: String, password: String) {
+        let authenticatedUserProfile = AuthenticateUser(username: userName, password: password)
+        let request = PostRequest(path: "/api/profile/authenticate", model: authenticatedUserProfile, token: "", apiKey: encryptedAPIKey, deviceId: encryptedDeviceId)
+
+        print("authenticatedUserProfile = \(authenticatedUserProfile)")
+        print("request \(request)")
+        Network.shared.send(request) { [self] (result: Result<UserData, Error>)  in
+            switch result {
+            case .success(let user):
+                
+                if let thetoken = user.token {
+                    self.token2pass = thetoken
+                    
+                    self.userdata = user
+                    self.profileId = String(user.profileId!)
+                    
+                    let encryptdecrypt = EncryptDecrpyt()
+                    encryptedAPIKeyUserName = encryptdecrypt.encryptDecryptAPIKey(type: "username", value: self.username!, action: "encrypt")
+                    
+                    print("encryptedAPIKeyUserName DOMINIC \(encryptedAPIKeyUserName)")
+                    //encryptData(value: "\(user.userName)|\(apiKeyValue)")
+                    
+                    //call payment initialization
+                    self.initializePayment(token: user.token!, profileId: user.profileId!, firstName: user.firstName!, lastName: user.lastName!, userName: user.email!, email: user.email!, phone: "")
+                   
+                    
+                    //call func to get payment record onfile
+                    //self.getPaymentMethodRecord(profileId: user.profileId!, token: user.token!)
+                    
+                    //capture profile data
+                    self.getProfileData(profileId1: user.profileId!, token1: user.token!)
+                    
+                    print(" this is dominic \(user)")
+                } else {
+                    spinerTaskEnd()
+                    theAlertView(alertType: "MissingFields", message: "")
+                }
+          
+                
+            case .failure(let error):
+                spinerTaskEnd()
+                self.theAlertView(alertType: "IncorrecUserNamePassword", message: error.localizedDescription)
+            }
         }
     }
 
@@ -490,6 +552,29 @@ class ForgotPasswordViewController: UIViewController, UITextFieldDelegate {
          }
         //closing loading
         self.dismiss(animated: false, completion: nil)
+    }
+    
+    
+    //**************** good code hold ***********************
+    override func prepare(for segue: UIStoryboardSegue, sender: Any?) {
+        //closing loading
+        self.dismiss(animated: false, completion: nil)
+               
+        if(segue.identifier == "passwordReset2MenuTab"){
+            let NextVC = segue.destination as! MenuTabViewController
+            NextVC.profileId = Int64(profileId!)
+            NextVC.token = token2pass
+            NextVC.paymentClientToken = paymentClientToken
+            NextVC.myProfileData = myprofiledata
+            NextVC.encryptedAPIKey = encryptedAPIKeyUserName
+            print("I was in Seque Identifier")
+        } else if(segue.identifier == "goToReg") {
+            let NextVC = segue.destination as! RegistrationViewController
+            NextVC.message  = ""
+            NextVC.encryptedAPIKey = encryptedAPIKeyUserName
+        } else if(segue.identifier == "goToLoginWithCode") {
+            let NextVC = segue.destination as! JoinWithEventCodeViewController
+        }
     }
 
     /*

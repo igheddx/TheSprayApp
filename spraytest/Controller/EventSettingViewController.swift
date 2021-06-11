@@ -5,8 +5,8 @@
 //  Created by Ighedosa, Dominic on 7/22/20.
 //  Copyright © 2020 Ighedosa, Dominic. All rights reserved.
 //
-import BraintreeDropIn
-import Braintree
+//import BraintreeDropIn
+//import Braintree
 import UIKit
 
 class EventSettingViewController: UIViewController, UINavigationControllerDelegate  {
@@ -70,8 +70,8 @@ class EventSettingViewController: UIViewController, UINavigationControllerDelega
     var eventTypeIcon: String = ""
     var screenIdentifier: String?
     
-    var paymentOptionType: BTUIKPaymentOptionType?
-    var paymentMethodNonce: BTPaymentMethodNonce?
+//    var paymentOptionType: BTUIKPaymentOptionType?
+//    var paymentMethodNonce: BTPaymentMethodNonce?
     var paymentDescription: String?
     var isReadyToSavePayment: Bool = false
     var encryptedAPIKey: String = ""
@@ -240,7 +240,7 @@ class EventSettingViewController: UIViewController, UINavigationControllerDelega
         if isReadyToSavePayment {
             //print("save payment")
             
-            addPayment(paymentNonce: paymentMethodNonce!.nonce, paymentOptionType: Int64(paymentOptionType!.rawValue), paymentDescription: paymentDescription!, paymentExpiration: "12/31/2099")
+           // addPayment(paymentNonce: paymentMethodNonce!.nonce, paymentOptionType: Int64(paymentOptionType!.rawValue), paymentDescription: paymentDescription!, paymentExpiration: "12/31/2099")
         } else {
             //print("not ready to save payment")
         }
@@ -430,38 +430,38 @@ class EventSettingViewController: UIViewController, UINavigationControllerDelega
 //
     
     func showDropIn(clientTokenOrTokenizationKey: String) {
-        let request =  BTDropInRequest()
-        let dropIn = BTDropInController(authorization: clientTokenOrTokenizationKey, request: request)
-        { (controller, result, error) in
-            if (error != nil) {
-                print("ERROR")
-            } else if (result?.isCancelled == true) {
-                print("CANCELLED")
-            } else if let result = result {
-                // Use the BTDropInResult properties to update your UI
-                self.paymentOptionType = result.paymentOptionType
-                self.paymentMethodNonce = result.paymentMethod
-                let paymentIcon = result.paymentIcon
-                self.paymentDescription = result.paymentDescription
-                
-        
-                self.paymentSelectedLabel.text = self.paymentDescription
-                let size = CGSize(width: 20, height: 20)
-                let view = result.paymentIcon as? BTUIKVectorArtView
-                self.paymentIconImageView.image = view?.image(of: size)
-                
-                //self.addEditPaymentButton.setBackgroundImage(UIImage(named: "editIcon"), for: UIControl.State.normal)
-                self.addEditPaymentButton.setImage(UIImage(named: "editIcon"), for: .normal)
-                self.paymentActionMessageLabel.text = "edit payment Information for this event..."
-                print("paymentOption= \(self.paymentOptionType!.rawValue)")
-                print("paymentMethod! = \(self.paymentMethodNonce!.nonce)")
-                print("paymentIcon = \(paymentIcon)")
-                print("paymentDescription = \(self.paymentDescription!)")
-                self.isReadyToSavePayment = true
-            }
-            controller.dismiss(animated: true, completion: nil)
-        }
-        self.present(dropIn!, animated: true, completion: nil)
+//        let request =  BTDropInRequest()
+//        let dropIn = BTDropInController(authorization: clientTokenOrTokenizationKey, request: request)
+//        { (controller, result, error) in
+//            if (error != nil) {
+//                print("ERROR")
+//            } else if (result?.isCancelled == true) {
+//                print("CANCELLED")
+//            } else if let result = result {
+//                // Use the BTDropInResult properties to update your UI
+//                self.paymentOptionType = result.paymentOptionType
+//                self.paymentMethodNonce = result.paymentMethod
+//                let paymentIcon = result.paymentIcon
+//                self.paymentDescription = result.paymentDescription
+//                
+//        
+//                self.paymentSelectedLabel.text = self.paymentDescription
+//                let size = CGSize(width: 20, height: 20)
+//                let view = result.paymentIcon as? BTUIKVectorArtView
+//                self.paymentIconImageView.image = view?.image(of: size)
+//                
+//                //self.addEditPaymentButton.setBackgroundImage(UIImage(named: "editIcon"), for: UIControl.State.normal)
+//                self.addEditPaymentButton.setImage(UIImage(named: "editIcon"), for: .normal)
+//                self.paymentActionMessageLabel.text = "edit payment Information for this event..."
+//                print("paymentOption= \(self.paymentOptionType!.rawValue)")
+//                print("paymentMethod! = \(self.paymentMethodNonce!.nonce)")
+//                print("paymentIcon = \(paymentIcon)")
+//                print("paymentDescription = \(self.paymentDescription!)")
+//                self.isReadyToSavePayment = true
+//            }
+//            controller.dismiss(animated: true, completion: nil)
+//        }
+//        self.present(dropIn!, animated: true, completion: nil)
     }
     
     

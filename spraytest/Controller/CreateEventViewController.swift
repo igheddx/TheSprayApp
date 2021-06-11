@@ -585,6 +585,18 @@ class CreateEventViewController: UIViewController {
         
     }
     
+    func getFormattedDateToDate(dateinput: String) -> Date {
+        let dateFormatter = DateFormatter()
+        //dateFormatter.locale = Locale(identifier: "en_US_POSIX") // set locale to reliable US_POSIX
+        dateFormatter.dateFormat = "yyyy-MM-dd'T'HH:mm:ss"
+        dateFormatter.locale = Locale(identifier: "en_US_POSIX")
+        dateFormatter.timeZone = TimeZone(abbreviation: "UTC")
+        
+        dateFormatter.locale = Locale.current
+        let date = dateFormatter.date(from:dateinput)!
+        return date
+    }
+    
   
     @IBAction func eventSaveButtonPressed(_ sender: Any) {
         
@@ -681,8 +693,26 @@ class CreateEventViewController: UIViewController {
             //eventDateTimeErrorLabel.text = self.formValidation.validateName2(name2: eventDateTime).errorMsg
             return
         } else {
+            
             print("isValidateEventDateTime = true")
             customtextfield.borderForTextField(textField: eventDateTextField, validationFlag: false)
+            
+            let currentDate = getFormattedDateToDate(dateinput: Date.getCurrentDate())
+            
+            let dateFormatter = DateFormatter()
+            dateFormatter.locale = Locale(identifier: "en_US_POSIX")
+            dateFormatter.dateFormat = "E, d MMM yyyy h:mm a" //E, d MMM yyyy HH:mm a"
+            let date = dateFormatter.date(from:String(eventDateTime))!
+
+            let formatedEventDateTime  = getFormattedDate(date: date, format: "yyyy-MM-dd'T'HH:mm:ss")
+            let newEventDateTime = getFormattedDateToDate(dateinput: formatedEventDateTime)
+            
+            if newEventDateTime <= currentDate {
+                let isValidateEventDateTime = false
+                let message = "Event date & time must be greater than the current date & time"
+                displayAlertMessage(displayMessage: message, textField: eventDateTextField)
+            }
+            
             //eventDateTimeErrorLabel.text = self.formValidation.validateName2(name2: eventDateTime).errorMsg
         }
         

@@ -29,8 +29,8 @@ class DashboardNavigationViewController: UINavigationController {
         UINavigationBar.appearance().titleTextAttributes = [NSAttributedString.Key.foregroundColor: UIColor(red: 0/256, green: 0/256, blue: 0/256, alpha: 1.0)]
         UINavigationBar.appearance().isTranslucent = false
         
-        UINavigationBar.appearance().setBackgroundImage(UIImage(), for: .default)
-        UINavigationBar.appearance().shadowImage = UIImage()
+        UINavigationBar.appearance().setBackgroundImage(UIImage(named: ""), for: .default)
+        UINavigationBar.appearance().shadowImage = UIImage(named: "")
     }
     
 

@@ -27,6 +27,7 @@ class CreateAccountViewController: UIViewController, UINavigationBarDelegate, UI
     var email: String = ""
     var phone: String?
     var phoneFromOTP: String = ""
+    var otpCode: String =  ""
     var userdata: UserData?
     var token2pass: String?
     var profileId: String?
@@ -81,6 +82,8 @@ class CreateAccountViewController: UIViewController, UINavigationBarDelegate, UI
         emailTextField.delegate = self
         passwordTextField.delegate = self
         passwordConfirmTextField.delegate = self
+        
+        emailTextField.text = email
         
         termsConditionSwitch.isOn = false
         

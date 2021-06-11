@@ -20,6 +20,7 @@ class RSVPViewController: UIViewController {
     @IBOutlet weak var eventNameLbl: UILabel!
     @IBOutlet weak var eventDateTimeLbl: UILabel!
     @IBOutlet weak var eventImage: UIImageView!
+    var confettiView: UIView!
     var profileId: Int64 = 0
     var eventOwnerProfileId: Int64 = 0
     var eventId: Int64 = 0
@@ -33,10 +34,23 @@ class RSVPViewController: UIViewController {
     var refreshscreendelegate: RefreshScreenDelegate?
     var setRefreshScreen: Bool = false
     var encryptedAPIKey: String = ""
+    var confettiBirthRate: Float = 0
     //let isPaymentMethodAvailable: Bool = UserDefaults.standard.bool(forKey: "isPaymentMethodAvailable")
     var myProfileData: [MyProfile] = []
     override func viewDidLoad() {
+        
+//        let redView = UIView(frame: CGRect(x: 0, y: 50, width:  self.view.frame.size.width, height:  self.view.frame.size.height))
+//        redView.backgroundColor = .red
+//        view.addSubview(redView)
+        
+        
+        
+        
         super.viewDidLoad()
+        
+        //confettiView.backgroundColor = .white
+        //createTheView()
+        
         yesRSVPbtn.setTitleColor(UIColor.black, for: .normal)
         noRSVPbtn.setTitleColor(UIColor.black, for: .normal)
         // Do any additional setup after loading the view.
@@ -50,6 +64,16 @@ class RSVPViewController: UIViewController {
         
         navigationController?.navigationBar.topItem?.backBarButtonItem = UIBarButtonItem(title: "", style: .plain, target: nil, action: nil)
         
+    }
+    
+    private func createTheView() {
+
+        let xCoord = self.view.bounds.width /// 2 - 50
+        let yCoord = self.view.bounds.height /// 2 - 50
+
+        confettiView = UIView(frame: CGRect(x: xCoord, y: yCoord, width: self.view.bounds.width, height: self.view.bounds.height))
+        confettiView.backgroundColor = .white
+        self.view.addSubview(confettiView)
     }
     override func viewDidAppear(_ animated: Bool) {
         AppUtility.lockOrientation(.portrait)
@@ -82,7 +106,9 @@ class RSVPViewController: UIViewController {
 //        yesRSVPbtn.layer.masksToBounds = true
         
         //confirm RSVP
-        rsvp()
+        // comment out for now 6/8/2021
+        yesRSVPbtn.isEnabled = false
+        noRSVPbtn.isEnabled = false
         createParticles()
         setRefreshScreen = true
         
@@ -204,6 +230,39 @@ class RSVPViewController: UIViewController {
         self.navigationController?.pushViewController(nextVC , animated: true)
     }
     
+    //not currently in use 6/8/211
+    func stopConfetti() {
+        yesRSVPbtn.isEnabled = false
+        noRSVPbtn.isEnabled = false
+        
+        var runCount = 0
+        Timer.scheduledTimer(withTimeInterval: 1.0, repeats: true) { [self] timer in
+            print("Timer fired!")
+            runCount += 1
+
+            if runCount == 6 {
+                
+//                makeEmitterCell(color: UIColor.red)
+//                makeEmitterCell(color: UIColor.green)
+//                makeEmitterCell(color: UIColor.blue)
+
+                //confettiView.layer.removeFromSuperlayer()
+                
+                
+                //view.layer.removeFromSuperlayer()
+                print("confettiBirthRate before \(confettiBirthRate)")
+                //self.confettiBirthRate = 3
+                print("confettiBirthRate after \(confettiBirthRate)")
+                //perform(#selector(endParticles), with: emitter, afterDelay: 1.5)
+                //createParticles2()
+                yesRSVPbtn.isEnabled = true
+                noRSVPbtn.isEnabled = true
+                
+                timer.invalidate()
+            }
+        }
+        
+    }
     func createParticles() {
         let particleEmitter = CAEmitterLayer()
 
@@ -214,16 +273,25 @@ class RSVPViewController: UIViewController {
         let red = makeEmitterCell(color: UIColor.red)
         let green = makeEmitterCell(color: UIColor.green)
         let blue = makeEmitterCell(color: UIColor.blue)
-
-        particleEmitter.emitterCells = [red, green, blue]
-
+        let yellow = makeEmitterCell(color: UIColor.yellow)
+        let purple = makeEmitterCell(color: UIColor.purple)
+        particleEmitter.emitterCells = [red, green, blue, yellow, purple]
+        
+        //confettiView.layer.addSublayer(particleEmitter)
         view.layer.addSublayer(particleEmitter)
+       // confettilayer!.addSublayer(particleEmitter) //adddSublayer(particleEmitter)
+        perform(#selector(endParticles), with: particleEmitter, afterDelay: 4)
     }
+    
+ 
+    
 
+    
     func makeEmitterCell(color: UIColor) -> CAEmitterCell {
         let cell = CAEmitterCell()
-        cell.birthRate = 3
-        cell.lifetime = 7.0
+
+        cell.birthRate = 7 //confettiBirthRate //3
+        cell.lifetime = 7
         cell.lifetimeRange = 0
         cell.color = color.cgColor
         cell.velocity = 200
@@ -237,6 +305,16 @@ class RSVPViewController: UIViewController {
 
         cell.contents = UIImage(named: "confetti1")?.cgImage
         return cell
+    }
+    
+//    @objc func endParticles(emitterLayer:CAEmitterCell) {
+//        emitterLayer.lifetime = 0.0
+//    }
+    @objc func endParticles(emitterLayer:CAEmitterLayer) {
+        emitterLayer.lifetime = 0.0
+        yesRSVPbtn.isEnabled = true
+        noRSVPbtn.isEnabled = true
+        rsvp()
     }
     /*
     // MARK: - Navigation

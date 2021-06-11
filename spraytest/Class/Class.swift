@@ -18,8 +18,8 @@ struct Device {
         //let version = UIDevice.current.systemVersion
         let modelName = UIDevice.current.model
 
-        //let deviceUID = udid! + name + modelName + userName //old hold this for now 5/26
-        let deviceUID = udid! + name + modelName //does not include userName
+        let deviceUID = udid! + name + modelName + "|" + userName //old hold this for now 5/26
+        //let deviceUID = udid! + name + modelName //does not include userName
         print("device \(deviceUID)")
         
         let encryptdecrypt =  EncryptDecrpyt()
@@ -38,7 +38,7 @@ struct Device {
             case .success(let deviceId):
                 //deviceId.sucess
                 print(deviceId)
-               print("it is good very good")
+               print("DEVICE ID \(encryptedDeviceId) WAS SENT")
                 
             case .failure(let error):
                 print(error.localizedDescription)
@@ -122,7 +122,7 @@ struct EncryptDecrpyt {
         var outputValue: String = ""
         
         if type == "username" {
-            inputValue = "\(value)|9D8ED11F-CD8A-4E47-B1AC-B188AA8C032A" //value //"UserPassword1!"
+            inputValue = "\(value)|9D8ED11F-CD8A-4E47-B1AC-B188AA8C032A" //value
         } else {
             inputValue = "9D8ED11F-CD8A-4E47-B1AC-B188AA8C032A" //value //"UserPassword1!"
         }
@@ -130,52 +130,13 @@ struct EncryptDecrpyt {
         let key128   = "1234567890123456"                   // 16 bytes for AES128
         let key256   = "CHqcPp7MN3mTY3nF6TWHdG8dHPVSgJBj"   // 32 bytes for AES256
         let iv       = "F5cEUty4UwQL2EyW"                   // 16 bytes for AES128
-
-        
         do {
-            //let aes128 = AES(key: key128, iv: iv)
+           
             let aes256 = AES(key: key256, iv: iv)
             
-//            switch action {
-//            case "encrypt":
-//                let encryptedInputValue128 = aes128?.encrypt(string: outputValue)
-//                aes128?.decrypt(data: encryptedInputValue128)
-//
-                let encryptedInputValue256 = aes256?.encrypt(string: inputValue)
-                return (encryptedInputValue256?.base64EncodedString())!
-            
-//            case "decrypt":
-//                let encryptedInputValue256 = aes256?.encrypt(string: inputValue)
-//
-//                let decryptedInputValue256 = aes256?.decrypt(data: encryptedInputValue256)
-//
-//                return decryptedInputValue256!
-//            default:
-//                break
-   
-   
-
-           
-            
-            
-            
-            //print(encryptedInputValue256?.base64EncodedString())
-    //            let encryptedInputValue256 = aes256?.encrypt(string: inputValue)
-            
-    //
-    //            let aes = try AES(keyString: key256)
-    //
-    //            let stringToEncrypt: String = inputValue
-    //            print("String to encrypt:\t\t\t\(stringToEncrypt)")6t
-    //
-    //            let encryptedData: Data = try aes.encrypt(stringToEncrypt)
-    //            print("String encrypted (base64):\t\(encryptedData.base64EncodedString())")
-    //
-    //            let decryptedData: String = try aes.decrypt(encryptedData)
-    //            print("String decrypted:\t\t\t\(decryptedData)")
-            
-
-            
+            let encryptedInputValue256 = aes256?.encrypt(string: inputValue)
+            return (encryptedInputValue256?.base64EncodedString())!
+ 
         } catch {
             var errMsg: String = "Something went wrong: \(error)"
             print("Something went wrong: \(error)")

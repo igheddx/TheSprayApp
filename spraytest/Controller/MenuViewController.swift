@@ -58,7 +58,9 @@
 
 import UIKit
 import Stripe
-
+import SwiftKeychainWrapper
+import LocalAuthentication
+import CommonCrypto
 
 class MobileBrand {
     var brandName: String?
@@ -109,9 +111,10 @@ class MenuViewController: UIViewController, STPAddCardViewControllerDelegate, ST
 
 
     
+    @IBOutlet weak var menuImage: UIImageView!
     
     //@IBOutlet weak var tableView: UITableView!
-    
+    let defaults = UserDefaults.standard
     @IBOutlet weak var labelTest: UILabel!
     var profileId: Int64?
     var token: String?
@@ -130,11 +133,78 @@ class MenuViewController: UIViewController, STPAddCardViewControllerDelegate, ST
     var menusecdtionlogout = [MenuSections]()
     var menusectionprofile = [MenuSections]()
     var encryptedAPIKey: String = ""
-    
+    var profileImage: UIImage?
     var menulists: [MenuList] = []
+    //var myProfileData: [MyProfile] = []
+    var userDisplayName: String = ""
+    var isBiometricEnabled: Bool = false
+    var setupUsernamePasswordKeychain: Bool = false
+    var isKeyChainInUse: Bool = false
+    var isBiometricSwitchFlag: Bool = false
+    var biometricCellDesc: String = ""
+    var biometricCellIcon: String = ""
+    
     override func viewDidLoad() {
         super.viewDidLoad()
-        //labelTest.text = displayString!
+        
+        let isKeyChainInUse = isKeyPresentInUserDefaults(key: "isKeyChainInUse")
+        
+        let context = LAContext()
+        CheckIfBiometricEnabled()
+        if isBiometricEnabled == true {
+            print("isBiometricEnabled = true")
+            if ( context.biometryType == .touchID ) {
+                 print("touch Id enabled")
+//                    biometricLbl.text = "Login With Touch Id"
+//                    displayBiometricSelection(imageName: "touchid_icon")
+                biometricCellDesc = "Touch Id"
+                biometricCellIcon = "touchid_icon"
+            }
+            if ( context.biometryType == .faceID) {
+//                    biometricLbl.text = "Login With Face ID"
+//                    displayBiometricSelection(imageName: "faceid_icon")
+                biometricCellDesc = "Face Id"
+                biometricCellIcon = "faceid_icon"
+                print("face Id is enabled")
+            } else {
+                print("stone age")
+            }
+            
+            //launch auto biometric if not logout and keychainInUse = true
+            let isKeyChainInUse = isKeyPresentInUserDefaults(key: "isKeyChainInUse")
+            if isKeyChainInUse == true  {
+    
+                self.isKeyChainInUse = KeychainWrapper.standard.bool(forKey: "isKeyChainInUse")!
+                print("iskeychaininuse \(self.isKeyChainInUse )")
+                if (self.isKeyChainInUse  == true) {
+                    isBiometricSwitchFlag = true
+                    let usernamekeychainToDisplay = KeychainWrapper.standard.string(forKey: "usernameKeyChain")
+                    let username =  KeychainWrapper.standard.string(forKey: "usernameKeyChain")
+                    let password =  KeychainWrapper.standard.string(forKey: "passwordKeyChain")
+                    
+                    print("USERNAME =\(username)")
+                    print("USERNAME =\(password)")
+                    
+
+                } else {
+                    isBiometricSwitchFlag = false
+                }
+            } else  {
+                isBiometricSwitchFlag = false
+//                biometricLbl.text = "Enable Biometric"
+//                displayBiometricSelection(imageName: "")
+//                displayRememberMeSelection()
+                
+            }
+        
+        
+        } else  {
+            biometricCellDesc = "Enable Biometric"
+            biometricCellIcon = "touchid_icon"
+//            biometricLbl.text = "Enable Biometric"
+//            displayBiometricSelection(imageName: "")
+//            displayRememberMeSelection()
+        }
         
         navigationController?.navigationBar.topItem?.backBarButtonItem = UIBarButtonItem(title: "", style: .plain, target: nil, action: nil)
         
@@ -184,35 +254,44 @@ class MenuViewController: UIViewController, STPAddCardViewControllerDelegate, ST
     override func viewDidDisappear(_ animated: Bool) {
         AppUtility.lockOrientation(.all)
     }
+    
+    func CheckIfBiometricEnabled() {
+        let context = LAContext()
+        var error: NSError?
+        if context.canEvaluatePolicy(.deviceOwnerAuthenticationWithBiometrics, error: &error) {
+            self.isBiometricEnabled = true
+            print("isBiometricEnabled = true")
+        } else {
+            //no biometric
+            self.isBiometricEnabled = false
+            print("isBiometricEnabled = false")
+        }
+    }
+    func  isKeyPresentInUserDefaults(key: String) -> Bool {
+        guard let _ = KeychainWrapper.standard.object(forKey: key) else {
+         return false;
+        }
+
+       return true;
+    }
     func addCardViewControllerDidCancel(_ addCardViewController: STPAddCardViewController) {
         dismiss(animated: true)
     }
     
-//    struct AddPayment: Model {
-//        let paymentMethodToken: String?
-//        let isUpdate: Bool?
-//        let customName: String?
-//        let paymentType: Int64?
-//        let paymentDescription: String?
-//        let paymentExpiration: String?
-//        let profileId: Int64?
-//    }
     func addMyPayment(paymentMethodToken
                         : String, customName: String, paymentOptionType: Int64, paymentDescription: String, paymentExpiration: String) {
         
         let addPayment = AddPayment(paymentMethodToken: paymentMethodToken, isUpdate: false, customName: customName, paymentType:1, paymentDescription: paymentDescription, paymentExpiration: "8/10/2030", profileId: profileId)
         
-//        ) AddPayment(paymentMethodToken: paymentMethodToken, isUpdate: true, customName: customName, paymentOptionType: paymentOptionType, paymentDescription: paymentDescription, paymentExpiration: paymentExpiration, profileId: profileId)
-        
-                    let request = PostRequest(path: "/api/PaymentMethod/add", model: addPayment , token: token!, apiKey: encryptedAPIKey, deviceId: "")
-        
-                    Network.shared.send(request) { (result: Result<Data, Error>)  in
-                        switch result {
-                        case .success( _): break
-                        case .failure(let error):
-                            print(error.localizedDescription)
-                        }
-                    }
+        let request = PostRequest(path: "/api/PaymentMethod/add", model: addPayment , token: token!, apiKey: encryptedAPIKey, deviceId: "")
+
+        Network.shared.send(request) { (result: Result<Data, Error>)  in
+            switch result {
+            case .success( _): break
+            case .failure(let error):
+                print(error.localizedDescription)
+            }
+        }
     }
     
     func addCardViewController(_ addCardViewController: STPAddCardViewController, didCreatePaymentMethod paymentMethod: STPPaymentMethod, completion: @escaping STPErrorBlock) {
@@ -233,27 +312,6 @@ class MenuViewController: UIViewController, STPAddCardViewControllerDelegate, ST
         for (name, path) in data {
             print("The path to '\(name)' is '\(path)'.")
         }
-       //print(paymentMethod.bacsDebit!)
-//        print("Type \(paymentMethod.type)")
-//
-//        var paymentStripeId: String?
-//        if let source = paymentMethod as? STPSource {
-//            paymentStripeId = source.stripeID
-//        }else if let card = paymentMethod as? STPCard {
-//            paymentStripeId = card.stripeID
-//        }
-        //print("description \(paymentMethod.description)")
-       // var allResponseFields: [AnyHashable : Any] { get }
-       
-//        var dict : Dictionary = Dictionary<AnyHashable,Any>()
-//        dict["name"] = "sandeep"
-//        let myName : String = dict["name"] as? String ?? ""
-//
-        
-//        for fields in paymentMethod.allResponseFields {
-//
-//            //print("\(fields.value) is from \(fields.key)")
-//        }
     }
     
     func deSelectReloadData() {
@@ -266,13 +324,37 @@ class MenuViewController: UIViewController, STPAddCardViewControllerDelegate, ST
     
     func MenuListData ()  {
         
-        let menuprofiledata1 = MenuSections(name: "Profile", image: "userprofile", viewcontroller: "toMyProfileVC")
+       
+        var userProfileImage: String = ""
+        //UserDefaults.standard.set("userprofile", forKey: "userProfileImage")
+        
+        userProfileImage = UserDefaults.standard.string(forKey: "userProfileImage")! //"noimage"
+        
+        print("userProfileImage = \(userProfileImage)")
+        userDisplayName = UserDefaults.standard.string(forKey: "userDisplayName")!
+        
+        if userProfileImage == "userprofile" {
+
+            profileImage = UIImage(named: userProfileImage)
+            print("noimage")
+            
+        } else {
+            //let userProfileImage = UserDefaults.standard.string(forKey: "userProfileImage")
+            //newAvatarImage = UIImage(named: userProfileImage!)
+            
+            profileImage = convertBase64StringToImage(imageBase64String: userProfileImage)
+            print("there is an image???")
+        }
+        print("profileImage =\(profileImage)")
+        //profileImage = UIImage(named:  userProfileImage)
+        
+        let menuprofiledata1 = MenuSections(id: "profile", name: "Profile", image: userProfileImage, viewcontroller: "toMyProfileVC")
         menusectionprofile.append(menuprofiledata1)
         let menudata0 = MenuData(sectionName: "PROFILE", sectionDetails: menusectionprofile)
         
         
-        let menumoreactiondata1 = MenuSections(name: "Create Event", image: "createEventIcon", viewcontroller: "toCreateEventVC")
-        let menumoreactiondata2 = MenuSections(name: "Add Payment Method", image: "paymentInfoIcon", viewcontroller: "toAddBankAccountVC")
+        let menumoreactiondata1 = MenuSections(id: "createevent", name: "Create Event", image: "createEventIcon", viewcontroller: "toCreateEventVC")
+        let menumoreactiondata2 = MenuSections(id: "addpaymentmethod", name: "Add Payment Method", image: "paymentInfoIcon", viewcontroller: "toAddBankAccountVC")
         
         menusectionmoreactions.append(menumoreactiondata1)
         menusectionmoreactions.append(menumoreactiondata2)
@@ -280,16 +362,16 @@ class MenuViewController: UIViewController, STPAddCardViewControllerDelegate, ST
         let menudata1 = MenuData(sectionName: "MORE ACTIONS", sectionDetails: menusectionmoreactions)
         
 
-        let menunotificationdata1 = MenuSections(name: "My Notifications", image: "notificationIcon", viewcontroller: "toMyNotificationVC")
+        let menunotificationdata1 = MenuSections(id: "mynotification", name: "My Notifications", image: "notificationIcon", viewcontroller: "toMyNotificationVC")
         menusectionnotification.append(menunotificationdata1)
        
-        let menusettingsdata1 = MenuSections(name: "My Settings", image: "mysettingicon", viewcontroller: "toMySettingsVC")
+        let menusettingsdata1 = MenuSections(id: "biometric", name: biometricCellDesc, image: biometricCellIcon, viewcontroller: "toMySettingsVC")
         menusectionnotification.append(menusettingsdata1)
         
         let menudata2 = MenuData(sectionName: "SETTINGS", sectionDetails: menusectionnotification)
         
         
-        let menulogoutdata1 = MenuSections(name: "Log Out", image: "logoutIcon", viewcontroller: "toLoginVC")
+        let menulogoutdata1 = MenuSections(id: "logout", name: "Log Out", image: "logoutIcon", viewcontroller: "toLoginVC")
         
         menusecdtionlogout.append(menulogoutdata1)
         let menudata3 = MenuData(sectionName: "LOG OUT", sectionDetails: menusecdtionlogout)
@@ -300,47 +382,8 @@ class MenuViewController: UIViewController, STPAddCardViewControllerDelegate, ST
         menudata.append(menudata2!)
         menudata.append(menudata3!)
         
-        
-        
-        
         print("menudata1 = \(menudata1)")
-        //HomeScreenEventDataModel(eventCategory: "My Events", eventProperty: eventsownedmodel)
-        
-        //menudata.append(menudata1!)
-//        
-//        let menuData1 = MenuData(sectionName: "More Actions...", sectionDetails: [SectionData(name: "Create Event", image: "createEventIcon")])
-//        
-//         let menuData2 = MenuData(sectionName: "More Actions...", sectionDetails: [SectionData(name: "Add Payment Info", image: "paymentInfoIcon")])
-//        
-//         let menuData3 = MenuData(sectionName: "Settings...", sectionDetails: [SectionData(name: "Notifications", image: "notificationIcon")])
-//         
-//        let menuData4 = MenuData(sectionName: "Log Out...", sectionDetails: [SectionData(name: "LogOut", image: "logOutIcon")])
-//         
-//        menudata.append(menuData1)
-//            menudata.append(menuData2)
-//            menudata.append(menuData3)
-//          menudata.append(menuData4)
-//        
-//
-//        print("menu \(menudata)")
-//        print("menu count\(menudata.count)")
-          
-//        let menu1 = MenuList(title: "Add Event")
-//        let menu2 = MenuList(title: "Setting")
-//        let menu3 = MenuList(title: "Add Bank Account")
-//        let menu4 = MenuList(title:  "Notifications")
-//        let menu5 = MenuList(title:  "Log Out")
-//
-//        tempMenu.append(menu1)
-//        tempMenu.append(menu2)
-//        tempMenu.append(menu3)
-//        tempMenu.append(menu4)
-//        tempMenu.append(menu5)
-        
-        
-        
-     
-       // tableView.reloadData()
+
        
         print(menudata)
       }
@@ -348,10 +391,7 @@ class MenuViewController: UIViewController, STPAddCardViewControllerDelegate, ST
     func displayData() {
         for data in menudata  {
            
-//            print ("data.sectionName.count \(data.sectionName.count)")
-//            print ("menu count = \(menudata.count)")
-            
-            
+
            }
     }
    
@@ -376,34 +416,45 @@ extension  MenuViewController: UITableViewDataSource, UITableViewDelegate  {
          return 75
      }
      func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
-        //let cell = tableView.dequeueReusableCell(withIdentifier: "MenuCell")! as UITableViewCell
-        
-//        if(indexPath.row > menu.count-1){
-//            return UITableViewCell()
-//          }
-//        else{
 
-//        let cell = tableView.dequeueReusableCell(withIdentifier: "cell", for: indexPath)
-//        cell.tag = indexPath.row
-//        let item = items[indexPath.row] //Thread 1: Fatal error: Index out of range
-//        cell.textLabel?.text = item.title
-//
-//        return cell
-            
         let cell = tableView.dequeueReusableCell(withIdentifier: "MenuCell") as! MenuTableViewCell
         
         print("indexPath.row = \(indexPath.row)")
            //cell.textLabel?.text = mobileBrand[indexPath.section].modelName![indexPath.row]
-        cell.menuName.text = menudata[indexPath.section].sectionDetails[indexPath.row].name
+        if menudata[indexPath.section].sectionDetails[indexPath.row].id == "profile" {
+            cell.menuName.text = userDisplayName
+        } else  {
+            cell.menuName.text = menudata[indexPath.section].sectionDetails[indexPath.row].name
+        }
         
-        if menudata[indexPath.section].sectionDetails[indexPath.row].name == "Profile" {
+        if menudata[indexPath.section].sectionDetails[indexPath.row].id == "profile" {
             print("PROFILE \(menudata[indexPath.section].sectionDetails[indexPath.row].name)")
-            cell.menuImage.layer.cornerRadius = 20
-            cell.menuImage.layer.masksToBounds = true
-            cell.menuImage.image = UIImage(named: "userprofile")
+    
+            cell.menuImage.frame = CGRect(x: 5, y: 5, width: 60, height: 60)
+            //myAvatar.backgroundColor = UIColor.black
+            cell.menuImage.contentMode =  UIView.ContentMode.scaleToFill// ScaleToFill
+            cell.menuImage.layoutIfNeeded()
+            cell.menuImage.layer.borderWidth = 1
+            cell.menuImage.layer.masksToBounds = false
+            cell.menuImage.layer.borderColor =  UIColor.black.cgColor //UIColor(red: 154/256, green: 211/256, blue: 188/256, alpha: 1.0).cgColor //UIColor.black.cgColor
+            cell.menuImage.layer.cornerRadius = cell.menuImage.frame.height/2
+            cell.menuImage.clipsToBounds = true
+            
+            
+            cell.menuImage.image = profileImage// UIImage(named: menudata[indexPath.section].sectionDetails[indexPath.row].image!)
         } else {
+            cell.menuImage.frame = CGRect(x: 7, y: 5, width: 40, height: 40)
             cell.menuImage.image = UIImage(named: menudata[indexPath.section].sectionDetails[indexPath.row].image!)
         }
+        
+        if menudata[indexPath.section].sectionDetails[indexPath.row].id == "biometric" {
+            let switchView = UISwitch(frame: .zero)
+           switchView.setOn(false, animated: true)
+           switchView.tag = indexPath.row // for detect which row switch Changed
+           switchView.addTarget(self, action: #selector(self.switchChanged(_:)), for: .valueChanged)
+           cell.accessoryView = switchView
+        }
+        
         //print(menudata[indexPath.section].sectionDetails[indexPath.row].name!)
         //cell.detailTextLabel.text = menu[indexPath.section].sectionDetails.name
 //
@@ -418,59 +469,30 @@ extension  MenuViewController: UITableViewDataSource, UITableViewDelegate  {
         
     }
     func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath) {
-        if menudata[indexPath.section].sectionDetails[indexPath.row].name == "Log Out" {
+        if menudata[indexPath.section].sectionDetails[indexPath.row].id == "logout" {
             let alert = UIAlertController(title: "Log Out", message: "Are you sure you want to Log Out?", preferredStyle: .actionSheet)
 
             alert.addAction(UIAlertAction(title: "Log Out", style: .default, handler: { (action) in self.callLoginScreen()}))
             //alert.addAction(UIAlertAction(title: "Log Out", style: .default, handler:  { action in self.performSegue(withIdentifier: "backToHome", sender: self) }))
             alert.addAction(UIAlertAction(title: "Cancel", style: .cancel, handler: {(action) in self.deSelectReloadData()}))
             self.present(alert, animated: true)
-        } else if menudata[indexPath.section].sectionDetails[indexPath.row].name == "Add Payment Method" {
+        } else if menudata[indexPath.section].sectionDetails[indexPath.row].id == "addpaymentmethod" {
             launchSetUpPaymentMethod()
-//            let addCardViewController = STPAddCardViewController()
-//            addCardViewController.delegate = self
-//
-//            let navigationController = UINavigationController(rootViewController: addCardViewController)
-//              present(navigationController, animated: true)
-            
-//            let paymentOptionsViewController = STPPaymentOptionsViewController()
-//            let navigationController = UINavigationController(rootViewController: paymentOptionsViewController)
-//           present(navigationController, animated: true)
-        
-    //
-            
-//            let navigationController = UINavigationController(rootViewController: addCardViewController)
-//            present(navigationController, animated: true)          // choosePaymentButtonTapped()
-           // let addCardViewController = STPPaymentOptionsViewController()
-            
-            //let addCardViewController = STPAddCardViewController()
-            //addCardViewController.delegate = self
-            //addCardViewController2.delegate = self
-            
-//            let navigationController = UINavigationController(rootViewController: addCardViewController)
-//            present(navigationController, animated: true)
-//
-            
-            //let navigationController = UINavigationController(rootViewController: addCardViewController)
-           // present(navigationController, animated: true)
-            
-            
+
+        } else if menudata[indexPath.section].sectionDetails[indexPath.row].id == "biometric" {
+            print("do nothing")
         } else {
             performSegue(withIdentifier: menudata[indexPath.section].sectionDetails[indexPath.row].viewcontroller!, sender: self)
         }
         
     }
 
-    /*let loginViewController = storyboard.instantiateViewControllerWithIdentifier("Login") as! UIViewController
-    let homeViewController = storyboard.instantiateViewControllerWithIdentifier("HomeNav") as! UIViewController
-
-    if isLoggedIn {
-        self.window?.rootViewController = homeViewController
+    @objc func switchChanged(_ sender : UISwitch!){
+        KeychainWrapper.standard.set(true, forKey: "isEnablebiometricNextLogin")
+        
+        print("table row switch Changed \(sender.tag)")
+        print("The switch is \(sender.isOn ? "ON" : "OFF")")
     }
-    else {
-        self.window?.rootViewController = loginViewController
-    }*/
-    
     
     func launchSetUpPaymentMethod() {
       
@@ -577,6 +599,13 @@ extension  MenuViewController: UITableViewDataSource, UITableViewDelegate  {
 //        let mainStoryboard = UIStoryboard(name: "Main", bundle: Bundle.main)
 //           if let viewController = mainStoryboard.instantiateViewController(withIdentifier: "yourVcName") as? UIViewController {
 //               self.present(viewController, animated: true, completion: nil)
+    }
+    
+    //Decoding Base64 Image
+    func convertBase64StringToImage (imageBase64String:String) -> UIImage {
+        let imageData = Data.init(base64Encoded: imageBase64String, options: .init(rawValue: 0))
+        let image = UIImage(data: imageData!)
+        return image!
     }
 
 }

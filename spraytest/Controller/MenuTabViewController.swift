@@ -33,6 +33,7 @@ class MenuTabViewController: UITabBarController {
                 if let menuViewController = menuNavigationController.viewControllers.first as? MenuViewController {
                     menuViewController.profileId = profileId
                     menuViewController.token = token
+                    //menuViewController.myProfileData = myProfileData
                     menuViewController.paymentClientToken = paymentClientToken
                     menuViewController.encryptedAPIKey = encryptedAPIKey
                     
@@ -63,8 +64,6 @@ class MenuTabViewController: UITabBarController {
                     homeViewController.myProfileData = myProfileData
                     homeViewController.stripeOnboardingMessage = stripeOnboardingMessage
                     homeViewController.encryptedAPIKey = encryptedAPIKey
-                    
-                    
                 }
             }
         }

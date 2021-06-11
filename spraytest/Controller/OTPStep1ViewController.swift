@@ -12,6 +12,8 @@ class OTPStep1ViewController: UIViewController {
 
     @IBOutlet weak var screenTitle: UILabel!
     @IBOutlet weak var phoneNumberTextField: UITextField!
+    
+    @IBOutlet weak var sentCodeBtn: MyCustomButton!
     var formValidation =   Validation()
     let customtextfield = CustomTextField()
     
@@ -45,9 +47,9 @@ class OTPStep1ViewController: UIViewController {
         super.viewDidLoad()
         setNavigationBar()
         encryptedAPIKey = encryptdecrypt.encryptDecryptAPIKey(type: "", value: "", action: "encrypt")
-        encryptedDeviceId = device.getDeviceId(userName: "")
+        encryptedDeviceId = device.getDeviceId(userName: email)
         
-        
+        device.sendDeviceInfo(encryptedAPIKey: encryptedAPIKey, encryptedDeviceId: encryptedDeviceId)
         //navBackButton.currentVC
         
         
@@ -78,9 +80,9 @@ class OTPStep1ViewController: UIViewController {
 //            phoneNumberTextField.withImage(direction: .Left, image: myImage, colorSeparator: UIColor.lightGray, colorBorder: UIColor.black)
 //        }
         
-       phoneNumberTextField.addTarget(self, action: #selector(OTPStep1ViewController.textFieldDidChange(_:)),
+        phoneNumberTextField.addTarget(self, action: #selector(OTPStep1ViewController.textFieldDidChange(_:)),
                                   for: .editingChanged)
-
+        customtextfield.borderForTextField(textField: phoneNumberTextField, validationFlag: false)
         // Do any additional setup after loading the view.
         
     }
@@ -151,6 +153,8 @@ class OTPStep1ViewController: UIViewController {
 
     }
     @IBAction func getVerificationCode(_ sender: Any) {
+        //LoadingStart()
+        spinerTaskStart()
         guard let phone = phoneNumberTextField.text else {
             return
         }
@@ -161,12 +165,13 @@ class OTPStep1ViewController: UIViewController {
         
         print("isValidatePhone \(isValidatePhone)")
         if (isValidatePhone == false) {
+            //LoadingStop()
             phoneNumberTextField.becomeFirstResponder()
            //phoneNumberTextField.borderForTextField(textField: nameTextField, validationFlag: true)
             //print("Incorrect First Name")
             //call UI Alert
             phoneNumberTextField.isEnabled = true
-            //self.presentUIAlert(alertMessage: "Incorrect Phone Number", alertTitle: "Missing Information", errorMessage: validationMessage, alertType: "formvalidation")
+            self.presentUIAlert(alertMessage: "Incorrect Phone Number", alertTitle: "Missing Information", errorMessage: validationMessage, alertType: "formvalidation")
             
         
             return
@@ -181,7 +186,7 @@ class OTPStep1ViewController: UIViewController {
     
     func convertPhoneToString(phone: String) -> String {
         let phonestr1 = phone.replacingOccurrences(of: "[\\(\\)^^+-]", with: "", options: .regularExpression, range: nil)
-        let phonestr2 = "+ \(phonestr1.replacingOccurrences(of: " ", with: ""))"
+        let phonestr2 = "+1\(phonestr1.replacingOccurrences(of: " ", with: ""))"
         return phonestr2
     }
 
@@ -202,12 +207,45 @@ class OTPStep1ViewController: UIViewController {
         case .success(let otpdata):
             if otpdata.success == true {
                 launchOTPVerifyVC(phone: phone)
+//                if self.presentedViewController == nil {
+//                   // do your presentation of the UIAlertController
+//                   // ...
+//                } else {
+//                   // either the Alert is already presented, or any other view controller
+//                   // is active (e.g. a PopOver)
+//                   // ...
+//
+//                   let thePresentedVC : UIViewController? = self.presentedViewController as UIViewController?
+//
+//                   if thePresentedVC != nil {
+//                      if let thePresentedVCAsAlertController : UIAlertController = thePresentedVC as? UIAlertController {
+//                         // nothing to do , AlertController already active
+//                         // ...
+//                        LoadingStop()
+//                        launchOTPVerifyVC(phone: phone)
+//                         print("Alert not necessary, already on the screen !")
+//
+//                      } else {
+//                         // there is another ViewController presented
+//                         // but it is not an UIAlertController, so do
+//                         // your UIAlertController-Presentation with
+//                         // this (presented) ViewController
+//                         // ...
+//                         //thePresentedVC!.presentViewController(...)
+//
+//                         print("Alert comes up via another presented VC, e.g. a PopOver")
+//                      }
+//                  }
+//                }
+                
+                
             } else  {
+                //LoadingStop()
                 theAlertView(alertType: "otpcode", message: "")
             }
             print("success")
         case .failure(let error):
-
+            //LoadingStop()
             theAlertView(alertType: "otpcode", message: error.localizedDescription)
             }
         }
@@ -246,6 +284,7 @@ class OTPStep1ViewController: UIViewController {
     }
         
     func launchOTPVerifyVC(phone: String) {
+        
         print("launchOTPVerifyVC was called")
         let nextVC = storyboard?.instantiateViewController(withIdentifier: "OTPStep2ViewController") as! OTPStep2ViewController
         //nextVC.otpCode = otpCode
@@ -256,6 +295,9 @@ class OTPStep1ViewController: UIViewController {
         nextVC.eventCode = eventCode
         nextVC.eventType = eventType
         nextVC.action = action
+        nextVC.email = email
+        nextVC.encryptedAPIKey = encryptedAPIKey
+        nextVC.encryptedDeviceId = encryptedDeviceId
         //nextVC.flowType = flowType
         self.navigationController?.pushViewController(nextVC, animated: true)
     }
@@ -276,6 +318,59 @@ class OTPStep1ViewController: UIViewController {
             self.present(alert2, animated: true)
         }
       
+    }
+    
+    func loadingIndicator() {
+        let alert = UIAlertController(title: nil, message: "Processing..., Please Wait...", preferredStyle: .alert)
+
+        alert.view.tintColor = UIColor.black
+
+
+        let loadingIndicator = UIActivityIndicatorView(frame: CGRect(x: 10, y: 5, width: 50, height: 50))
+        loadingIndicator.hidesWhenStopped = true
+        loadingIndicator.style = UIActivityIndicatorView.Style.medium
+        loadingIndicator.startAnimating();
+
+        alert.view.addSubview(loadingIndicator)
+        present(alert, animated: true, completion: nil)
+    }
+    
+    func spinerTaskStart() {
+        
+        sentCodeBtn.loadIndicator(true)
+        phoneNumberTextField.isEnabled = false
+        sentCodeBtn.setTitle("Processing...", for: .normal)
+        sentCodeBtn.isEnabled = false
+        
+    }
+    
+    //call this function to perform task when spiner ends
+    func spinerTaskEnd() {
+        sentCodeBtn.loadIndicator(false)
+        sentCodeBtn.isEnabled = true
+        sentCodeBtn.setTitle("Send Verification Code", for: .normal)
+        phoneNumberTextField.isEnabled = true
+    }
+    
+    func loadingIndicatorAction(actionType: String){
+        if actionType == "displayloadingmsg" {
+            phoneNumberTextField.isEnabled = false
+       
+            sentCodeBtn.loadIndicator(true)
+            sentCodeBtn.setTitle("Processing...", for: .normal)
+            sentCodeBtn.isEnabled = false
+        } else if actionType == "error" {
+            sentCodeBtn.isEnabled = true
+            sentCodeBtn.setTitle("Send Verification Code", for: .normal)
+            phoneNumberTextField.isEnabled = true
+            sentCodeBtn.loadIndicator(false)
+    
+        } else if actionType == "done" {
+            sentCodeBtn.isEnabled = true
+            sentCodeBtn.setTitle("Send Verification Code", for: .normal)
+            phoneNumberTextField.isEnabled = true
+            sentCodeBtn.loadIndicator(false)
+        }
     }
     /*
     // MARK: - Navigation
@@ -335,41 +430,59 @@ enum Direction {
     case Right
 }
 
-// add image to textfield
-func withImage(direction: Direction, image: UIImage, colorSeparator: UIColor, colorBorder: UIColor){
-    let mainView = UIView(frame: CGRect(x: 0, y: 0, width: 50, height: 45))
-    mainView.layer.cornerRadius = 5
+    // add image to textfield
+    func withImage(direction: Direction, image: UIImage, colorSeparator: UIColor, colorBorder: UIColor){
+        let mainView = UIView(frame: CGRect(x: 0, y: 0, width: 50, height: 45))
+        mainView.layer.cornerRadius = 5
 
-    let view = UIView(frame: CGRect(x: 0, y: 0, width: 50, height: 45))
-    view.backgroundColor = .white
-    view.clipsToBounds = true
-    view.layer.cornerRadius = 5
-    view.layer.borderWidth = CGFloat(0.0)
-    view.layer.borderColor = colorBorder.cgColor
-    mainView.addSubview(view)
+        let view = UIView(frame: CGRect(x: 0, y: 0, width: 50, height: 45))
+        view.backgroundColor = .white
+        view.clipsToBounds = true
+        view.layer.cornerRadius = 5
+        view.layer.borderWidth = CGFloat(0.0)
+        view.layer.borderColor = colorBorder.cgColor
+        mainView.addSubview(view)
 
-    let imageView = UIImageView(image: image)
-    imageView.contentMode = .scaleAspectFit
-    imageView.frame = CGRect(x: 12.0, y: 10.0, width: 24.0, height: 24.0)
-    view.addSubview(imageView)
+        let imageView = UIImageView(image: image)
+        imageView.contentMode = .scaleAspectFit
+        imageView.frame = CGRect(x: 12.0, y: 10.0, width: 24.0, height: 24.0)
+        view.addSubview(imageView)
 
-    let seperatorView = UIView()
-    seperatorView.backgroundColor = colorSeparator
-    mainView.addSubview(seperatorView)
+        let seperatorView = UIView()
+        seperatorView.backgroundColor = colorSeparator
+        mainView.addSubview(seperatorView)
 
-    if(Direction.Left == direction){ // image left
-        seperatorView.frame = CGRect(x: 45, y: 0, width: 1, height: 45)
-        self.leftViewMode = .always
-        self.leftView = mainView
-    } else { // image right
-        seperatorView.frame = CGRect(x: 0, y: 0, width: 1, height: 45)
-        self.rightViewMode = .always
-        self.rightView = mainView
+        if(Direction.Left == direction){ // image left
+            seperatorView.frame = CGRect(x: 45, y: 0, width: 1, height: 45)
+            self.leftViewMode = .always
+            self.leftView = mainView
+        } else { // image right
+            seperatorView.frame = CGRect(x: 0, y: 0, width: 1, height: 45)
+            self.rightViewMode = .always
+            self.rightView = mainView
+        }
+
+        self.layer.borderColor = colorBorder.cgColor
+        self.layer.borderWidth = CGFloat(0.5)
+        self.layer.cornerRadius = 5
     }
 
-    self.layer.borderColor = colorBorder.cgColor
-    self.layer.borderWidth = CGFloat(0.5)
-    self.layer.cornerRadius = 5
 }
 
+extension OTPStep1ViewController {
+   func LoadingStart(){
+        ProgressDialog.alert = UIAlertController(title: nil, message: "Processing...", preferredStyle: .alert)
+    
+    let loadingIndicator = UIActivityIndicatorView(frame: CGRect(x: 10, y: 5, width: 50, height: 50))
+    loadingIndicator.hidesWhenStopped = true
+    loadingIndicator.style = UIActivityIndicatorView.Style.medium
+    loadingIndicator.startAnimating();
+
+    ProgressDialog.alert.view.addSubview(loadingIndicator)
+    present(ProgressDialog.alert, animated: true, completion: nil)
+  }
+
+  func LoadingStop(){
+    ProgressDialog.alert.dismiss(animated: true, completion: nil)
+  }
 }

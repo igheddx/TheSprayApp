@@ -19,6 +19,7 @@ struct MenuData {
 }
 
 struct MenuSections {
+    var id: String?
     var name: String?
     var image: String?
     var viewcontroller: String?

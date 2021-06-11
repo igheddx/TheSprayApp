@@ -251,15 +251,16 @@ class GoSprayViewController: UIViewController, UIViewControllerTransitioningDele
             //circleMenu()
             if isPaymentMethodAvailable == false && hasPaymentMethodEvent == false {
            
-                self.completionAlert(message: "Missing Payment Method. Please Add Payment Method to Continue With Spray! \n Please wait...", timer: 3, launchStripePaymentScreen: launchStripePaymentScreen)
-               // launchStripePaymentScreen()
+//                self.completionAlert(message: "Missing Payment Method. Please Add Payment Method to Continue With Spray! \n Please wait...", timer: 3, launchStripePaymentScreen: launchStripePaymentScreen)
+               launchStripePaymentScreen()
                 print("completion D")
             }
         } else if isSingleReceiverEvent == false {
             print("completion C")
             if isPaymentMethodAvailable == false && hasPaymentMethodEvent == false  {
-                self.completionAlert(message: "Missing Payment Method. Please Add Payment Method to Continue With Spray! \n Please wait...", timer: 3, launchStripePaymentScreen: launchStripePaymentScreen)
-                //launchStripePaymentScreen()
+//                self.completionAlert(message: "Missing Payment Method. Please Add Payment Method to Continue With Spray! \n Please wait...", timer: 3, launchStripePaymentScreen: launchStripePaymentScreen)
+                
+                launchStripePaymentScreen()
                 print("completion B")
             } else {
                 print("completion A")
