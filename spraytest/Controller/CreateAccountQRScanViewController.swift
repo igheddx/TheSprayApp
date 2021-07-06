@@ -481,7 +481,7 @@ class CreateAccountQRScanViewController: UIViewController {
 
                 print(" this is dominic \(user)")
                 
-                let encryptdecrypt = EncryptDecrpyt()
+                var encryptdecrypt = EncryptDecrpyt()
                 encryptedAPIKeyUserName = encryptdecrypt.encryptDecryptAPIKey(type: "username", value: userName, action: "encrypt")
                 encryptedAPIKey = encryptedAPIKeyUserName
                 //capture profile data

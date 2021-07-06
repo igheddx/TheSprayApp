@@ -39,7 +39,7 @@ class OTPStep1ViewController: UIViewController {
     var encryptedAPIKey: String = ""
     var encryptedDeviceId: String = ""
     let device = Device()
-    let encryptdecrypt = EncryptDecrpyt()
+    var encryptdecrypt = EncryptDecrpyt()
     //let navBackButton = BackButtonOnNavBar()
     //var flowType: String =  ""
     

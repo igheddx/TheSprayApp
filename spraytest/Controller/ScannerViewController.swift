@@ -269,6 +269,7 @@ class ScannerViewController: UIViewController {
         nextVC.encryptedAPIKey = encryptedAPIKey
         nextVC.eventType =  theEventType
         nextVC.eventOwnerId = theOwnerId
+        nextVC.myProfileData = myProfileData
             
        self.navigationController?.pushViewController(nextVC , animated: true)
         dismiss(animated: true, completion: nil)

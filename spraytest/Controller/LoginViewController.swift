@@ -12,6 +12,13 @@ import LocalAuthentication
 import CommonCrypto
 import SwiftKeychainWrapper
 
+//let key128   = "1234567890123456"                   // 16 bytes for AES128
+public var key256: String? // Bundle.main.infoDictionary?["KEY256"] as? String  //"CHqcPp7MN3mTY3nF6TWHdG8dHPVSgJBj"   // 32 bytes for AES256
+public var iv: String? //       = Bundle.main.infoDictionary?["KEYIV"] as? String //"F5cEUty4UwQL2EyW"                   // 16 bytes for AES128
+public var APIKEY: String? // = Bundle.main.infoDictionary?["API_KEY"] as? String
+
+public var STRIPEAPI_PUBLISHABLEKEY: String?
+
 
 class LoginViewController: UIViewController, UITextFieldDelegate {
     let customtextfield = CustomTextField()
@@ -74,7 +81,7 @@ class LoginViewController: UIViewController, UITextFieldDelegate {
     var encryptedDeviceId: String = ""
     var apiKeyValue: String = "9D8ED11F-CD8A-4E47-B1AC-B188AA8C032A" //this needs to come from a secured location"
     let device = Device()
-    let encryptdecrypt = EncryptDecrpyt()
+    var encryptdecrypt = EncryptDecrpyt()
     var isBiometricEnabled: Bool = false
     var setupUsernamePasswordKeychain: Bool = false
     var isKeyChainInUse: Bool = false
@@ -82,6 +89,30 @@ class LoginViewController: UIViewController, UITextFieldDelegate {
     override func viewDidLoad() {
         super.viewDidLoad()
         //reeet all default values
+        
+        //let key128   = "1234567890123456"                   // 16 bytes for AES128
+        if let mykey256   = Bundle.main.infoDictionary?["KEY256"] as? String {
+            key256 = mykey256
+        } //"CHqcPp7MN3mTY3nF6TWHdG8dHPVSgJBj"   // 32 bytes for AES256
+        
+        if let myIV    = Bundle.main.infoDictionary?["KEYIV"] as? String {
+            iv = myIV
+        }
+           
+        if let myApiKey = Bundle.main.infoDictionary?["API_KEY"] as? String {
+            APIKEY = myApiKey
+        }
+        
+        if let stripeKey = Bundle.main.infoDictionary?["STRIPEAPI_PUBLISHABLEKEY"] as? String {
+            STRIPEAPI_PUBLISHABLEKEY = stripeKey
+        }
+        
+        
+        
+        
+        //"F5cEUty4UwQL2EyW"                   // 16 bytes for AES128
+        APIKEY = Bundle.main.infoDictionary!["API_KEY"] as! String
+        
         
         var runCount = 0
 
@@ -687,6 +718,14 @@ class LoginViewController: UIViewController, UITextFieldDelegate {
         KeychainWrapper.standard.removeObject(forKey: "usernameKeyChain")
         KeychainWrapper.standard.removeObject(forKey: "passwordKeyChain")
         KeychainWrapper.standard.removeObject(forKey: "isKeyChainInUse")
+        
+       
+        let isEnableBiometricNextLoginExist = isKeyPresentInUserDefaults(key: "isEnablebiometricNextLogin")
+        if isEnableBiometricNextLoginExist == true {
+            KeychainWrapper.standard.removeObject(forKey: "isEnablebiometricNextLogin")
+        }
+    
+        
         isKeyChainInUse = false
     }
     
@@ -1029,7 +1068,7 @@ class LoginViewController: UIViewController, UITextFieldDelegate {
 
         let authenticatedUserProfile = AuthenticateUser(username: username, password: password)
         let request = PostRequest(path: "/api/profile/authenticate", model: authenticatedUserProfile, token: "", apiKey: encryptedAPIKey, deviceId: encryptedDeviceId)
-
+        print("USERNAME OUTSIDE = \(username)")
         print("G")
         Network.shared.send(request) { [self] (result: Result<Data, Error>)  in
             switch result {
@@ -1044,8 +1083,11 @@ class LoginViewController: UIViewController, UITextFieldDelegate {
 
                         //self.userdata = user
                         self.profileId = String(authUser.profileId!)
-
-                        let encryptdecrypt = EncryptDecrpyt()
+                        
+                        print("old API Key = \(encryptedAPIKey)")
+                        
+                        print("USERNAME = \(username)")
+                        var encryptdecrypt = EncryptDecrpyt()
                         encryptedAPIKeyUserName = encryptdecrypt.encryptDecryptAPIKey(type: "username", value: username, action: "encrypt")
 
                        
@@ -1077,6 +1119,7 @@ class LoginViewController: UIViewController, UITextFieldDelegate {
     func initializePayment(token: String, profileId: Int64, firstName: String, lastName: String, userName: String, email: String, phone: String) {
         let initPayment = InitializePaymentModel(token: token, profileId: profileId, firstName: firstName, lastName: lastName, userName: userName, email: email, phone: phone)
   
+        print("new API Key = \(encryptedAPIKeyUserName)")
         //let encryptedAPIKey = userName + "|" + self.encryptedAPIKey
         let request = PostRequest(path: "/api/profile/initialize", model: initPayment, token: token, apiKey: encryptedAPIKeyUserName, deviceId: "")
          

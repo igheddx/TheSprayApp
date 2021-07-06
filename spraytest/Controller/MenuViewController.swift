@@ -1,60 +1,3 @@
-//
-//  MenuViewController.swift
-//  spraytest
-//
-//  Created by Ighedosa, Dominic on 5/29/20.
-//  Copyright © 2020 Ighedosa, Dominic. All rights reserved.
-//
-
-//{
-//  "id": "pm_1IC2UMH6yOvhR5k10TLVVTgT",
-//  "object": "payment_method",
-//  "billing_details": {
-//    "address": {
-//      "city": null,
-//      "country": null,
-//      "line1": null,
-//      "line2": null,
-//      "postal_code": "75052",
-//      "state": null
-//    },
-//    "email": "jenny@example.com",
-//    "name": null,
-//    "phone": "+15555555555"
-//  },
-//  "card": {
-//    "brand": "visa",
-//    "checks": {
-//      "address_line1_check": null,
-//      "address_postal_code_check": null,
-//      "cvc_check": "pass"
-//    },
-//    "country": "US",
-//    "exp_month": 8,
-//    "exp_year": 2022,
-//    "fingerprint": "uQ43hsQP0QArcvJz",
-//    "funding": "credit",
-//    "generated_from": null,
-//    "last4": "4242",
-//    "networks": {
-//      "available": [
-//        "visa"
-//      ],
-//      "preferred": null
-//    },
-//    "three_d_secure_usage": {
-//      "supported": true
-//    },
-//    "wallet": null
-//  },
-//  "created": 123456789,
-//  "customer": null,
-//  "livemode": false,
-//  "metadata": {
-//    "order_id": "123456789"
-//  },
-//  "type": "card"
-//}
 
 import UIKit
 import Stripe
@@ -71,44 +14,7 @@ class MobileBrand {
         self.modelName = modelName
     }
 }
-class MenuViewController: UIViewController, STPAddCardViewControllerDelegate, STPPaymentOptionsViewControllerDelegate {
-    func paymentOptionsViewController(_ paymentOptionsViewController: STPPaymentOptionsViewController, didFailToLoadWithError error: Error) {
-        
-        
-    }
-    
-    func paymentOptionsViewControllerDidFinish(_ paymentOptionsViewController: STPPaymentOptionsViewController) {
-        //test
-        
-    }
-    
-    func paymentOptionsViewControllerDidCancel(_ paymentOptionsViewController: STPPaymentOptionsViewController) {
-        //test
-    }
-    
-  
-    
-   
-    
-  
-
-    
-
-    
-//  struct MenuSectionMorActions {
-//      var name: String?
-//      var image: String?
-//  }
-//
-//  struct MenuSectionNotifications {
-//      var name: String?
-//      var image: String?
-//  }
-//  struct MenuSectionLogout {
-//      var name: String?
-//      var image: String?
-//  }
-
+class MenuViewController: UIViewController {
 
     
     @IBOutlet weak var menuImage: UIImageView!
@@ -157,13 +63,13 @@ class MenuViewController: UIViewController, STPAddCardViewControllerDelegate, ST
                  print("touch Id enabled")
 //                    biometricLbl.text = "Login With Touch Id"
 //                    displayBiometricSelection(imageName: "touchid_icon")
-                biometricCellDesc = "Touch Id"
+                biometricCellDesc = "Change Touch ID Setting"
                 biometricCellIcon = "touchid_icon"
             }
             if ( context.biometryType == .faceID) {
 //                    biometricLbl.text = "Login With Face ID"
 //                    displayBiometricSelection(imageName: "faceid_icon")
-                biometricCellDesc = "Face Id"
+                biometricCellDesc = "Change Face ID Setting"
                 biometricCellIcon = "faceid_icon"
                 print("face Id is enabled")
             } else {
@@ -181,6 +87,8 @@ class MenuViewController: UIViewController, STPAddCardViewControllerDelegate, ST
                     let usernamekeychainToDisplay = KeychainWrapper.standard.string(forKey: "usernameKeyChain")
                     let username =  KeychainWrapper.standard.string(forKey: "usernameKeyChain")
                     let password =  KeychainWrapper.standard.string(forKey: "passwordKeyChain")
+                    
+                    isBiometricSwitchFlag = true
                     
                     print("USERNAME =\(username)")
                     print("USERNAME =\(password)")
@@ -488,11 +396,35 @@ extension  MenuViewController: UITableViewDataSource, UITableViewDelegate  {
     }
 
     @objc func switchChanged(_ sender : UISwitch!){
-        KeychainWrapper.standard.set(true, forKey: "isEnablebiometricNextLogin")
+        if sender.isOn == true {
+            KeychainWrapper.standard.set(true, forKey: "isEnablebiometricNextLogin")
+        } else  {
+            KeychainWrapper.standard.set(false, forKey: "isEnablebiometricNextLogin")
+            let alert = UIAlertController(title: "Please Confirm", message: "You are about to disable your Face ID. If you continue, to use these features again, you will need to re-enroll", preferredStyle: .actionSheet)
+
+            //alert.addAction(UIAlertAction(title: "Cancel", style: .default, handler: { [self] (action) in }))
+            alert.addAction(UIAlertAction(title: "Cancel", style: .cancel, handler: nil))
+            alert.addAction(UIAlertAction(title: "Continue", style: .default, handler: { [self] (action) in disableBiometric()}))
+
+            self.present(alert, animated: true)
+        }
+        
+        
+        
         
         print("table row switch Changed \(sender.tag)")
         print("The switch is \(sender.isOn ? "ON" : "OFF")")
     }
+    func disableBiometric() {
+        removeCredentialFromKeyChain()
+    }
+    func removeCredentialFromKeyChain(){
+        KeychainWrapper.standard.removeObject(forKey: "usernameKeyChain")
+        KeychainWrapper.standard.removeObject(forKey: "passwordKeyChain")
+        KeychainWrapper.standard.removeObject(forKey: "isKeyChainInUse")
+        isKeyChainInUse = false
+    }
+    
     
     func launchSetUpPaymentMethod() {
       
@@ -524,11 +456,6 @@ extension  MenuViewController: UITableViewDataSource, UITableViewDelegate  {
 //        nextVC.currentAvailableCredit =  availableBalance
         self.present(nextVC, animated: true, completion: nil)
         
-        //let nextVC = storyboard?.instantiateViewController(withIdentifier: "SetupPaymentMethodViewController") as! SetupPaymentMethodViewController
-      
-            
-       // self.navigationController?.pushViewController(nextVC , animated: true)
-        //}
     }
     func callLoginScreen() {
         let loginVC = self.storyboard?.instantiateViewController(withIdentifier: "LoginViewController") as? LoginViewController
@@ -538,67 +465,8 @@ extension  MenuViewController: UITableViewDataSource, UITableViewDelegate  {
         let nav = UINavigationController(rootViewController: loginVC!)
         window?.rootViewController = nav
         
-        //self.navigationController?.popToRootViewController(animated: true)
-        /*
-        let storyboard = UIStoryboard(name: "Main", bundle: nil)
-        let controller = storyboard.instantiateViewController(withIdentifier: "LoginViewController") as! LoginViewController
-        
-        //self.navigationController?.pushViewController(controller, animated: true)
-        //self.present(controller, animated: true, completion: { () -> Void in })
-       self.dismiss(animated: true, completion: nil)
-        self.present(controller, animated: true, completion: nil) */
-         
-       
-//        let loginVC = self.storyboard?.instantiateViewController(withIdentifier: "MenuTabViewController") as! MenuTabViewController
-//        self.navigationController?.pushViewController(loginVC, animated: true)
        self.navigationController?.popToRootViewController(animated: true)
-//
-       
-        
-//
-         
-        
-        //let newViewController =  LoginViewController()// MenuTabViewController()
-        //self.navigationController?.pushViewController(newViewController, animated: true)
-        //(newViewController, animated: true) //pushViewController(newViewController, animated: true)
 
-        
-//        let next:LoginViewController = storyboard?.instantiateViewController(withIdentifier: "login") as! LoginViewController
-//        self.navigationController?.pushViewController(next, animated: true)
-//
-        //let secondViewController:LoginViewController = LoginViewController()
-//        let sec: LoginViewController = LoginViewController(nibName: nil, bundle: nil)
-//        self.present(sec, animated: true, completion: nil)
-        
-        
-        
-//
-//       let mainStoryboard = UIStoryboard(name: "Main", bundle: Bundle.main)
-//          if let viewController = mainStoryboard.instantiateViewController(withIdentifier: "backToHome") as? LoginViewController  {
-//
-//              self.present(viewController, animated: true, completion: nil)
-//        }
-//
-//        if let destVC = segue.destination as? UINavigationController,
-//            let targetController = destVC.topViewController as? LoginViewController  {
-//            //targetController.data = "hello from ReceiveVC !"
-//        }
-//
-//        let destinationNavigationController = segue.destination as! UINavigationController
-//        let targetController = destinationNavigationController.topViewController
-//
-        
-        
-//        let storyBoard: UIStoryboard = UIStoryboard(name: "LoginViewController", bundle: nil)
-//        let balanceViewController = storyBoard.instantiateViewController(withIdentifier: "login") as! LoginViewController
-//        self.present(balanceViewController, animated: true, completion: nil)
-//
-        //LoginViewController.modalPresentationStyle = .fullScreen
-        
-        
-//        let mainStoryboard = UIStoryboard(name: "Main", bundle: Bundle.main)
-//           if let viewController = mainStoryboard.instantiateViewController(withIdentifier: "yourVcName") as? UIViewController {
-//               self.present(viewController, animated: true, completion: nil)
     }
     
     //Decoding Base64 Image
@@ -629,19 +497,6 @@ extension MenuViewController{
                 NextVC.paymentClientToken = paymentClientToken
                 NextVC.encryptedAPIKey = encryptedAPIKey
                 
-                //if let indexPath = self.tableVi
-//                if let indexPath = self.tableView.indexPathForSelectedRow {
-//                    //let menulist = menulists[indexPath.row]
-//                    let itemselect = menulists[indexPath.row]
-//
-//                    print(itemselect.title)
-//                    if itemselect.title == "Add Event" {
-//                        let NextVC = segue.destination as! CreateEventViewController
-//                        NextVC.createEventTitle = itemselect.title
-//                    } else {
-//                        print("Do nothing")
-//                    }
-
 
             } else if(segue.identifier == "backToHome") {
 //                      let NextVC = segue.destination as! LoginViewController

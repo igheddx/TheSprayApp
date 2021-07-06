@@ -100,8 +100,8 @@ class HomeViewController: UIViewController, UITextFieldDelegate {
     var totalGiftedAmt: String = ""
     var totalGiftReceivedAmt: String = ""
     var currency: String = ""
-    var paymentCustomerId: String?
-    var paymentConnectedActId: String?
+    var paymentCustomerId: String = ""
+    var paymentConnectedActId: String = ""
     var encryptedAPIKey: String = ""
    // var myProfileData: [MyProfile] = []
     //var refreshscreendelegate: RefreshScreenDelegate?
@@ -149,6 +149,7 @@ class HomeViewController: UIViewController, UITextFieldDelegate {
 //        }
         //get user profile info... set haspyament flag and other varialbe
         getProfileData(profileId: profileId)
+        getProfileNamePicture()
         print("MY PROFILE ID = \(profileId)")
         print("isEventEdited \(isEventEdited) isRefreshData=\(isRefreshData)")
         
@@ -161,73 +162,9 @@ class HomeViewController: UIViewController, UITextFieldDelegate {
             
             //getPrefData()
         }
+
         
-        //get profileName
-        var avatarStr: String = ""
-        var newAvatarImage: UIImage?
-        var userDisplayName: String = ""
-        if myProfileData.isEmpty {
-            UserDefaults.standard.set("userprofile", forKey: "userProfileImage")
-            UserDefaults.standard.set("", forKey: "userDisplayName")
-            avatarStr = UserDefaults.standard.string(forKey: "userProfileImage")! //"noimage"
-            displayName = UserDefaults.standard.string(forKey: "userDisplayName")!
-            print("no avatar")
-        } else {
-            for name in myProfileData {
-                UserDefaults.standard.set(name.firstName, forKey: "userDisplayName")
-                userDisplayName = UserDefaults.standard.string(forKey: "userDisplayName")!
-                displayName = userDisplayName //name.firstName
-                
-                print("I am inside myProfile loop")
-                if let avatarStr1 = name.avatar {
-                    avatarStr = avatarStr1
-                    UserDefaults.standard.set(avatarStr, forKey: "userProfileImage")
-                   
-                } else {
-                    avatarStr = "noimage"
-                    UserDefaults.standard.set("userprofile", forKey: "userProfileImage")
-                    print("no image here")
-                    break
-                }
-               
-            }
-        }
        
-        
-        if avatarStr == "noimage" {
-            let userProfileImage = UserDefaults.standard.string(forKey: "userProfileImage")
-            newAvatarImage = UIImage(named: userProfileImage!)
-            print("noimage")
-            
-        } else {
-            let userProfileImage = UserDefaults.standard.string(forKey: "userProfileImage")
-            //newAvatarImage = UIImage(named: userProfileImage!)
-            
-            newAvatarImage = convertBase64StringToImage(imageBase64String: userProfileImage!)
-            print("there is an image???")
-        }
-       
-        
-//        if let myAvatar2 = myAvatar2 {
-//
-//            myAvatar.image = convertBase64StringToImage(imageBase64String: myAvatar2)
-//        } else {
-//            myAvatar.image = UIImage(named: "userprofile")
-        //}
-        let frame = CGRect(x: 0, y: 0, width: 30, height: 30)
-           let customView = UIView(frame: frame)
-           let imageView = UIImageView(image: newAvatarImage)
-           imageView.frame = frame
-           imageView.layer.cornerRadius = imageView.frame.height * 0.5
-           imageView.layer.masksToBounds = true
-           customView.addSubview(imageView)
-        if #available(iOS 14.0, *) {
-            navigationItem.rightBarButtonItems = [
-                UIBarButtonItem(customView: customView), UIBarButtonItem(title: displayName, style: UIBarButtonItem.Style.plain, target: self, action: #selector(handleClick))
-            ]
-        } else {
-            // Fallback on earlier versions
-        }
         // UIBarButtonItem(systemItem: .action), UIBarButtonItem(customView: customView)
        // title: "Dominic", style: UIBarButtonItem.Style.plain, target: self, action: #selector(handleClick)
         
@@ -371,6 +308,8 @@ class HomeViewController: UIViewController, UITextFieldDelegate {
             if eventOwnerId > 0 {
                 getOtherProfileData(profileId: eventOwnerId)
             }
+            
+            getProfileNamePicture()
         }
        
         AppUtility.lockOrientation(.portrait)
@@ -401,6 +340,93 @@ class HomeViewController: UIViewController, UITextFieldDelegate {
         print("do notheing")
     }
     
+    //this is used to get profile name and picture from the myprofile object..
+    //this is displayed at the top of the nagvigation bar in the homeviewcontroller
+    func getProfileNamePicture() {
+        
+        //get profileName
+        var avatarStr: String = ""
+        var newAvatarImage: UIImage?
+        var userDisplayName: String = ""
+        if myProfileData.isEmpty {
+            UserDefaults.standard.set("userprofile", forKey: "userProfileImage")
+            UserDefaults.standard.set("", forKey: "userDisplayName")
+            avatarStr = "noimage" //UserDefaults.standard.string(forKey: "userProfileImage")! //"noimage"
+            displayName = UserDefaults.standard.string(forKey: "userDisplayName")!
+            print("no avatar")
+            paymentCustomerId = ""
+            paymentConnectedActId = ""
+            
+        } else {
+            for name in myProfileData {
+                UserDefaults.standard.set(name.firstName, forKey: "userDisplayName")
+                userDisplayName = UserDefaults.standard.string(forKey: "userDisplayName")!
+                displayName = userDisplayName //name.firstName
+                
+                print("I am inside myProfile loop")
+                if let avatarStr1 = name.avatar {
+                    avatarStr = avatarStr1
+                    UserDefaults.standard.set(avatarStr, forKey: "userProfileImage")
+                   
+                } else {
+                    avatarStr = "noimage"
+                    UserDefaults.standard.set("userprofile", forKey: "userProfileImage")
+                    print("no image here")
+                    break
+                }
+               
+                if let  paymentCustId = name.paymentCustomerId {
+                    paymentCustomerId = paymentCustId
+                } else  {
+                    paymentCustomerId = ""
+                }
+                
+                if let  paymentConnectedId = name.paymentConnectedActId {
+                   paymentConnectedActId = paymentConnectedId
+                } else  {
+                    paymentConnectedActId = ""
+                }
+                
+                    
+            }
+        }
+       
+        
+        if avatarStr == "noimage" {
+            let userProfileImage = UserDefaults.standard.string(forKey: "userProfileImage")
+            newAvatarImage = UIImage(named: userProfileImage!)
+            print("noimage")
+            
+        } else {
+            let userProfileImage = UserDefaults.standard.string(forKey: "userProfileImage")
+            //newAvatarImage = UIImage(named: userProfileImage!)
+            
+            newAvatarImage = convertBase64StringToImage(imageBase64String: userProfileImage!)
+            print("there is an image???")
+        }
+       
+        
+//        if let myAvatar2 = myAvatar2 {
+//
+//            myAvatar.image = convertBase64StringToImage(imageBase64String: myAvatar2)
+//        } else {
+//            myAvatar.image = UIImage(named: "userprofile")
+        //}
+        let frame = CGRect(x: 0, y: 0, width: 30, height: 30)
+           let customView = UIView(frame: frame)
+           let imageView = UIImageView(image: newAvatarImage)
+           imageView.frame = frame
+           imageView.layer.cornerRadius = imageView.frame.height * 0.5
+           imageView.layer.masksToBounds = true
+           customView.addSubview(imageView)
+        if #available(iOS 14.0, *) {
+            navigationItem.rightBarButtonItems = [
+                UIBarButtonItem(customView: customView), UIBarButtonItem(title: displayName, style: UIBarButtonItem.Style.plain, target: self, action: #selector(handleClick))
+            ]
+        } else {
+            // Fallback on earlier versions
+        }
+    }
     func getFormattedDateToDate(dateinput: String) -> Date {
         let dateFormatter = DateFormatter()
         //dateFormatter.locale = Locale(identifier: "en_US_POSIX") // set locale to reliable US_POSIX
@@ -631,6 +657,7 @@ class HomeViewController: UIViewController, UITextFieldDelegate {
                 
                 
             } catch {
+                totalGiftedAmt = "0"
                 print(error)
             }
             
@@ -671,6 +698,7 @@ class HomeViewController: UIViewController, UITextFieldDelegate {
 //
 //                }
             } catch {
+                totalGiftReceivedAmt = "0"
                 print(error)
             }
             
@@ -721,30 +749,31 @@ class HomeViewController: UIViewController, UITextFieldDelegate {
         Network.shared.send(request) { [self] (result: Result<ProfileData2, Error>)  in
         switch result {
         case .success(let profileData):
+            print("PROFILE SUCCESS")
             //self.eventOwnerName = profileData.firstName
             self.isPaymentMethodGeneralAvailable = profileData.hasValidPaymentMethod
             self.generalPaymentMethodId = profileData.defaultPaymentMethod
             self.avatar = profileData.firstName
             self.displayName = profileData.firstName
-            self.paymentCustomerId = profileData.paymentCustomerId!
-            self.paymentConnectedActId = profileData.paymentConnectedActId
+//            self.paymentCustomerId = profileData.paymentCustomerId!
+//            self.paymentConnectedActId = profileData.paymentConnectedActId!
             
             print("profileData.paymentConnectedActId \(profileData.paymentConnectedActId)")
             print("profileData.paymentCustomerId! \(profileData.paymentCustomerId!)")
             
             print("getProfileData Was successful")
             
-            if self.paymentConnectedActId.isNil {
-                print("paymentConnectedActId is NILL")
-                self.paymentConnectedActId = ""
-
-            }
-            
-          
-            if self.paymentCustomerId.isNil {
-                self.paymentCustomerId = ""
-                print("paymentCustomerId = \(paymentCustomerId)")
-            }
+//            if self.paymentConnectedActId.isNil {
+//                print("paymentConnectedActId is NILL")
+//                self.paymentConnectedActId = ""
+//
+//            }
+//
+//
+//            if self.paymentCustomerId.isNil {
+//                self.paymentCustomerId = ""
+//                print("paymentCustomerId = \(paymentCustomerId)")
+//            }
            
             if let iAvatar = profileData.avatar  {
                 let dataString = iAvatar
@@ -789,6 +818,7 @@ class HomeViewController: UIViewController, UITextFieldDelegate {
             
             break
         case .failure(let error):
+            print("PROFILE FAILED")
            //self.textLabel.text = error.localizedDescription
         print(" DOMINIC C IGHEDOSA ERROR \(error.localizedDescription)")
             self.eventOwnerName = "Not Identified..."
@@ -810,41 +840,41 @@ class HomeViewController: UIViewController, UITextFieldDelegate {
         case .success(let profileData):
             self.eventOwnerName = profileData.firstName
 
-            if let iAvatar = profileData.avatar  {
-                let dataString = iAvatar
-                
-                let dataURL = URL(string: dataString)
-                let contents: String?
-                do {
-                    contents = try String(contentsOf: dataURL!)
-                    //contents = try Data(contentsOf: someURL)
-                    print("image 1 = \(profileData.avatar!)")
-                    //originalAvatar = profileData.avatar!
-                } catch {
-                    contents = "dominic"
-                   // print("image 2 = \(profileData.avatar!)")
-                    //originalAvatar = profileData.avatar!
-                }
-                
-                //let image = UIImage(data: data)
-                
-                //myAvatar.image = UIImage(named: contents!)
-                
-                let results = dataString.matches(for: "data:image\\/([a-zA-Z]*);base64,([^\\\"]*)")
-                for imageString in results {
-                    autoreleasepool {
-                        
-                        let image2 = imageString.base64ToImage()
-                        //myAvatar.image = image2
-
-                    }
-                
-                }
-                
-//            } else {
-//                myAvatar.image = UIImage(named: "userprofile")
-            }
-            
+//            if let iAvatar = profileData.avatar  {
+//                let dataString = iAvatar
+//
+//                let dataURL = URL(string: dataString)
+//                let contents: String?
+//                do {
+//                    contents = try String(contentsOf: dataURL!)
+//                    //contents = try Data(contentsOf: someURL)
+//                    print("image 1 = \(profileData.avatar!)")
+//                    //originalAvatar = profileData.avatar!
+//                } catch {
+//                    contents = "dominic"
+//                   // print("image 2 = \(profileData.avatar!)")
+//                    //originalAvatar = profileData.avatar!
+//                }
+//
+//                //let image = UIImage(data: data)
+//
+//                //myAvatar.image = UIImage(named: contents!)
+//
+//                let results = dataString.matches(for: "data:image\\/([a-zA-Z]*);base64,([^\\\"]*)")
+//                for imageString in results {
+//                    autoreleasepool {
+//
+//                        let image2 = imageString.base64ToImage()
+//                        //myAvatar.image = image2
+//
+//                    }
+//
+//                }
+//
+////            } else {
+////                myAvatar.image = UIImage(named: "userprofile")
+//            }
+//
             
 //            let imageData = Data.init(base64Encoded: profileData.avatar!, options: .init(rawValue: 0))
 ////               let image = UIImage(data: imageData!)
@@ -1224,7 +1254,7 @@ class HomeViewController: UIViewController, UITextFieldDelegate {
        
          //let dataCollection0 = EventProperty(eventId: eventId, ownerId: ownerId, name: name, dateTime: dateTime, address1: address1, address2: address2, city: city, zipCode: zipCode, country: country, state: state, eventState: eventState, eventCode: eventCode, isActive: isActive, eventType: eventType, isAttending: nil, dataCategory: "Info", hasPaymentMethod: hasPaymentMethod)
         
-        let dataCollection0 = EventProperty(eventId: 0, ownerId: 0, name: "", dateTime: "", address1: "", address2: "", city: "", zipCode: "", country: "", state: "", eventState: 1, eventCode: "", isActive: true, eventType: 1, isRsvprequired: true, isSingleReceiver: false, defaultEventPaymentMethod: 0, defaultEventPaymentCustomName: "", isAttending: false, dataCategory: "info", hasPaymentMethod: false, outstandingTransferAmt1: outstandingTransferAmt, pendingPayoutAmt1: pendingPayoutAmt2, totalGiftedAmt1: self.totalGiftedAmt, totalReceivedAmt1: totalGiftReceivedAmt, currency1: currency, paymentCustomerId1: paymentCustomerId!, paymentConnectedActId1: paymentCustomerId!)
+        let dataCollection0 = EventProperty(eventId: 0, ownerId: 0, name: "", dateTime: "", address1: "", address2: "", city: "", zipCode: "", country: "", state: "", eventState: 1, eventCode: "", isActive: true, eventType: 1, isRsvprequired: true, isSingleReceiver: false, defaultEventPaymentMethod: 0, defaultEventPaymentCustomName: "", isAttending: false, dataCategory: "info", hasPaymentMethod: false, outstandingTransferAmt1: outstandingTransferAmt, pendingPayoutAmt1: pendingPayoutAmt2, totalGiftedAmt1: self.totalGiftedAmt, totalReceivedAmt1: totalGiftReceivedAmt, currency1: currency, paymentCustomerId1: paymentCustomerId, paymentConnectedActId1: paymentCustomerId)
         homescreeneventdata.append(dataCollection0)
         //print("MY COUNTER = \(j) = \(dataCollection0)")
         //eventsownedmodel.append(dataCollection)
@@ -1271,7 +1301,7 @@ class HomeViewController: UIViewController, UITextFieldDelegate {
                             let defaultEventPaymentCustomName = i.defaultEventPaymentCustomName
                             let hasPaymentMethod = false
                          
-                            let dataCollection = EventProperty(eventId: eventId, ownerId: ownerId, name: name, dateTime: dateTime, address1: address1, address2: address2, city: city, zipCode: zipCode, country: country, state: state, eventState: eventState, eventCode: eventCode, isActive: isActive, eventType: eventType, isRsvprequired: isRsvprequired!, isSingleReceiver: isSingleReceiver!, defaultEventPaymentMethod: defaultEventPaymentMethod, defaultEventPaymentCustomName: defaultEventPaymentCustomName, isAttending: nil, dataCategory: "owned", hasPaymentMethod: hasPaymentMethod, outstandingTransferAmt1: self.outstandingTransferAmt, pendingPayoutAmt1: pendingPayoutAmt2, totalGiftedAmt1: self.totalGiftedAmt, totalReceivedAmt1: totalGiftReceivedAmt, currency1: self.currency, paymentCustomerId1: paymentCustomerId!, paymentConnectedActId1: paymentCustomerId!)
+                            let dataCollection = EventProperty(eventId: eventId, ownerId: ownerId, name: name, dateTime: dateTime, address1: address1, address2: address2, city: city, zipCode: zipCode, country: country, state: state, eventState: eventState, eventCode: eventCode, isActive: isActive, eventType: eventType, isRsvprequired: isRsvprequired!, isSingleReceiver: isSingleReceiver!, defaultEventPaymentMethod: defaultEventPaymentMethod, defaultEventPaymentCustomName: defaultEventPaymentCustomName, isAttending: nil, dataCategory: "owned", hasPaymentMethod: hasPaymentMethod, outstandingTransferAmt1: self.outstandingTransferAmt, pendingPayoutAmt1: pendingPayoutAmt2, totalGiftedAmt1: self.totalGiftedAmt, totalReceivedAmt1: totalGiftReceivedAmt, currency1: self.currency, paymentCustomerId1: paymentCustomerId, paymentConnectedActId1: paymentCustomerId)
                          
                             homescreeneventdata.append(dataCollection)
                             print("MY COUNTER = \(j) = \(dataCollection)")
@@ -1366,7 +1396,7 @@ class HomeViewController: UIViewController, UITextFieldDelegate {
                             let defaultEventPaymentMethod =  x.defaultEventPaymentMethod
                             let defaultEventPaymentCustomName = x.defaultEventPaymentCustomName
                             let hasPaymentMethod = false //checkEventPayment(eventId: x.eventId)
-                            let dataCollection2 = EventProperty(eventId: eventId, ownerId: ownerId, name: name, dateTime: dateTime, address1: address1, address2: address2, city: city, zipCode: zipCode, country: country, state: state, eventState: eventState, eventCode: eventCode, isActive: isActive, eventType: eventType, isRsvprequired: isRsvprequired!, isSingleReceiver: isSingleReceiver!, defaultEventPaymentMethod: defaultEventPaymentMethod, defaultEventPaymentCustomName: defaultEventPaymentCustomName, isAttending: nil, dataCategory: "invited", hasPaymentMethod: hasPaymentMethod, outstandingTransferAmt1: self.outstandingTransferAmt, pendingPayoutAmt1: pendingPayoutAmt2, totalGiftedAmt1: self.totalGiftedAmt, totalReceivedAmt1: totalGiftReceivedAmt, currency1: self.currency, paymentCustomerId1: paymentCustomerId!, paymentConnectedActId1: paymentCustomerId!)
+                            let dataCollection2 = EventProperty(eventId: eventId, ownerId: ownerId, name: name, dateTime: dateTime, address1: address1, address2: address2, city: city, zipCode: zipCode, country: country, state: state, eventState: eventState, eventCode: eventCode, isActive: isActive, eventType: eventType, isRsvprequired: isRsvprequired!, isSingleReceiver: isSingleReceiver!, defaultEventPaymentMethod: defaultEventPaymentMethod, defaultEventPaymentCustomName: defaultEventPaymentCustomName, isAttending: nil, dataCategory: "invited", hasPaymentMethod: hasPaymentMethod, outstandingTransferAmt1: self.outstandingTransferAmt, pendingPayoutAmt1: pendingPayoutAmt2, totalGiftedAmt1: self.totalGiftedAmt, totalReceivedAmt1: totalGiftReceivedAmt, currency1: self.currency, paymentCustomerId1: paymentCustomerId, paymentConnectedActId1: paymentCustomerId)
                             homescreeneventdata.append(dataCollection2)
                             //eventsinvitedmodel.append(dataCollection2)
                         }
@@ -1407,7 +1437,7 @@ class HomeViewController: UIViewController, UITextFieldDelegate {
                         let defaultEventPaymentCustomName = y.defaultEventPaymentCustomName
                         let hasPaymentMethod = false //checkEventPayment(eventId: y.eventId)
                     
-                        let dataCollection3 =  EventProperty(eventId: eventId, ownerId: ownerId, name: name, dateTime: dateTime, address1: address1, address2: address2, city: city, zipCode: zipCode, country: country, state: state, eventState: eventState, eventCode: eventCode, isActive: isActive, eventType: eventType, isRsvprequired: isRsvprequired!, isSingleReceiver: isSingleReceiver!, defaultEventPaymentMethod: defaultEventPaymentMethod, defaultEventPaymentCustomName: defaultEventPaymentCustomName, isAttending: nil, dataCategory: "attending", hasPaymentMethod: hasPaymentMethod, outstandingTransferAmt1: self.outstandingTransferAmt, pendingPayoutAmt1: pendingPayoutAmt2, totalGiftedAmt1: self.totalGiftedAmt, totalReceivedAmt1: totalGiftReceivedAmt, currency1: self.currency, paymentCustomerId1: paymentCustomerId!, paymentConnectedActId1: paymentConnectedActId!)
+                        let dataCollection3 =  EventProperty(eventId: eventId, ownerId: ownerId, name: name, dateTime: dateTime, address1: address1, address2: address2, city: city, zipCode: zipCode, country: country, state: state, eventState: eventState, eventCode: eventCode, isActive: isActive, eventType: eventType, isRsvprequired: isRsvprequired!, isSingleReceiver: isSingleReceiver!, defaultEventPaymentMethod: defaultEventPaymentMethod, defaultEventPaymentCustomName: defaultEventPaymentCustomName, isAttending: nil, dataCategory: "attending", hasPaymentMethod: hasPaymentMethod, outstandingTransferAmt1: self.outstandingTransferAmt, pendingPayoutAmt1: pendingPayoutAmt2, totalGiftedAmt1: self.totalGiftedAmt, totalReceivedAmt1: totalGiftReceivedAmt, currency1: self.currency, paymentCustomerId1: paymentCustomerId, paymentConnectedActId1: paymentConnectedActId)
                     
                     
                         

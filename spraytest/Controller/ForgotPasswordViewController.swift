@@ -351,7 +351,7 @@ class ForgotPasswordViewController: UIViewController, UITextFieldDelegate {
                     self.userdata = user
                     self.profileId = String(user.profileId!)
                     
-                    let encryptdecrypt = EncryptDecrpyt()
+                    var encryptdecrypt = EncryptDecrpyt()
                     encryptedAPIKeyUserName = encryptdecrypt.encryptDecryptAPIKey(type: "username", value: self.username!, action: "encrypt")
                     
                     print("encryptedAPIKeyUserName DOMINIC \(encryptedAPIKeyUserName)")

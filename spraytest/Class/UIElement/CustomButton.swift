@@ -49,13 +49,17 @@ class SelectPaymentButton: UIButton {
 class EventUIView: UIButton {
     override func awakeFromNib() {
         super.awakeFromNib()
-        //layer.borderColor  = UIColor.lightGray.cgColor
-        layer.shadowOffset = CGSize(width: 1, height: 1.0)
-        layer.shadowOpacity  = 0.5
+        
+        //UIColor(red: 40/256, green: 82/256, blue: 122/256, alpha: 1.0)
+        let sprayBlue = UIColor(red: 40/256, green: 82/256, blue: 122/256, alpha: 1.0)
+        layer.borderWidth = 0.5
+        layer.borderColor  = sprayBlue.cgColor
+        layer.shadowOffset = CGSize(width: 0.5, height: 0.5)
+        layer.shadowOpacity  = 0.2
         layer.masksToBounds = false
         layer.cornerRadius = 3.0
         //backgroundColor = UIColor(red: 244/256, green: 209/256, blue: 96/256, alpha: 1.0)
-        backgroundColor = UIColor(red: 40/256, green: 82/256, blue: 122/256, alpha: 1.0)
+        backgroundColor = UIColor(red: 255/256, green: 255/256, blue: 255/256, alpha: 1.0)
         //244209,96
         //setTitleColor(UIColor(red: 255/256, green: 255/256, blue: 255/256, alpha: 1.0), for: .normal)
         //setTitleColor(UIColor.white, for: .normal)
@@ -203,7 +207,9 @@ class PayoutBtn : UIButton{
         super.awakeFromNib()
         
         layer.cornerRadius = self.frame.height / 2
-        backgroundColor = UIColor(red: 235/256, green: 94/256, blue: 11/256, alpha: 1.0)
+        //backgroundColor = UIColor(red: 235/256, green: 94/256, blue: 11/256, alpha: 1.0) //orange
+        backgroundColor = UIColor(red: 207/256, green: 0/256, blue: 0/256, alpha: 1.0) //orange
+        
         clipsToBounds = true
         tintColor = UIColor.white
         setTitleColor(UIColor.white, for: .normal)
@@ -217,7 +223,9 @@ class SecondaryActionBtn : UIButton{
         super.awakeFromNib()
         
         layer.cornerRadius = self.frame.height / 2
-        backgroundColor = UIColor(red: 61/256, green: 126/256, blue: 166/256, alpha: 1.0)
+        //backgroundColor = UIColor(red: 61/256, green: 126/256, blue: 166/256, alpha: 1.0) old
+        backgroundColor = UIColor(red: 40/256, green: 82/256, blue: 122/256, alpha: 1.0)
+        
         clipsToBounds = true
         tintColor = UIColor.white
         //myButton.setTitle("Connect With Facebook", for: .normal)
@@ -300,6 +308,35 @@ class NoNActiveActionButton: UIButton {
         layer.masksToBounds = true
     }
 }
+
+class SecondaryActiveActionButton: UIButton {
+    override func awakeFromNib() {
+        super.awakeFromNib()
+        setTitleColor(UIColor(red: 61/256, green: 126/256, blue: 166/256, alpha: 1.0), for: .normal)
+        //layer.cornerRadius = 6
+        //backgroundColor = UIColor.red
+        layer.borderWidth = 1.0
+        //borderColor = UIColor.black
+        
+        //layer.cornerRadius = 10
+        //layer.masksToBounds = true
+        //layer.borderWidth = 1
+        //layer.borderColor =  UIColor(red: 138/256, green: 196/256, blue: 208/256, alpha: 1.0).cgColor //old color
+        
+        layer.borderColor = UIColor(red: 40/256, green: 82/256, blue: 122/256, alpha: 1.0).cgColor
+        //138,196,208
+        
+        //61, 126, 166 – Hcolor
+        backgroundColor = UIColor(red: 255/256, green: 255/256, blue: 255/256, alpha: 1.0)
+        layer.cornerRadius = 4
+        layer.shadowColor = UIColor.white.cgColor
+        layer.shadowOffset = CGSize(width: 2, height: 2)
+        layer.shadowRadius = 1
+        layer.shadowOpacity = 0.5
+        layer.masksToBounds = true
+    }
+}
+
 class ActiveActionButton: UIButton {
     
 }
@@ -316,7 +353,8 @@ class MyCustomButton : UIButton{
         //layer.masksToBounds = true
         
         //61, 126, 166 – Hcolor
-        backgroundColor = UIColor(red: 138/256, green: 196/256, blue: 208/256, alpha: 1.0)
+        //backgroundColor = UIColor(red: 138/256, green: 196/256, blue: 208/256, alpha: 1.0) //light blu
+        backgroundColor = UIColor(red: 40/256, green: 82/256, blue: 122/256, alpha: 1.0)
             //UIColor(red: 61/256, green: 126/256, blue: 166/256, alpha: 1.0)
         layer.cornerRadius = 4
         layer.shadowColor = UIColor.white.cgColor
@@ -405,7 +443,11 @@ class GoSpray : UIButton{
 //        layer.masksToBounds = true
         
         layer.cornerRadius = self.frame.height / 2
-        backgroundColor = UIColor(red: 235/256, green: 94/256, blue: 11/256, alpha: 1.0)
+        //backgroundColor = UIColor(red: 235/256, green: 94/256, blue: 11/256, alpha: 1.0) //red
+        backgroundColor = UIColor(red: 74/256, green: 169/256, blue: 108/256, alpha: 1.0) //red
+        
+        
+        
         clipsToBounds = true
         tintColor = UIColor.white
         setTitleColor(UIColor.white, for: .normal)

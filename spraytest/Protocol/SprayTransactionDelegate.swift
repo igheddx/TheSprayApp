@@ -120,3 +120,4 @@ protocol MyDeepLink {
 protocol SetupPaymentMethodDelegate {
     func passData(eventId: Int64, profileId: Int64, token: String, ApiKey: String, eventName: String, eventDateTime: String, eventTypeIcon: String, paymentClientToken: String, isSingleReceiverEvent: Bool, eventOwnerName: String, eventOwnerId: Int64)
 }
+

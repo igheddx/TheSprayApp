@@ -717,8 +717,9 @@ class EventPaymentViewController: UIViewController, STPAddCardViewControllerDele
                                         paymentMethodIconName = getPaymentMethodIcon(name: getPaymenthMethodName(paymentmethodid: eventPrefData.paymentMethodDetails.paymentMethodId))
                                         
                                         
-                                        paymentMethodIcon.image = UIImage(named: paymentMethodIconName)
-                                            
+                                        //paymentMethodIcon.image = UIImage(named: paymentMethodIconName)
+                                        paymentMethodIcon.image = UIImage(named: "paymentInfoIcon")
+                                        
                                             //.setImage(UIImage(systemName: paymentMethodIconName), for: .normal)
                                         
                                         self.autoReplenishSwitch.isOn = eventPrefData.isAutoReplenish
@@ -906,7 +907,8 @@ class EventPaymentViewController: UIViewController, STPAddCardViewControllerDele
                 
                 //currentBalance.text = "$" + String(updatedBalance)
                 btnSelectPayment.setTitle(paymentDescription, for: .normal)
-                paymentMethodIcon.image = UIImage(named: paymentDescription)
+                //paymentMethodIcon.image = UIImage(named: paymentDescription)
+                paymentMethodIcon.image = UIImage(named: "paymentInfoIcon")
                 
 
                 
@@ -1061,7 +1063,9 @@ extension EventPaymentViewController: UITableViewDelegate, UITableViewDataSource
         paymentMethodIconName = getPaymentMethodIcon(name: getPaymenthMethodName(paymentmethodid: Int(paymentId!)))
         
         print("paymentMethodIconName \(paymentMethodIconName)")
-        paymentMethodIcon.image = UIImage(named: paymentMethodIconName)
+        //paymentMethodIcon.image = UIImage(named: paymentMethodIconName)
+        paymentMethodIcon.image = UIImage(named: "paymentInfoIcon")
+        
         
         removeTransparentView()
     }

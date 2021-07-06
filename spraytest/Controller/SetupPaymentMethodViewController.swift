@@ -74,10 +74,29 @@ class SetupPaymentMethodViewController: UIViewController, STPAuthenticationConte
         textField.contentVerticalAlignment = UIControl.ContentVerticalAlignment.center
         return textField
     }()
+    
+    lazy var paymentMessageLbl:UILabel = {
+        let lable = UILabel()
+        lable.translatesAutoresizingMaskIntoConstraints = false
+        //textField.placeholder = "Card Nick Name"
+        //textField.keyboardType = UIKeyboardType.default
+        //textField.layer.cornerRadius = 5
+        //textField.returnKeyType = UIReturnKeyType.done
+        //textField.autocorrectionType = UITextAutocorrectionType.no
+        lable.font = UIFont.systemFont(ofSize: 15)
+        lable.text = "Our Payment Method is powered by Stripe Inc. \n Your credit/debit card will be charged the amount you gifted to participants. "
+        //textField.borderStyle = UITextField.BorderStyle.roundedRect
+        //textField.clearButtonMode = UITextField.ViewMode.whileEditing;
+        //lable.contentVerticalAlignment = UIControl.ContentVerticalAlignment.center
+        return lable
+    }()
+    
+    
     lazy var payButton: UIButton = {
         let button = UIButton(type: .custom)
         button.layer.cornerRadius = 5
-        button.backgroundColor = UIColor(red: 138/256, green: 196/256, blue: 208/256, alpha: 1.0)//.systemBlue
+        //button.backgroundColor = UIColor(red: 138/256, green: 196/256, blue: 208/256, alpha: 1.0)//.systemBlue
+        button.backgroundColor = UIColor(red: 40/256, green: 82/256, blue: 122/256, alpha: 1.0)
         button.titleLabel?.font = UIFont.systemFont(ofSize: 22)
         button.setTitle("Add Payment Method", for: .normal)
         button.layer.borderWidth = 1.0
@@ -85,20 +104,20 @@ class SetupPaymentMethodViewController: UIViewController, STPAuthenticationConte
         return button
     }()
 
-    lazy var cardImageView: UIImageView = {
-        //let imageView = UIImageView(type: .custom)
-        //image = UIImage(named: cardImage1)
-        let imageView = UIImageView(frame: CGRect(x: 5, y: 5, width:50, height: 50))
-        imageView.image?.withRenderingMode(UIImage.RenderingMode.alwaysTemplate)
-        imageView.tintColor = .black
-//        button.layer.cornerRadius = 5
-//        button.backgroundColor = UIColor(red: 138/256, green: 196/256, blue: 208/256, alpha: 1.0)//.systemBlue
-//        button.titleLabel?.font = UIFont.systemFont(ofSize: 22)
-//        button.setTitle("Add Payment Method", for: .normal)
-//        button.layer.borderWidth = 1.0
-        //imageView.addTarget(self, action: #selector(pay), for: .touchUpInside)
-        return imageView
-    }()
+//    lazy var cardImageView: UIImageView = {
+//        //let imageView = UIImageView(type: .custom)
+//        //image = UIImage(named: cardImage1)
+//        let imageView = UIImageView(frame: CGRect(x: 5, y: 5, width:50, height: 50))
+//        imageView.image?.withRenderingMode(UIImage.RenderingMode.alwaysTemplate)
+//        imageView.tintColor = .black
+////        button.layer.cornerRadius = 5
+////        button.backgroundColor = UIColor(red: 138/256, green: 196/256, blue: 208/256, alpha: 1.0)//.systemBlue
+////        button.titleLabel?.font = UIFont.systemFont(ofSize: 22)
+////        button.setTitle("Add Payment Method", for: .normal)
+////        button.layer.borderWidth = 1.0
+//        //imageView.addTarget(self, action: #selector(pay), for: .touchUpInside)
+//        return imageView
+//    }()
     
     override func viewDidLoad() {
         super.viewDidLoad()
@@ -118,10 +137,10 @@ class SetupPaymentMethodViewController: UIViewController, STPAuthenticationConte
         availablePaymentData.removeAll()
         getAvailablePaymentData()
         
-        StripeAPI.defaultPublishableKey = "pk_test_51I4w7tH6yOvhR5k1FrjaRKUcGG3LLzcuTx1LOWJj6bprUylHErpYHXsSRFxfdepAxz3KDbPLp2cDjpP54AWdc9qG00C8jcO2o4" //"pk_test_51I4w7tH6yOvhR5k1FrjaRKUcGG3LLzcuTx1LOWJj6bprUylHErpYHXsSRFxfdepAxz3KDbPLp2cDjpP54AWdc9qG00C8jcO2o4"
+        StripeAPI.defaultPublishableKey = STRIPEAPI_PUBLISHABLEKEY //"pk_test_51I4w7tH6yOvhR5k1FrjaRKUcGG3LLzcuTx1LOWJj6bprUylHErpYHXsSRFxfdepAxz3KDbPLp2cDjpP54AWdc9qG00C8jcO2o4" //"pk_test_51I4w7tH6yOvhR5k1FrjaRKUcGG3LLzcuTx1LOWJj6bprUylHErpYHXsSRFxfdepAxz3KDbPLp2cDjpP54AWdc9qG00C8jcO2o4"
 
         view.backgroundColor = .white
-        let stackView = UIStackView(arrangedSubviews: [paymentTitle, cardTextField, cardNickNameTextField, payButton, cardImageView])
+        let stackView = UIStackView(arrangedSubviews: [paymentTitle, cardTextField, paymentMessageLbl, payButton])
         stackView.axis = .vertical
         stackView.spacing = 20
         stackView.translatesAutoresizingMaskIntoConstraints = false
@@ -222,6 +241,7 @@ class SetupPaymentMethodViewController: UIViewController, STPAuthenticationConte
         let json = try? JSONSerialization.jsonObject(with: data, options: []) as? [String : Any],
         let clientSecret = json["clientSecret"] as? String else {
             let message = error?.localizedDescription ?? "Failed to decode response from server."
+            self!.LoadingStop()
             self?.displayAlert(title: "Error loading page", message: message)
             return
       }
@@ -327,6 +347,7 @@ class SetupPaymentMethodViewController: UIViewController, STPAuthenticationConte
     }
     
     @objc func pay() {
+        LoadingStart()
 //        guard let cardNickName = cardNickNameTextField.text
 //
 //        else {
@@ -382,9 +403,11 @@ class SetupPaymentMethodViewController: UIViewController, STPAuthenticationConte
             switch (status) {
             case .failed:
                 // Setup failed
+                LoadingStop()
                 self.displayAlert(title: "Payment failed", message: error?.localizedDescription ?? "")
                 break
             case .canceled:
+                LoadingStop()
                 // Setup canceled
                 self.displayAlert(title: "Payment canceled", message: error?.localizedDescription ?? "")
                 break
@@ -570,12 +593,14 @@ class SetupPaymentMethodViewController: UIViewController, STPAuthenticationConte
                     //}
 
                } catch {
+                    LoadingStop()
                    print(error)
                }
                 //newpayment.
                 //break
                 //this will return payment methodId...
             case .failure(let error):
+                LoadingStop()
                 print(error.localizedDescription)
             }
         }
@@ -636,7 +661,7 @@ class SetupPaymentMethodViewController: UIViewController, STPAuthenticationConte
 
                 
                 isRefreshScreen = true
-                
+                LoadingStop()
                 self.completionAlert(message: "Payment Was Added. You Have a SprayCredit of $\(updatedGiftAmount) to Start With.", timer: 2, completionAction: "goback")
                 //self.btnSelectPayment.setTitle(self.getPaymenthMethodName(paymentmethodid: eventPrefData.paymentMethodDetails.paymentMethodId), for: .normal)
                 
@@ -667,6 +692,7 @@ class SetupPaymentMethodViewController: UIViewController, STPAuthenticationConte
                 
                 break
             case .failure(let error):
+                LoadingStop()
             print(error.localizedDescription)
             }
         }
@@ -703,3 +729,20 @@ class SetupPaymentMethodViewController: UIViewController, STPAuthenticationConte
 //  }
 }
 
+extension SetupPaymentMethodViewController{
+   func LoadingStart(){
+        ProgressDialog.alert = UIAlertController(title: nil, message: "Processing...", preferredStyle: .alert)
+    
+    let loadingIndicator = UIActivityIndicatorView(frame: CGRect(x: 10, y: 5, width: 50, height: 50))
+    loadingIndicator.hidesWhenStopped = true
+    loadingIndicator.style = UIActivityIndicatorView.Style.medium
+    loadingIndicator.startAnimating();
+
+    ProgressDialog.alert.view.addSubview(loadingIndicator)
+    present(ProgressDialog.alert, animated: true, completion: nil)
+  }
+
+  func LoadingStop(){
+    ProgressDialog.alert.dismiss(animated: true, completion: nil)
+  }
+}

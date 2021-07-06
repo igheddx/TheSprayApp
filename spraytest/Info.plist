@@ -4,6 +4,14 @@
 <dict>
 	<key>CFBundleDevelopmentRegion</key>
 	<string>$(DEVELOPMENT_LANGUAGE)</string>
+	<key>API_KEY</key>
+	<string>$(API_KEY)</string>
+	<key>KEY256</key>
+	<string>$(KEY256)</string>
+	<key>KEYIV</key>
+	<string>$(KEYIV)</string>
+	<key>STRIPEAPI_PUBLISHABLEKEY </key>
+	<string>$(STRIPEAPI_PUBLISHABLEKEY)</string>
 	<key>CFBundleDisplayName</key>
 	<string>Spray App</string>
 	<key>CFBundleExecutable</key>
@@ -40,17 +48,17 @@
 		</dict>
 	</array>
 	<key>CFBundleVersion</key>
-	<string>1</string>
+	<string>$(CURRENT_PROJECT_VERSION)</string>
 	<key>LSRequiresIPhoneOS</key>
 	<true/>
 	<key>NSCameraUsageDescription</key>
 	<string>Use to scan QR and Barcode</string>
 	<key>NSContactsUsageDescription</key>
 	<string>Let me use contact</string>
-	<key>NSPhotoLibraryUsageDescription</key>
-	<string>This app requires access to the photo library</string>
 	<key>NSFaceIDUsageDescription</key>
 	<string>Identify yourself!</string>
+	<key>NSPhotoLibraryUsageDescription</key>
+	<string>This app requires access to the photo library</string>
 	<key>UIApplicationSceneManifest</key>
 	<dict>
 		<key>UIApplicationSupportsMultipleScenes</key>

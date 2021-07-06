@@ -20,7 +20,9 @@ struct CurrencyDenom {
 class GoSprayViewController: UIViewController, UIViewControllerTransitioningDelegate, STPAddCardViewControllerDelegate {
     
     var window: UIWindow?
-    let actionButton = JJFloatingActionButton()
+    let sprayCandidateBtn = JJFloatingActionButton()
+    let mainMenuBtn = JJFloatingActionButton()
+    
     @IBOutlet weak var currencyImage: UIImageView!
     @IBOutlet weak var giftAmountReceivedLbl: UILabel!
     @IBOutlet weak var giftBalanceLbl: UILabel!
@@ -91,7 +93,48 @@ class GoSprayViewController: UIViewController, UIViewControllerTransitioningDele
     //typealias launchStripePaymentScreen = ()  -> Void
     override func viewDidLoad() {
         super.viewDidLoad()
+//
+//        let actionButton = JJFloatingActionButton()
+//
+//         // actionButton.addItem(title: "item 1", image: "person.2.fill") { item in
+//              // do something
+//          //}
+//        actionButton.addItem(title: "", image: UIImage(systemName: "person.2.fill")) { item in
+//            //print("itme 3 was selected")
+//            //self.launchSprayCandidate()
+//        }
+//
+//        actionButton.addItem(title: "", image: UIImage(systemName: "person.2.fill")) { item in
+//            //print("itme 3 was selected")
+//            //self.launchSprayCandidate()
+//        }
+//         // actionButton.addItem(title: "item 2", image: "person.2.fill") { item in
+//              // do something
+//          //}
+//
+//          view.addSubview(actionButton)
         
+//        let actionButton = JJFloatingActionButton()
+//
+//        actionButton.addItem(title: "item 1", image: UIImage(named: "First")?.withRenderingMode(.alwaysTemplate)) { item in
+//          // do something
+//        }
+//
+//        actionButton.addItem(title: "item 2", image: UIImage(named: "Second")?.withRenderingMode(.alwaysTemplate)) { item in
+//          // do something
+//        }
+//
+//        actionButton.addItem(title: "item 3", image: nil) { item in
+//          // do something
+//        }
+//
+//        view.addSubview(actionButton)
+//        actionButton.translatesAutoresizingMaskIntoConstraints = false
+//        actionButton.trailingAnchor.constraint(equalTo: view.safeAreaLayoutGuide.trailingAnchor, constant: -16).isActive = true
+//        actionButton.bottomAnchor.constraint(equalTo: view.safeAreaLayoutGuide.bottomAnchor, constant: -16).isActive = true
+
+        
+       //circleMenu2()
         if #available(iOS 13.2, *) {
             print("i am here statusBarManager")
             let statusBar = UIView(frame: UIApplication.shared.keyWindow?.windowScene?.statusBarManager?.statusBarFrame ?? CGRect.zero)
@@ -287,21 +330,44 @@ class GoSprayViewController: UIViewController, UIViewControllerTransitioningDele
     
     func circleMenu(){
         //actionButton.backgroundColor = UIColor(red: 155/256, green: 166/256, blue: 149/256, alpha: 1.0)
-        actionButton.circleView.color = UIColor(red: 138/256, green: 196/256, blue: 208/256, alpha: 1.0) //UIColor(red: 61/256, green: 126/256, blue: 166/256, alpha: 1.0)
+        sprayCandidateBtn.circleView.color = UIColor(red: 40/256, green: 82/256, blue: 122/256, alpha: 1.0)
+            
+            //old light blue UIColor(red: 138/256, green: 196/256, blue: 208/256, alpha: 1.0) //UIColor(red: 61/256, green: 126/256, blue: 166/256, alpha: 1.0)
+        mainMenuBtn.circleView.color = UIColor(red: 40/256, green: 82/256, blue: 122/256, alpha: 1.0)
+        //old light blue UIColor(red: 138/256, green: 196/256, blue: 208/256, alpha: 1.0)
+        
+        sprayCandidateBtn.buttonDiameter = 45
+        sprayCandidateBtn.buttonImageSize = CGSize(width: 25, height: 25)
+        mainMenuBtn.buttonDiameter = 45
+        mainMenuBtn.buttonImageSize = CGSize(width: 25, height: 25)
+        
+        
             //hunter green - UIColor(red: 155/256, green: 166/256, blue: 149/256, alpha: 1.0)
-        actionButton.addItem(title: "", image: UIImage(systemName: "person.2.fill")) { item in
+        mainMenuBtn.addItem(title: "", image: UIImage(systemName: "house.fill")) { item in
+            //print("itme 3 was selected")
+            self.launchHomeScreen()
+        }
+        sprayCandidateBtn.addItem(title: "", image: UIImage(systemName: "person.2.fill")) { item in
             //print("itme 3 was selected")
             self.launchSprayCandidate()
         }
         
 //        actionButton.buttonState.rawValue
 //        print(actionButton.buttonState.rawValue)
-        view.addSubview(actionButton)
-        actionButton.translatesAutoresizingMaskIntoConstraints = false
-        actionButton.trailingAnchor.constraint(equalTo: view.safeAreaLayoutGuide.trailingAnchor, constant: -16).isActive = true
-        actionButton.bottomAnchor.constraint(equalTo: view.safeAreaLayoutGuide.bottomAnchor, constant: -16).isActive = true
+        view.addSubview(sprayCandidateBtn)
+        view.addSubview(mainMenuBtn)
+        
+        sprayCandidateBtn.translatesAutoresizingMaskIntoConstraints = false
+        sprayCandidateBtn.trailingAnchor.constraint(equalTo: view.safeAreaLayoutGuide.trailingAnchor, constant: -16).isActive = true
+        sprayCandidateBtn.bottomAnchor.constraint(equalTo: view.safeAreaLayoutGuide.bottomAnchor, constant: -16).isActive = true
+        
+        mainMenuBtn.translatesAutoresizingMaskIntoConstraints = false
+        mainMenuBtn.trailingAnchor.constraint(equalTo: view.safeAreaLayoutGuide.trailingAnchor, constant: -16).isActive = true
+        mainMenuBtn.bottomAnchor.constraint(equalTo: view.safeAreaLayoutGuide.bottomAnchor, constant: -70).isActive = true
 
     }
+
+    
     func completionAlert(message: String, timer: Int, launchStripePaymentScreen:() -> Void) {
         let delay = Double(timer) //* Double(NSEC_PER_SEC)
       let alert = UIAlertController(title: "", message: message, preferredStyle: UIAlertController.Style.alert)

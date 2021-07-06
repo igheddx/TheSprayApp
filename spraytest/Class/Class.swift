@@ -8,7 +8,9 @@
 
 import Foundation
 import UIKit
-  
+
+
+
 struct Device {
     
     func getDeviceId(userName: String) -> String {
@@ -52,16 +54,20 @@ struct Device {
 
 struct EncryptDecrpyt {
     
-    let key128   = "1234567890123456"                   // 16 bytes for AES128
-    let key256   = "CHqcPp7MN3mTY3nF6TWHdG8dHPVSgJBj"   // 32 bytes for AES256
-    let iv       = "F5cEUty4UwQL2EyW"                   // 16 bytes for AES128
+   
 
     func encryptData(value: String) ->String {
+//        let key128   = "1234567890123456"                   // 16 bytes for AES128
+//        let key256   = Bundle.main.infoDictionary?["KEY256"] as? String  //"CHqcPp7MN3mTY3nF6TWHdG8dHPVSgJBj"   // 32 bytes for AES256
+//        let iv       = Bundle.main.infoDictionary?["KEYIV"] as? String //"F5cEUty4UwQL2EyW"                   // 16 bytes for AES128
+//        let APIKEY = Bundle.main.infoDictionary?["API_KEY"] as? String
+        
+        print("THE KEY = \(key256)")
         let inputValue = value //"UserPassword1!"
         
         do {
             //let aes128 = AES(key: key128, iv: iv)
-            let aes256 = AES(key: key256, iv: iv)
+            let aes256 = AES(key: key256!, iv: iv!)
 
 //            let encryptedInputValue128 = aes128?.encrypt(string: inputValue)
 //            aes128?.decrypt(data: encryptedInputValue128)
@@ -82,11 +88,15 @@ struct EncryptDecrpyt {
     }
     
     func decryptData(value: Data) ->String {
-        let inputValue = value //"UserPassword1!"
-        
+//        let key128   = "1234567890123456"                   // 16 bytes for AES128
+//        let key256   = Bundle.main.infoDictionary?["KEY256"] as? String  //"CHqcPp7MN3mTY3nF6TWHdG8dHPVSgJBj"   // 32 bytes for AES256
+//        let iv       = Bundle.main.infoDictionary?["KEYIV"] as? String //"F5cEUty4UwQL2EyW"                   // 16 bytes for AES128
+//        let APIKEY = Bundle.main.infoDictionary?["API_KEY"] as? String
+//        let inputValue = value //"UserPassword1!"
+//
         do {
             //let aes128 = AES(key: key128, iv: iv)
-            let aes256 = AES(key: key256, iv: iv)
+            let aes256 = AES(key: key256!, iv: iv!)
 
             //let encryptedInputValue128 = aes128?.encrypt(string: inputValue)
             //aes128?.decrypt(data: encryptedInputValue128)
@@ -99,15 +109,16 @@ struct EncryptDecrpyt {
             //print(encryptedInputValue256?.base64EncodedString())
     //            let encryptedInputValue256 = aes256?.encrypt(string: inputValue)
             
-            let data = Data("wr/YeiR6I2ZkB+hmCarcvq5nGE10ApfzwqFUnXkQGftQ2t/uf6IuyBl1RgEwqY7uI6D7d5O0vyPnLQRqNZ0EPg==".utf8)
+            //let data = Data("wr/YeiR6I2ZkB+hmCarcvq5nGE10ApfzwqFUnXkQGftQ2t/uf6IuyBl1RgEwqY7uI6D7d5O0vyPnLQRqNZ0EPg==".utf8)
+            //let data = Data(value)
             
-            let decryptedData = aes256?.decrypt(data: data)
+            let decryptedData = aes256?.decrypt(data: value)
             //let str = String(decoding: decryptedData!, as: UTF8.self)
             
             //let a: String = try aes.decrypt(encryptedData)
             
             
-            print("decryptedDate = \(decryptedData?.utf8)")
+            print("decryptedDate = \((decryptedData?.utf8)!)")
             return "Dom"
 
         } catch {
@@ -121,18 +132,21 @@ struct EncryptDecrpyt {
         var inputValue: String = ""
         var outputValue: String = ""
         
+        print("VALUE = \(value)")
+        print("API KEY INSIDE CLASE = \(APIKEY!)")
         if type == "username" {
-            inputValue = "\(value)|9D8ED11F-CD8A-4E47-B1AC-B188AA8C032A" //value
+            inputValue = "\(value)|\(APIKEY!)"//value'
+            print("encryptDecryptAPIKey INPUT VALUE = \(inputValue)")
         } else {
-            inputValue = "9D8ED11F-CD8A-4E47-B1AC-B188AA8C032A" //value //"UserPassword1!"
+            inputValue = APIKEY! //"9D8ED11F-CD8A-4E47-B1AC-B188AA8C032A" //value //"UserPassword1!"
         }
         
-        let key128   = "1234567890123456"                   // 16 bytes for AES128
-        let key256   = "CHqcPp7MN3mTY3nF6TWHdG8dHPVSgJBj"   // 32 bytes for AES256
-        let iv       = "F5cEUty4UwQL2EyW"                   // 16 bytes for AES128
+//        let key128   = "1234567890123456"                   // 16 bytes for AES128
+//        let key256   = "CHqcPp7MN3mTY3nF6TWHdG8dHPVSgJBj"   // 32 bytes for AES256
+//        let iv       = "F5cEUty4UwQL2EyW"                   // 16 bytes for AES128
         do {
            
-            let aes256 = AES(key: key256, iv: iv)
+            let aes256 = AES(key: key256!, iv: iv!)
             
             let encryptedInputValue256 = aes256?.encrypt(string: inputValue)
             return (encryptedInputValue256?.base64EncodedString())!
@@ -149,23 +163,29 @@ struct EncryptDecrpyt {
 
 struct EncryptAPIKey {
     func encryptData(value: String) ->String {
+//        if value == "username" {
+//            let inputValue =  APIKEY! //"9D8ED11F-CD8A-4E47-B1AC-B188AA8C032A" //value //"UserPassword1!"
+//        } else {
+//            let inputValue = APIKEY! //"9D8ED11F-CD8A-4E47-B1AC-B188AA8C032A" //value //"UserPassword1!"
+//        }
+        
         if value == "username" {
-            let inputValue = "9D8ED11F-CD8A-4E47-B1AC-B188AA8C032A" //value //"UserPassword1!"
+            let inputValue = "\(value)|\(APIKEY)"//value
         } else {
-            let inputValue = "9D8ED11F-CD8A-4E47-B1AC-B188AA8C032A" //value //"UserPassword1!"
+            let inputValue = APIKEY! //"9D8ED11F-CD8A-4E47-B1AC-B188AA8C032A" //value //"UserPassword1!"
         }
         
-        let key128   = "1234567890123456"                   // 16 bytes for AES128
-        let key256   = "CHqcPp7MN3mTY3nF6TWHdG8dHPVSgJBj"   // 32 bytes for AES256
-        let iv       = "F5cEUty4UwQL2EyW"                   // 16 bytes for AES128
+//        let key128   = "1234567890123456"                   // 16 bytes for AES128
+//        let key256   = "CHqcPp7MN3mTY3nF6TWHdG8dHPVSgJBj"   // 32 bytes for AES256
+//        let iv       = "F5cEUty4UwQL2EyW"                   // 16 bytes for AES128
 
         
         do {
-            let aes128 = AES(key: key128, iv: iv)
-            let aes256 = AES(key: key256, iv: iv)
+            //let aes128 = AES(key: key128, iv: iv)
+            let aes256 = AES(key: key256!, iv: iv!)
 
-            let encryptedInputValue128 = aes128?.encrypt(string: value)
-            aes128?.decrypt(data: encryptedInputValue128)
+//            let encryptedInputValue128 = aes128?.encrypt(string: value)
+//            aes128?.decrypt(data: encryptedInputValue128)
 
             let encryptedInputValue256 = aes256?.encrypt(string: value)
             aes256?.decrypt(data: encryptedInputValue256)

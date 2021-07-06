@@ -69,12 +69,12 @@ class LoginQRScanViewController: UIViewController, UITextFieldDelegate {
     var encryptedDeviceId: String = ""
     var apiKeyValue: String = "9D8ED11F-CD8A-4E47-B1AC-B188AA8C032A" //this needs to come from a secured location"
     let device = Device()
-    let encryptdecrypt = EncryptDecrpyt()
+    var encryptdecrypt = EncryptDecrpyt()
     
     override func viewDidLoad() {
         super.viewDidLoad()
         setNavigationBar()
-        encryptedAPIKey = encryptdecrypt.encryptDecryptAPIKey(type: "", value: "", action: "encrypt")
+        
         
         print("LoginQR = \(encryptedAPIKey)")
         NotificationCenter.default.addObserver(self, selector: #selector(keyboardWillShow(sender:)), name: UIResponder.keyboardWillShowNotification, object: nil);
@@ -352,8 +352,9 @@ class LoginQRScanViewController: UIViewController, UITextFieldDelegate {
     
     
     @IBAction func loginButtonPressed(_ sender: Any) {
-   
-    
+        encryptedAPIKey = ""
+        encryptedAPIKey = encryptdecrypt.encryptDecryptAPIKey(type: "", value: "", action: "encrypt")
+        
         usernameTextField.isEnabled = false
         passwordTextField.isEnabled = false
        
@@ -373,6 +374,7 @@ class LoginQRScanViewController: UIViewController, UITextFieldDelegate {
             this is already establishe dwhen account was created */
             device.sendDeviceInfo(encryptedAPIKey: encryptedAPIKey, encryptedDeviceId: encryptedDeviceId)
             
+            print("username Encrypted = \(encryptedAPIKey)")
             usernameFieldIsEmpty = false
             //usernameErrorLabel.text = ""
         } else {
@@ -395,7 +397,7 @@ class LoginQRScanViewController: UIViewController, UITextFieldDelegate {
         }
         
         if passwordFieldIsEmpty == false && usernameFieldIsEmpty == false {
-            encryptedDeviceId = device.getDeviceId(userName: username)
+           // encryptedDeviceId = device.getDeviceId(userName: username)
            //loadingIndicator()
         
             signInBtn.loadIndicator(true)
@@ -407,6 +409,7 @@ class LoginQRScanViewController: UIViewController, UITextFieldDelegate {
             let authenticatedUserProfile = AuthenticateUser(username: self.username, password: self.password)
             let request = PostRequest(path: "/api/profile/authenticate", model: authenticatedUserProfile, token: "", apiKey: encryptedAPIKey, deviceId: encryptedDeviceId)
             
+            print("encryptedAPIKey inside request = \(encryptedAPIKey)")
            print("the request =\(request)")
             //randomly generated phone number - to be changed later 
             //phone = ""//generatePhoneNumber()
@@ -420,9 +423,18 @@ class LoginQRScanViewController: UIViewController, UITextFieldDelegate {
                     
                     print("before i call addToEvent")
                    
-                    let encryptdecrypt = EncryptDecrpyt()
-                    encryptedAPIKeyUserName = encryptdecrypt.encryptDecryptAPIKey(type: "username", value: self.username, action: "encrypt")
+                    var encryptdecrypt = EncryptDecrpyt()
+                    encryptedAPIKeyUserName = encryptdecrypt.encryptDecryptAPIKey(type: "username", value: username, action: "encrypt")
                     encryptedAPIKey = encryptedAPIKeyUserName
+                    
+                    
+//                    let encryptdecrypt = EncryptDecrpyt()
+//                    encryptedAPIKeyUserName = encryptdecrypt.encryptDecryptAPIKey(type: "username", value: self.username, action: "encrypt")
+//                    encryptedAPIKey = encryptedAPIKeyUserName
+                    
+                  
+                    
+                    
                     //add user to event
                    // if self.eventCode != "" {
                       //  self.getProfileData(profileId1: user.profileId!, token1: user.token!)
@@ -522,9 +534,10 @@ class LoginQRScanViewController: UIViewController, UITextFieldDelegate {
 
         let Invite =  JoinEvent(joinList: [JoinEventFields(profileId: profileId, email: email, phone: phone, eventCode: eventCode)])
 
-        let request = PostRequest(path: "/api/Event/joinevent", model: Invite, token: token, apiKey: encryptedAPIKey, deviceId: "")
+        let request = PostRequest(path: "/api/event/joinevent", model: Invite, token: token, apiKey: encryptedAPIKey, deviceId: "")
 
 
+        print("request = \(request)")
         Network.shared.send(request) { [self] (result: Result<Data, Error>)  in
             switch result {
             case .success( _):

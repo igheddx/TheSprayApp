@@ -7,7 +7,8 @@
 //
 
 import UIKit
-
+import LocalAuthentication
+import SwiftKeychainWrapper
 class CreateAccountViewController: UIViewController, UINavigationBarDelegate, UITextFieldDelegate {
     @IBOutlet weak var nameTextField: UITextField!
     @IBOutlet weak var emailTextField: UITextField!
@@ -43,10 +44,11 @@ class CreateAccountViewController: UIViewController, UINavigationBarDelegate, UI
     var encryptedAPIKey: String = ""
     var encryptedDeviceId: String = ""
     let device = Device()
-    let encryptdecrypt = EncryptDecrpyt()
+    var encryptdecrypt = EncryptDecrpyt()
     var encryptedAPIKeyUserName: String = ""
     //let decrypt = EncryptDecrpyt()
     
+    var isBiometricEnabled: Bool = false
 
     override func viewDidLoad() {
         super.viewDidLoad()
@@ -200,7 +202,21 @@ class CreateAccountViewController: UIViewController, UINavigationBarDelegate, UI
             alert2.addAction(UIAlertAction(title: "Ok", style: .default, handler: nil))
             
             self.present(alert2, animated: true)
-        }
+       }
+            //else if alertType == "biometric" {
+//            let alert2 = UIAlertController(title: alertTitle, message: "\(alertMessage) \n \(errorMessage)", preferredStyle: .alert)
+//
+//            alert2.addAction(UIAlertAction(title: "Yes", style: .default, handler: { [self] (action) in self.authenticateUser(userName: <#T##String#>, password: <#T##String#>)}))
+//            alert2.addAction(UIAlertAction(title: "No", style: .default, handler: nil))
+//
+////            alert2.addAction(UIAlertAction(title: "Yes, Let's Do It", style: .default, handler: { [self] (action) in self.launchEventPaymentScreen(eventId2: eventId, eventName2: eventName, eventDateTime2: eventDateTime, completionAction: "gotospray", eventTypeIcon: eventTypeIcon2, isPaymentMethodAvailable: false, hasPaymentMethod: false, isRsvprequired: false, isSingleReceiver: isSingleReceiverEvent!, defaultEventPaymentMethod: generalPaymentMethodId, defaultEventPaymentCustomName: generalDefaultPaymentCustomName)}))
+////            alert2.addAction(UIAlertAction(title: "No, Not Yet", style: .cancel, handler: nil))
+////
+////            self.present(alert2, animated: true)
+//
+//
+//            self.present(alert2, animated: true)
+//        }
       
     }
     func loadingIndicator() {
@@ -408,9 +424,40 @@ class CreateAccountViewController: UIViewController, UINavigationBarDelegate, UI
                 switch result {
                 case .success(let userdata):
                     self.userdata = userdata
+                    CheckIfBiometricEnabled()
+                    
+                    if isBiometricEnabled  == false {
+                        //presentUIAlert(alertMessage: "Would like to enable Face Id or this profile?", alertTitle: "Biometric", errorMessage: "", alertType: "biometric")
+                        var biometricType: String = ""
+                        
+                        //check if phone has touch of face Id
+                        let context = LAContext()
+                        if ( context.biometryType == .touchID ) {
+                             print("touch Id enabled")
+                            biometricType = "Touch Id"
+
+                        }
+                        if ( context.biometryType == .faceID) {
+                            biometricType = "Face ID"
+                            print("face Id is enabled")
+                        } else {
+                            print("stone age")
+                        }
+                        
+                        let alert = UIAlertController(title: "Biometric Authentication", message: "Would you like to enable \(biometricType) for the SprayMo App?", preferredStyle: .actionSheet)
+
+                        alert.addAction(UIAlertAction(title: "Yes", style: .default, handler: { [self] (action) in self.storeCredentialInKeyChain(userName: self.username!, password: password);self.authenticateUser(userName: self.username!, password: password)}))
+                        alert.addAction(UIAlertAction(title: "No", style: .default, handler: { [self] (action) in self.authenticateUser(userName: self.username!, password: password)}))
+                        //alert.addAction(UIAlertAction(title: "No", style: .cancel, handler: nil))
+
+                        self.present(alert, animated: true)
+                        
+                    } else {
+                        self.authenticateUser(userName: self.username!, password: password)
+                    }
                     print(userdata)
                     //call authentication func
-                    self.authenticateUser(userName: self.username!, password: password)
+                   
 
                 case .failure(let error):
                     self.presentUIAlert(alertMessage: "", alertTitle: "", errorMessage: error.localizedDescription, alertType: "systemError")
@@ -419,12 +466,29 @@ class CreateAccountViewController: UIViewController, UINavigationBarDelegate, UI
             }
         }
     }
+    func storeCredentialInKeyChain(userName: String, password: String) {
+        KeychainWrapper.standard.set(userName, forKey: "usernameKeyChain")
+        KeychainWrapper.standard.set(password, forKey: "passwordKeyChain")
+        KeychainWrapper.standard.set(true, forKey: "isKeyChainInUse")
+        //(true, forKey: "isKeyChainInUse")
+    }
+    func CheckIfBiometricEnabled() {
+        let context = LAContext()
+        var error: NSError?
+        if context.canEvaluatePolicy(.deviceOwnerAuthenticationWithBiometrics, error: &error) {
+            self.isBiometricEnabled = true
+            print("isBiometricEnabled = true")
+        } else {
+            //no biometric
+            self.isBiometricEnabled = false
+            print("isBiometricEnabled = false")
+        }
+    }
+    
     func authenticateUser(userName:String,password: String) {
         //******************** After creating account; authenticating to get Token *****************************
         let authenticatedUserProfile = AuthenticateUser(username: userName, password: password)
         let request = PostRequest(path: "/api/profile/authenticate", model: authenticatedUserProfile, token: "", apiKey: encryptedAPIKey, deviceId: encryptedDeviceId)
-
-
 
         Network.shared.send(request) { [self] (result: Result<UserData, Error>)  in
             switch result {
@@ -433,7 +497,7 @@ class CreateAccountViewController: UIViewController, UINavigationBarDelegate, UI
                 self.userdata = user
                 self.profileId = String(user.profileId!)
                 
-                let encryptdecrypt = EncryptDecrpyt()
+                var encryptdecrypt = EncryptDecrpyt()
                 encryptedAPIKeyUserName = encryptdecrypt.encryptDecryptAPIKey(type: "username", value: userName, action: "encrypt")
                 encryptedAPIKey = encryptedAPIKeyUserName
                 

@@ -529,15 +529,20 @@ class InviteFriendViewController: UIViewController, UITableViewDelegate, UITable
        }
   
     
+//    func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
+//        let cell = UITableViewCell(style: .subtitle, reuseIdentifier: nil)
     func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
-        let cell = UITableViewCell(style: .subtitle, reuseIdentifier: nil)
-       
+
+           let cell = tableView.dequeueReusableCell(withIdentifier: "InviteFriendsCell") as! InviteFriendsTableViewCell
+            
        
         //let contactToDisplay = contact[indexPath.row]
        
         if searching {
-            cell.textLabel?.text = contact[indexPath.row].name
-            cell.detailTextLabel?.text = contact[indexPath.row].phone
+            cell.nameLbl.text = contact[indexPath.row].name
+            cell.name = contact[indexPath.row].name
+            cell.avatarInitial.image = cell.imageWith(name: contact[indexPath.row].name)
+            cell.phoneLbl.text = contact[indexPath.row].phone
             attendeeNameSelected = contact[indexPath.row].name
             if contact[indexPath.row].isRSVP == true {
                 //cell.backgroundColor = .green
@@ -549,9 +554,11 @@ class InviteFriendViewController: UIViewController, UITableViewDelegate, UITable
             }
             
         } else {
-            cell.textLabel?.text = contacts[indexPath.row].name
+            cell.nameLbl.text = contacts[indexPath.row].name
+            cell.name = contacts[indexPath.row].name
+            cell.avatarInitial.image = cell.imageWith(name: contacts[indexPath.row].name)
             attendeeNameSelected = contacts[indexPath.row].name
-            cell.detailTextLabel?.text = contacts[indexPath.row].phone
+            cell.phoneLbl.text = contacts[indexPath.row].phone
                 
             if contacts[indexPath.row].isRSVP == true {
                 //cell.backgroundColor = .green
@@ -711,7 +718,7 @@ class InviteFriendViewController: UIViewController, UITableViewDelegate, UITable
     }
     
     func tableView(_ tableView: UITableView, heightForRowAt indexPath: IndexPath) -> CGFloat {
-        return 60
+        return 70
     }
     
    func tableView(_ tableView: UITableView, viewForFooterInSection section: Int) -> UIView? {
@@ -752,7 +759,7 @@ class InviteFriendViewController: UIViewController, UITableViewDelegate, UITable
         //let button = MainActionBtn(frame: CGRect(x: 110, y: 0, width: 130, height: 44.0))
             
         //let button = UIButton(frame: CGRect(x: 110, y: 0, width: 300, height: 40.0))
-        let button = MyCustomButton(frame: CGRect(x: 43, y: 0, width: 300, height: 40.0))
+        let button = MyCustomButton(frame: CGRect(x: 50, y: 10, width: 300, height: 40.0))
         button.setTitleColor(UIColor.white, for: .normal)
         //layer.cornerRadius = 6
         //backgroundColor = UIColor.red
@@ -763,7 +770,9 @@ class InviteFriendViewController: UIViewController, UITableViewDelegate, UITable
         //layer.masksToBounds = true
         
         //61, 126, 166 – Hcolor
-        button.backgroundColor = UIColor(red: 138/256, green: 196/256, blue: 208/256, alpha: 1.0)
+        button.backgroundColor = UIColor(red: 40/256, green: 82/256, blue: 122/256, alpha: 1.0)
+            
+            //old UIColor(red: 138/256, green: 196/256, blue: 208/256, alpha: 1.0)
             //UIColor(red: 61/256, green: 126/256, blue: 166/256, alpha: 1.0)
         button.layer.cornerRadius = 4
         button.layer.shadowColor = UIColor.white.cgColor
@@ -776,7 +785,7 @@ class InviteFriendViewController: UIViewController, UITableViewDelegate, UITable
         //button.frame = CGRect(x: 0, y: 0, width: Header.frame.size.width , height: Header.frame.size.height)
         //button.backgroundColor = UIColor(red: 2/255.0, green: 132/255.0, blue: 130/255.0, alpha: 1.0)
         button.setTitle("Send Invite", for: .normal)
-        //button.setTitleColor(.white, for: .normal)
+        button.setTitleColor(.white, for: .normal)
         button.addTarget(self, action: #selector(saveClicked), for: UIControl.Event.touchUpInside)
 
         Header.addSubview(button)
