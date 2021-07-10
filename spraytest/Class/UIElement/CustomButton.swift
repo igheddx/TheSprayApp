@@ -57,7 +57,7 @@ class EventUIView: UIButton {
         layer.shadowOffset = CGSize(width: 0.5, height: 0.5)
         layer.shadowOpacity  = 0.2
         layer.masksToBounds = false
-        layer.cornerRadius = 3.0
+        layer.cornerRadius = 5.0
         //backgroundColor = UIColor(red: 244/256, green: 209/256, blue: 96/256, alpha: 1.0)
         backgroundColor = UIColor(red: 255/256, green: 255/256, blue: 255/256, alpha: 1.0)
         //244209,96

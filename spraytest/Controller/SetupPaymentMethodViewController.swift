@@ -84,7 +84,7 @@ class SetupPaymentMethodViewController: UIViewController, STPAuthenticationConte
         //textField.returnKeyType = UIReturnKeyType.done
         //textField.autocorrectionType = UITextAutocorrectionType.no
         lable.font = UIFont.systemFont(ofSize: 15)
-        lable.text = "Our Payment Method is powered by Stripe Inc. \n Your credit/debit card will be charged the amount you gifted to participants. "
+        lable.text = "The Spray App partners with Stripe for secure payments.  \n Your credit/debit card will be charged the amount you sprayed."
         //textField.borderStyle = UITextField.BorderStyle.roundedRect
         //textField.clearButtonMode = UITextField.ViewMode.whileEditing;
         //lable.contentVerticalAlignment = UIControl.ContentVerticalAlignment.center
@@ -121,7 +121,14 @@ class SetupPaymentMethodViewController: UIViewController, STPAuthenticationConte
     
     override func viewDidLoad() {
         super.viewDidLoad()
+//        if let stripeKey = Bundle.main.infoDictionary?["STRIPEAPI_PUBLISHABLEKEY"] as? String {
+//            STRIPEAPI_PUBLISHABLEKEY = stripeKey
+//        } else {
+//            print("NO STRIPEAPI_PUBLISHABLEKEY")
+//        }
+        print("STRIPE_KEY =\(STRIPE_KEY)")
     
+        
         self.navigationItem.title = "Add Payment Method..."
         
         navigationController?.navigationBar.topItem?.backBarButtonItem = UIBarButtonItem(title: "", style: .plain, target: nil, action: nil)
@@ -137,7 +144,7 @@ class SetupPaymentMethodViewController: UIViewController, STPAuthenticationConte
         availablePaymentData.removeAll()
         getAvailablePaymentData()
         
-        StripeAPI.defaultPublishableKey = STRIPEAPI_PUBLISHABLEKEY //"pk_test_51I4w7tH6yOvhR5k1FrjaRKUcGG3LLzcuTx1LOWJj6bprUylHErpYHXsSRFxfdepAxz3KDbPLp2cDjpP54AWdc9qG00C8jcO2o4" //"pk_test_51I4w7tH6yOvhR5k1FrjaRKUcGG3LLzcuTx1LOWJj6bprUylHErpYHXsSRFxfdepAxz3KDbPLp2cDjpP54AWdc9qG00C8jcO2o4"
+        StripeAPI.defaultPublishableKey = STRIPE_KEY //"pk_test_51I4w7tH6yOvhR5k1FrjaRKUcGG3LLzcuTx1LOWJj6bprUylHErpYHXsSRFxfdepAxz3KDbPLp2cDjpP54AWdc9qG00C8jcO2o4" //"pk_test_51I4w7tH6yOvhR5k1FrjaRKUcGG3LLzcuTx1LOWJj6bprUylHErpYHXsSRFxfdepAxz3KDbPLp2cDjpP54AWdc9qG00C8jcO2o4"
 
         view.backgroundColor = .white
         let stackView = UIStackView(arrangedSubviews: [paymentTitle, cardTextField, paymentMessageLbl, payButton])
@@ -347,7 +354,8 @@ class SetupPaymentMethodViewController: UIViewController, STPAuthenticationConte
     }
     
     @objc func pay() {
-        LoadingStart()
+        // LoadingStart() comment this out
+            print("pay was called")
 //        guard let cardNickName = cardNickNameTextField.text
 //
 //        else {
@@ -529,6 +537,9 @@ class SetupPaymentMethodViewController: UIViewController, STPAuthenticationConte
             if completionAction == "goback" {
                 self.dismiss(animated: true, completion: nil)
                 //self.launchEventPaymentScreen()
+//                if((self.presentingViewController) != nil){
+//                    self.dismiss(animated: false, completion: nil)
+//                }
             }
         }
     }
@@ -578,7 +589,10 @@ class SetupPaymentMethodViewController: UIViewController, STPAuthenticationConte
                     //if currentAvailableCredit == 0 {
                         print("I do not have a blance")
                         addGeneralPaymentPref(paymentMethodId: newPaymentJson.paymentMethodId!, paymentDescription: customName)
+                    print("new paymentMethod Id = \(newPaymentJson.paymentMethodId!)")
                         newPaymentMethodId =  newPaymentJson.paymentMethodId!
+                    
+                    isRefreshScreen = true
                    // } else {
                       //  print("I have a balance")
                       //  isRefreshScreen = true
@@ -647,6 +661,7 @@ class SetupPaymentMethodViewController: UIViewController, STPAuthenticationConte
             switch result {
             case .success(let eventpref): print(eventpref);
                 
+                print("event Pref was addedd - DOMINIC")
                 //updatedBalance = availableBalance + getSprayAmountInt(amountId: giftAmountSegConrol.selectedSegmentIndex, category: "addreplenishamount")
                 
 //                giftAmountSegConrol.selectedSegmentIndex = 2
@@ -692,6 +707,7 @@ class SetupPaymentMethodViewController: UIViewController, STPAuthenticationConte
                 
                 break
             case .failure(let error):
+                print("LoadingStope - something went wrong")
                 LoadingStop()
             print(error.localizedDescription)
             }

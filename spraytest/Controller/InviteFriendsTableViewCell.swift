@@ -24,7 +24,7 @@ class InviteFriendsTableViewCell: UITableViewCell {
         print("MY LABEL = \(name)")
         avatarInitial.layer.borderWidth = 1
         avatarInitial.layer.masksToBounds = false
-        avatarInitial.layer.borderColor = UIColor.black.cgColor
+        avatarInitial.layer.borderColor = UIColor(red: 30/256, green: 174/256, blue: 152/256, alpha: 1.0).cgColor //UIColor.black.cgColor
         avatarInitial.layer.cornerRadius = avatarInitial.frame.height/2
         avatarInitial.clipsToBounds = true
         
@@ -38,7 +38,9 @@ class InviteFriendsTableViewCell: UITableViewCell {
         let nameLabel = UILabel(frame: frame)
         nameLabel.layer.cornerRadius = nameLabel.frame.height/2
         nameLabel.textAlignment = .center
-        nameLabel.backgroundColor = .lightGray
+        nameLabel.backgroundColor = UIColor(red: 30/256, green: 174/256, blue: 152/256, alpha: 1.0)
+            //.lightGray
+        //rgb(30, 174, 152)
         nameLabel.textColor = .white
         nameLabel.font = UIFont.boldSystemFont(ofSize: 20)
         var initials = ""

@@ -241,13 +241,17 @@ extension SelectPersonToSprayViewController: UITableViewDelegate, UITableViewDat
             cell.receiverName.text = rsvpAttendees2[indexPath.row].firstName
             
            
-            cell.myProfileImage.image = UIImage(systemName: "person.crop.circle.fill")
+            //cell.myProfileImage.image = UIImage(systemName: "person.crop.circle.fill")
             if rsvpAttendees2[indexPath.row].profileId == eventOwnerProfileId {
                 cell.receiverName.font =  UIFont(name: "HelveticaNeue-Bold", size: 17)
                 
-                cell.myProfileImage.image = UIImage(systemName: "person.crop.circle.fill")?.withTintColor(.red, renderingMode: .alwaysTemplate)
+                //cell.myProfileImage.image = UIImage(systemName: "person.crop.circle.fill")?.withTintColor(.red, renderingMode: .alwaysTemplate)
+                cell.myProfileImage.image = cell.imageWith(name: rsvpAttendees2[indexPath.row].firstName, isEventOwner: true)
+                
             } else {
-                cell.myProfileImage.image = UIImage(systemName: "person.crop.circle.fill")
+                //cell.myProfileImage.image = UIImage(systemName: "person.crop.circle.fill")
+                
+                cell.myProfileImage.image = cell.imageWith(name: rsvpAttendees2[indexPath.row].firstName, isEventOwner: false)
             }
             
         } else {
@@ -258,13 +262,15 @@ extension SelectPersonToSprayViewController: UITableViewDelegate, UITableViewDat
                 cell.receiverName.font =  UIFont(name: "HelveticaNeue-Bold", size: 17)
                 
      
-                cell.myProfileImage.image = UIImage(systemName: "star.fill")?.withRenderingMode(.alwaysTemplate).withTintColor(UIColor(red: 155/250, green: 166/250, blue: 149/250, alpha: 1))
+                //cell.myProfileImage.image = UIImage(systemName: "star.fill")?.withRenderingMode(.alwaysTemplate).withTintColor(UIColor(red: 155/250, green: 166/250, blue: 149/250, alpha: 1))
+                cell.myProfileImage.image = cell.imageWith(name: rsvpAttendees[indexPath.row].firstName, isEventOwner: true)
                 
                 //withTintColor(UIColor.init(red: 155/250, green: 166/250, blue: 149/250, alpha: 1))
                 //likeAction.image = UIImage(named: "Favourite_Selected")?.colored(in: .red)
               print("KEN Thomas - image")
             } else {
-                cell.myProfileImage.image = UIImage(systemName: "person.crop.circle.fill")
+                //cell.myProfileImage.image = UIImage(systemName: "person.crop.circle.fill")
+                cell.myProfileImage.image = cell.imageWith(name: rsvpAttendees[indexPath.row].firstName, isEventOwner: false)
             }
             
         }

@@ -273,6 +273,7 @@ class GoSprayViewController: UIViewController, UIViewControllerTransitioningDele
     }
     override func viewDidAppear(_ animated: Bool) {
         
+        print("I am in ViewDidAppear - Dominic")
         self.tabBarController?.tabBar.isHidden = true
         if isPaymentMethodAvailable == true || hasPaymentMethodEvent == true {
             self.getAvailablePaymentData()
@@ -330,6 +331,25 @@ class GoSprayViewController: UIViewController, UIViewControllerTransitioningDele
     
     func circleMenu(){
         //actionButton.backgroundColor = UIColor(red: 155/256, green: 166/256, blue: 149/256, alpha: 1.0)
+        
+        print("circle menu was called")
+        for view in sprayCandidateBtn.subviews {
+            print("circle menu was called sprayCandidateBtn")
+            print("sprayCandidateBtn --- \(view)")
+            if view is JJFloatingActionButton {
+               view.removeFromSuperview()
+                print("it was removed")
+           }
+        }
+        
+        for view in mainMenuBtn.subviews {
+            print("circle menu was called mainMenuBtn")
+            print("mainMenuBtn --- \(view.subviews)")
+            if view is JJFloatingActionButton {
+               view.removeFromSuperview()
+                print("it was removed2")
+           }
+        }
         sprayCandidateBtn.circleView.color = UIColor(red: 40/256, green: 82/256, blue: 122/256, alpha: 1.0)
             
             //old light blue UIColor(red: 138/256, green: 196/256, blue: 208/256, alpha: 1.0) //UIColor(red: 61/256, green: 126/256, blue: 166/256, alpha: 1.0)
@@ -351,6 +371,7 @@ class GoSprayViewController: UIViewController, UIViewControllerTransitioningDele
             //print("itme 3 was selected")
             self.launchSprayCandidate()
         }
+       
         
 //        actionButton.buttonState.rawValue
 //        print(actionButton.buttonState.rawValue)
@@ -1097,12 +1118,21 @@ class GoSprayViewController: UIViewController, UIViewControllerTransitioningDele
         vc.eventId = eventId
         vc.profileId = profileId
         vc.token = token
+        vc.eventOwnerName = eventOwnerName
+        vc.eventOwnerId = eventOwnerProfileId
         vc.encryptedAPIKey = encryptedAPIKey
         vc.updategfitamountdelegate = self
         vc.completionAction = "launchpaymentscreen"
         vc.haspaymentdelegate = self
+        vc.setuppaymentmethoddelegate   = self
+        vc.refreshscreendelegate = self
         //vc.receiverInfoDelegate = self
         vc.paymentClientToken = paymentClientToken
+        
+//        vc.eventTypeIcon = eventTypeIcon
+//        vc.autoReplenishFlg = autoReplenishFlg
+//        vc.autoReplenishAmt = autoReplenishAmt
+        
         present(vc, animated: true, completion: nil)
     }
    
@@ -1154,6 +1184,12 @@ class GoSprayViewController: UIViewController, UIViewControllerTransitioningDele
                     //call these functions after spray transaction is complete
                     //these func will get updated balance
                     
+                    //launchEventPaymentScreen after updating transaction during insufficient funds scenario
+                    if completionAction == "addfunds" {
+                        self.launchEventPaymentScreen(completionAction:"")
+                    }
+                    
+                    print("spray transaction was executed")
                    // getGifterData()
                     logAlert(messageType: "sender")
                     logAlert(messageType: "receiver")
@@ -1379,7 +1415,7 @@ class GoSprayViewController: UIViewController, UIViewControllerTransitioningDele
                    // print("paymentMethodId =\(paymentMethod!)")
                     if completionAction == "gotostripe" {
                         //launchEventPaymentScreen(completionAction: "launchpaymentscreen")
-                        circleMenu()
+                        //circleMenu() 7/7 comment out for now
                         let alert2 = UIAlertController(title: "Need Payment Method", message: "You currently do not have a Payment Method selected for this Event. A Payment Metheod is required to participate in the fun of Spraying. Would you like to add a Payment Method?", preferredStyle: .alert)
 
 
@@ -1405,7 +1441,7 @@ class GoSprayViewController: UIViewController, UIViewControllerTransitioningDele
                                 let alert2 = UIAlertController(title: "Insufficient Credit", message: "You do not have a enough credit to perform this spray swipe. Would you like to add more credit to continue to fun of spraying?", preferredStyle: .alert)
 
                                 //update transaction.
-                                alert2.addAction(UIAlertAction(title: "Yes, Add More Credits", style: .default, handler: { [self] (action) in self.updateSprayTransaction(sprayAmount: sprayAmountSecondary, completionAction: ""); self.launchEventPaymentScreen(completionAction:"")}))
+                                alert2.addAction(UIAlertAction(title: "Yes, Add More Credits", style: .default, handler: { [self] (action) in self.updateSprayTransaction(sprayAmount: sprayAmountSecondary, completionAction: "addfunds")}))
                                 
                             
                                 alert2.addAction(UIAlertAction(title: "No, Not Now", style: .cancel, handler: nil))
@@ -1638,6 +1674,10 @@ extension GoSprayViewController:   UpdatedGiftAmountDelegate  {
         giftBalanceLbl.text = currencySymbol + String(gifterBalance)
         isAutoReplenishFlag = latestIsAutoReplenishFlag
         autoReplenishAmount = latestAutoReplenishAmount
+        
+        //restore circle menu
+        print("CircleMenu was called 1")
+        //circleMenu()
     }
     
    
@@ -1662,6 +1702,9 @@ extension GoSprayViewController:   SprayReceiverDelegate  {
         receiverName = receivername
         giftAmountReceivedLbl.text = "$" + String(giftAmountReceived)
         //self.navigationItem.title = "Now Spraying, " + receivername
+        
+        print("CircleMenu was called 2")
+        //circleMenu()
     }
 }
 
@@ -1673,6 +1716,9 @@ extension GoSprayViewController:  HasPaymentMethodDelegate {
         if paymentMethodId > 0 {
             paymentMethod = paymentMethodId
         }
+        
+        print("CircleMenu was called 3")
+        //circleMenu()
     }
 }
 
@@ -1709,6 +1755,8 @@ extension GoSprayViewController:  RefreshScreenDelegate {
         //print("refreshHomeScreenDate = \(isShowScreen)")
         if self.setRefreshScreen == true {
             
+            completionAction = "" //this is to avoid the need payment method prompt 7/6 may not need this, but hold on for now
+            
             getGifterTotalTransBalance()
             //initializationTask()
             
@@ -1737,8 +1785,12 @@ extension GoSprayViewController:  SetupPaymentMethodDelegate {
         self.isSingleReceiverEvent = isSingleReceiverEvent
     
         if self.isSingleReceiverEvent == false {
-            launchSprayCandidate()
-            circleMenu()
+            print("isSingle Receiver Event")
+            if self.receiverName == "" {
+                launchSprayCandidate()
+            }
+            
+            //circleMenu()
         } else {
             giftReceiverNameLbl.text = eventOwnerName
             
@@ -1749,10 +1801,12 @@ extension GoSprayViewController:  SetupPaymentMethodDelegate {
             receiverName =  eventOwnerName
             giftAmountReceivedLbl.text = "$" + String(giftAmountReceived)
             
+            print("I am inside SetupPaymentMethodDelegate")
+            
+            print("view did appear isRefreshScreen = \(setRefreshScreen)")
+            
         }
-        print("I am inside SetupPaymentMethodDelegate")
-        
-        print("view did appear isRefreshScreen = \(setRefreshScreen)")
+       
         //I called viewDidAppear
         
     }

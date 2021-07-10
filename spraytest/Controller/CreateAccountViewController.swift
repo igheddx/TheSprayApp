@@ -49,6 +49,7 @@ class CreateAccountViewController: UIViewController, UINavigationBarDelegate, UI
     //let decrypt = EncryptDecrpyt()
     
     var isBiometricEnabled: Bool = false
+    var isKeyChainInUse: Bool = false
 
     override func viewDidLoad() {
         super.viewDidLoad()
@@ -426,7 +427,7 @@ class CreateAccountViewController: UIViewController, UINavigationBarDelegate, UI
                     self.userdata = userdata
                     CheckIfBiometricEnabled()
                     
-                    if isBiometricEnabled  == false {
+                    if isBiometricEnabled  == true {
                         //presentUIAlert(alertMessage: "Would like to enable Face Id or this profile?", alertTitle: "Biometric", errorMessage: "", alertType: "biometric")
                         var biometricType: String = ""
                         
@@ -443,11 +444,12 @@ class CreateAccountViewController: UIViewController, UINavigationBarDelegate, UI
                         } else {
                             print("stone age")
                         }
+                        let password = passwordTextField.text
                         
-                        let alert = UIAlertController(title: "Biometric Authentication", message: "Would you like to enable \(biometricType) for the SprayMo App?", preferredStyle: .actionSheet)
+                        let alert = UIAlertController(title: "Biometric Authentication", message: "Would you like to enable \(biometricType) for the Spray App?", preferredStyle: .actionSheet)
 
-                        alert.addAction(UIAlertAction(title: "Yes", style: .default, handler: { [self] (action) in self.storeCredentialInKeyChain(userName: self.username!, password: password);self.authenticateUser(userName: self.username!, password: password)}))
-                        alert.addAction(UIAlertAction(title: "No", style: .default, handler: { [self] (action) in self.authenticateUser(userName: self.username!, password: password)}))
+                        alert.addAction(UIAlertAction(title: "Yes", style: .default, handler: { [self] (action) in removeCredentialFromKeyChain(userName: self.username!, password: password!)}))
+                        alert.addAction(UIAlertAction(title: "No", style: .default, handler: { [self] (action) in self.authenticateUser(userName: self.username!, password: password!)}))
                         //alert.addAction(UIAlertAction(title: "No", style: .cancel, handler: nil))
 
                         self.present(alert, animated: true)
@@ -467,10 +469,35 @@ class CreateAccountViewController: UIViewController, UINavigationBarDelegate, UI
         }
     }
     func storeCredentialInKeyChain(userName: String, password: String) {
+        print("storeCredentialInKeyChain was called")
         KeychainWrapper.standard.set(userName, forKey: "usernameKeyChain")
         KeychainWrapper.standard.set(password, forKey: "passwordKeyChain")
         KeychainWrapper.standard.set(true, forKey: "isKeyChainInUse")
         //(true, forKey: "isKeyChainInUse")
+        processEnableBiometric(userName: userName, password: password)
+    }
+    func removeCredentialFromKeyChain(userName: String, password: String){
+        print("removeCredentialFromKeyChainwas called")
+        KeychainWrapper.standard.removeObject(forKey: "usernameKeyChain")
+        KeychainWrapper.standard.removeObject(forKey: "passwordKeyChain")
+        KeychainWrapper.standard.removeObject(forKey: "isKeyChainInUse")
+        
+       
+        let isEnableBiometricNextLoginExist = isKeyPresentInUserDefaults(key: "isEnablebiometricNextLogin")
+        if isEnableBiometricNextLoginExist == true {
+            KeychainWrapper.standard.removeObject(forKey: "isEnablebiometricNextLogin")
+        }
+    
+        
+        isKeyChainInUse = false
+        storeCredentialInKeyChain(userName: userName, password: password)
+    }
+    func  isKeyPresentInUserDefaults(key: String) -> Bool {
+        guard let _ = KeychainWrapper.standard.object(forKey: key) else {
+         return false;
+        }
+
+       return true;
     }
     func CheckIfBiometricEnabled() {
         let context = LAContext()
@@ -484,7 +511,41 @@ class CreateAccountViewController: UIViewController, UINavigationBarDelegate, UI
             print("isBiometricEnabled = false")
         }
     }
-    
+    func processEnableBiometric(userName: String, password: String) {
+        let context = LAContext()
+        var error: NSError?
+        if context.canEvaluatePolicy(.deviceOwnerAuthenticationWithBiometrics, error: &error) {
+            let reason = "Identify yourself!"
+            
+            context.evaluatePolicy(.deviceOwnerAuthenticationWithBiometrics, localizedReason: reason) {[weak self] success, authenticationError in
+                DispatchQueue.main.async { [self] in
+                    if success {
+                        self?.authenticateUser(userName: userName, password: password)
+                        print("i called authenticationUser")
+                        print("II--")
+                        //self?.loginButton.loadIndicator(true)
+//                        self?.loginButton.loadIndicator(true)
+//                        self?.loginButton.setTitle("Securely Logging In...", for: .normal)
+//                        self?.loginButton.isEnabled = false
+//
+//                        self?.authenticateUser()
+                    } else {
+                        //error
+                        let ac = UIAlertController(title: "Authentication Failed", message: "You could not be verified, please try again.", preferredStyle: .alert)
+                        
+                        ac.addAction(UIAlertAction(title: "Ok", style: .default))
+                        self?.present(ac, animated: true)                    }
+                }
+            }
+             
+        } else {
+            //no biometric
+            let ac = UIAlertController(title: "Biometric unavailalbe", message: "Your device is not configured for biometric authentication", preferredStyle: .alert)
+            
+            ac.addAction(UIAlertAction(title: "OK", style: .default))
+            present(ac, animated: true)
+        }
+    }
     func authenticateUser(userName:String,password: String) {
         //******************** After creating account; authenticating to get Token *****************************
         let authenticatedUserProfile = AuthenticateUser(username: userName, password: password)

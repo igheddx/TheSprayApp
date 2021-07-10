@@ -179,7 +179,7 @@ class RSVPViewController: UIViewController {
         var completionAction2: String = ""
         if completionAction == "addpaymentalert" {
             alertmessage = "Congratulations! We are glad you are coming to the event. There are no Payment Method on record. Would you like to Add a Payment Method for this Event?"
-            completionAction2 = "launchpaymentscreen"
+            completionAction2 = "gotostripe"
         } else {
             alertmessage = "Congratulations! Are you ready to start  Spraying?"
             completionAction2 = "launchsprayscreen"

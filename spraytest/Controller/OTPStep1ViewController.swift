@@ -256,15 +256,18 @@ class OTPStep1ViewController: UIViewController {
         var alertTitle: String = ""
         var alertMessage: String = ""
         if alertType == "otpcode" {
+            spinerTaskEnd()
             alertTitle = "OTP"
             alertMessage = "Something went wrong with the OTP Code. Please try again."
             
             
             
         } else if alertType == "MissingFields" {
+            spinerTaskEnd()
             alertTitle = "Login Error"
             alertMessage = "You entered an invalid login ID or Password. \n"
         } else if alertType == "InitializeError" {
+            spinerTaskEnd()
             alertTitle = "Login Error"
             alertMessage = "Something went wrong with the initialization. Please try again. \n"
         }
@@ -304,6 +307,7 @@ class OTPStep1ViewController: UIViewController {
     func presentUIAlert(alertMessage: String, alertTitle: String, errorMessage: String, alertType: String) {
         
         if alertType == "systemError" {
+            spinerTaskEnd()
             let alert2 = UIAlertController(title: "Feature is unavailable", message: "This feature is temporarily unavailble. Please contact The Spray App at 1-800-000-0000 for assistance.\n \(errorMessage)", preferredStyle: .alert)
 
             alert2.addAction(UIAlertAction(title: "Ok", style: .default, handler: nil))
@@ -311,6 +315,7 @@ class OTPStep1ViewController: UIViewController {
             self.present(alert2, animated: true)
            
         } else if alertType == "formvalidation" {
+            spinerTaskEnd()
             let alert2 = UIAlertController(title: alertTitle, message: "\(alertMessage) \n \(errorMessage)", preferredStyle: .alert)
 
             alert2.addAction(UIAlertAction(title: "Ok", style: .default, handler: nil))

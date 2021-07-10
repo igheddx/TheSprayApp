@@ -19,6 +19,7 @@ public var APIKEY: String? // = Bundle.main.infoDictionary?["API_KEY"] as? Strin
 
 public var STRIPEAPI_PUBLISHABLEKEY: String?
 
+public var STRIPE_KEY: String?
 
 class LoginViewController: UIViewController, UITextFieldDelegate {
     let customtextfield = CustomTextField()
@@ -39,6 +40,11 @@ class LoginViewController: UIViewController, UITextFieldDelegate {
     @IBOutlet weak var rememberMeUIView: UIView!
     @IBOutlet weak var rememberMeUIViewLbl: UIView!
     
+    @IBOutlet weak var biometricLbl2: UILabel!
+   
+    @IBOutlet weak var biometricSwitchBtn2: UISwitch!
+    
+    @IBOutlet weak var biometricIcon: UIImageView!
     //@IBOutlet weak var biometricSwitchBtn: UISwitch!
     
     //@IBOutlet weak var rememberMeSwitchBtn: UISwitch!
@@ -79,7 +85,7 @@ class LoginViewController: UIViewController, UITextFieldDelegate {
     var encryptedAPIKey: String = "" //"9D8ED11F-CD8A-4E47-B1AC-B188AA8C032A"//"CHqcPp7MN3mTY3nF6TWHdG8dHPVSgJBj"
     var encryptedAPIKeyUserName: String = ""
     var encryptedDeviceId: String = ""
-    var apiKeyValue: String = "9D8ED11F-CD8A-4E47-B1AC-B188AA8C032A" //this needs to come from a secured location"
+    //var apiKeyValue: String = "9D8ED11F-CD8A-4E47-B1AC-B188AA8C032A" //this needs to come from a secured location"
     let device = Device()
     var encryptdecrypt = EncryptDecrpyt()
     var isBiometricEnabled: Bool = false
@@ -94,19 +100,30 @@ class LoginViewController: UIViewController, UITextFieldDelegate {
         if let mykey256   = Bundle.main.infoDictionary?["KEY256"] as? String {
             key256 = mykey256
         } //"CHqcPp7MN3mTY3nF6TWHdG8dHPVSgJBj"   // 32 bytes for AES256
-        
+        print("key256 \(key256)")
         if let myIV    = Bundle.main.infoDictionary?["KEYIV"] as? String {
             iv = myIV
         }
+        print("IV \(iv)")
            
         if let myApiKey = Bundle.main.infoDictionary?["API_KEY"] as? String {
             APIKEY = myApiKey
+            print("yes API = \(APIKEY)")
+        } else  {
+            print("no API KEY \(APIKEY)")
         }
         
         if let stripeKey = Bundle.main.infoDictionary?["STRIPEAPI_PUBLISHABLEKEY"] as? String {
             STRIPEAPI_PUBLISHABLEKEY = stripeKey
+            print("STRIPEAPI_PUBLISHABLEKEY \(STRIPEAPI_PUBLISHABLEKEY)")
+        } else {
+            print("no stripe = \(STRIPEAPI_PUBLISHABLEKEY)")
         }
         
+        if let pbi    = Bundle.main.infoDictionary?["STRIPE_KEY"] as? String {
+            STRIPE_KEY = pbi
+        }
+        print("STRIPE KEY = \(STRIPE_KEY)")
         
         
         
@@ -136,21 +153,44 @@ class LoginViewController: UIViewController, UITextFieldDelegate {
           
             //launch auto biometric if not logout and keychainInUse = true
             let isKeyChainInUse = isKeyPresentInUserDefaults(key: "isKeyChainInUse")
+            
+            if ( context.biometryType == .touchID ) {
+                 print("touch Id enabled")
+                if isKeyChainInUse == true {
+                    biometricLbl2.text = "Touch ID is Enabled"
+                    biometricSwitchBtn2.isHidden = true
+                } else {
+                    biometricLbl2.text = "Enable Touch ID"
+                    biometricSwitchBtn2.isHidden = false
+                    biometricSwitchBtn2.isOn = false
+                }
+                
+                biometricIcon.image = UIImage(named: "touchid_icon")
+                //displayBiometricSelection(imageName: "touchid_icon")
+            } else if  ( context.biometryType == .faceID) {
+                if isKeyChainInUse == true {
+                    biometricLbl2.text = "Face ID is Enabled"
+                    biometricSwitchBtn2.isHidden = true
+                } else  {
+                    biometricLbl2.text = "Enable Face ID"
+                    biometricSwitchBtn2.isHidden = false
+                    biometricSwitchBtn2.isOn = false
+                }
+                
+                biometricIcon.image = UIImage(named: "faceid_icon")
+                //displayBiometricSelection(imageName: "faceid_icon")
+                print("face Id is enabled")
+            } else {
+                print("stone age")
+                biometricLbl2.text = ""
+                biometricSwitchBtn2.isHidden = true
+                biometricIcon.isHidden = true
+            }
+            
+            
             if isKeyChainInUse == true && logout == false {
                 
-                if ( context.biometryType == .touchID ) {
-                     print("touch Id enabled")
-                    biometricLbl.text = "Login With Touch Id"
-                    displayBiometricSelection(imageName: "touchid_icon")
-                }
-                if ( context.biometryType == .faceID) {
-                    biometricLbl.text = "Login With Face ID"
-                    displayBiometricSelection(imageName: "faceid_icon")
-                    print("face Id is enabled")
-                } else {
-                    print("stone age")
-                }
-                
+               
                 self.isKeyChainInUse = KeychainWrapper.standard.bool(forKey: "isKeyChainInUse")!
                 print("iskeychaininuse \(self.isKeyChainInUse )")
                 if (self.isKeyChainInUse  == true) {
@@ -167,18 +207,23 @@ class LoginViewController: UIViewController, UITextFieldDelegate {
                     usernameTextField.isEnabled = false
                     processEnableBiometric()
                 }
-            } else  {
-                biometricLbl.text = "Enable Biometric"
-                displayBiometricSelection(imageName: "")
-                displayRememberMeSelection()
-                
+//            } else  {
+//                biometricLbl2.text = "Enable Biometric"
+//                biometricSwitchBtn2.isHidden = false
+//                biometricSwitchBtn2.isOn = false
             }
         
         
         } else  {
-            biometricLbl.text = "Enable Biometric"
-            displayBiometricSelection(imageName: "")
-            displayRememberMeSelection()
+//            biometricLbl.text = "Enable Biometric"
+//            biometricSwitchBtn2.isHidden = false
+//            biometricSwitchBtn2.isOn = false
+            //don't show it if it is not enabled
+            biometricLbl2.text = ""
+            biometricSwitchBtn2.isHidden = true
+            biometricIcon.isHidden = true
+//            displayBiometricSelection(imageName: "")
+//            displayRememberMeSelection()
         }
         
         //preset biometric and remember swiftch based option biometric from setting
@@ -241,6 +286,7 @@ class LoginViewController: UIViewController, UITextFieldDelegate {
     func  calledByTimer() {
         print("I WAS CALLED BY TIMER")
     }
+    
     func localAuthentication2() -> Void {
 
         print("i am inside local authentication")
@@ -483,14 +529,14 @@ class LoginViewController: UIViewController, UITextFieldDelegate {
     func  appInitilialization() {
         usernameTextField.text = ""
         passwordTextField.text = ""
-        biometricUIView.backgroundColor = UIColor.white
-        biometricUIViewLbl.backgroundColor = UIColor.white
-        rememberMeUIView.backgroundColor = UIColor.white
-        rememberMeUIViewLbl.backgroundColor = UIColor.white
+//        biometricUIView.backgroundColor = UIColor.white
+//        biometricUIViewLbl.backgroundColor = UIColor.white
+//        rememberMeUIView.backgroundColor = UIColor.white
+//        rememberMeUIViewLbl.backgroundColor = UIColor.white
         
         loginButton.isEnabled = false
-        rememberMeSwitch.isOn = false
-        biometricSwitchBtn.isOn = false
+//        rememberMeSwitch.isOn = false
+//        biometricSwitchBtn.isOn = false
         
 //        rememberMeSwitch.isEnabled = false
 //        biometricSwitchBtn.isEnabled = false
@@ -576,9 +622,12 @@ class LoginViewController: UIViewController, UITextFieldDelegate {
         usernameTextField.text =  ""
         usernameTextField.isEnabled = true
         passwordTextField.isEnabled = true
-        biometricLbl.text = "Enable Biometric"
-        displayRememberMeSelection()
-        displayBiometricSelection(imageName: "")
+        biometricLbl2.text = "Enable Biometric"
+        biometricSwitchBtn2.isHidden = false
+        biometricSwitchBtn2.isOn = false
+        
+//        displayRememberMeSelection()
+//        displayBiometricSelection(imageName: "")
         print("disableBiometric was called")
     }
 
@@ -1022,9 +1071,9 @@ class LoginViewController: UIViewController, UITextFieldDelegate {
         
         if passwordFieldIsEmpty == false && usernameFieldIsEmpty == false {
             print("A--")
-            if biometricSwitchBtn.isOn == true  {
+            if biometricSwitchBtn2.isOn == true  {
                 print("B--")
-                print("biometricSwitchBtn.isOn == true ")
+                print("biometricSwitchBtn2.isOn == true ")
                 
                 //if setupUsernamePasswordKeychain == true {
                     print("setupUsernamePasswordKeychain == true")
@@ -1323,6 +1372,7 @@ class LoginViewController: UIViewController, UITextFieldDelegate {
             NextVC.paymentClientToken = paymentClientToken
             NextVC.myProfileData = myprofiledata
             NextVC.encryptedAPIKey = encryptedAPIKeyUserName
+            NextVC.encryptedDeviceId = encryptedDeviceId
         } else if(segue.identifier == "goToReg") {
             let NextVC = segue.destination as! RegistrationViewController
             NextVC.message  = ""

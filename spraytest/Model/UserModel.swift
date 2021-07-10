@@ -27,6 +27,19 @@ struct OTPData: Model {
     let errorCode: String?
     let errorMessage: String?
 }
+struct SMSModel: Model {
+    let phone: String
+    let email: String
+    let code: String
+    let message: String
+    let profileId: Int64
+}
+struct SMSData: Model {
+    let success: Bool
+    let errorCode: String?
+    let errorMessage: String?
+}
+
 
 struct UserUpdateModel: Model {
     let firstName: String

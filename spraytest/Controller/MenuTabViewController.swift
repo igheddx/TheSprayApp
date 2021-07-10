@@ -20,6 +20,7 @@ class MenuTabViewController: UITabBarController {
     var dataTransferFrom = "transfer this string"
     var stripeOnboardingMessage: String = ""
     var encryptedAPIKey: String = ""
+    var encryptedDeviceId: String = ""
     
     override func viewDidLoad() {
         super.viewDidLoad()
@@ -64,6 +65,7 @@ class MenuTabViewController: UITabBarController {
                     homeViewController.myProfileData = myProfileData
                     homeViewController.stripeOnboardingMessage = stripeOnboardingMessage
                     homeViewController.encryptedAPIKey = encryptedAPIKey
+                    homeViewController.encryptedDeviceId = encryptedDeviceId
                 }
             }
         }

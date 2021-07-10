@@ -57,6 +57,9 @@ class EventPayment2ViewController: UIViewController, STPAddCardViewControllerDel
     var paymentClientToken: String = ""
     var eventName: String = ""
     var eventDateTime: String = ""
+    var eventOwnerName: String = ""
+    var eventOwnerId: Int64 = 0
+    var eventTypeIcon: String = ""
     var gifterTotalTransAmount: Int = 0
     var isReadyToSavePayment: Bool = false
     var completionAction: String = ""
@@ -76,11 +79,20 @@ class EventPayment2ViewController: UIViewController, STPAddCardViewControllerDel
     var updategfitamountdelegate:  UpdatedGiftAmountDelegate?
     var haspaymentdelegate: HasPaymentMethodDelegate?
     
+    var refreshscreendelegate: RefreshScreenDelegate?
+    var setuppaymentmethoddelegate: SetupPaymentMethodDelegate?
+    //var haspaymentdelegate: HasPaymentMethodDelegate?
+    
     var currencycode: String = "usd"
     var newPaymentMethodAdded: Bool = false
     var paymentMethodIconName: String = ""
     var encryptedAPIKey: String = ""
-    
+    var receiverName: String = ""
+    var isPaymentMethodAvailable: Bool = false
+    var isSingleReceiverEvent: Bool = false
+    var setRefreshScreen: Bool = false
+    var paymentMethod: Int = 0
+    var isRefreshScreen: Bool = false
     override func viewDidLoad() {
         super.viewDidLoad()
         
@@ -116,12 +128,19 @@ class EventPayment2ViewController: UIViewController, STPAddCardViewControllerDel
         
         tableView.register(CellClass.self, forCellReuseIdentifier: "Cell")
         
-        initiliazationTasks()
-        customeFieldStyling()
-        
-        getAvailablePaymentData()
-        getGifterTotalTransBalance()
-        loadSprayAmountOptions()
+        print("ViewDidLoad EventPayment2VC = isRefreshScreen = \(isRefreshScreen )")
+        if isRefreshScreen == false {
+            print("VIEWDID LOAD REFRESH - called")
+            initiliazationTasks()
+            customeFieldStyling()
+            
+            getAvailablePaymentData()
+            getGifterTotalTransBalance()
+            loadSprayAmountOptions()
+        } else  {
+            print("no VIEWDID LOAD REFRESH - SECOND TIME WAS REFRESHED FROM SETUPAYMENT")
+        }
+       
         
        
         //eventNameLabel.text = eventName + "\n \(eventDateTime)"
@@ -129,6 +148,17 @@ class EventPayment2ViewController: UIViewController, STPAddCardViewControllerDel
         // Do any additional setup after loading the view.
     }
     override func viewDidAppear(_ animated: Bool) {
+        print("ViewDidApp EventPayment2VC = isRefreshScreen = \(isRefreshScreen )")
+        if isRefreshScreen == true {
+            print("I WAS REFRESHED FROM SETUPAYMENT")
+            initiliazationTasks()
+            
+            getAvailablePaymentData()
+            getGifterTotalTransBalance()
+
+        } else {
+            print("viewDidAppear I WAS nOT REFRESHED FROM SETUPAYMENT")
+        }
         AppUtility.lockOrientation(.portrait)
         let somespace: CGFloat = 40
 
@@ -162,6 +192,9 @@ class EventPayment2ViewController: UIViewController, STPAddCardViewControllerDel
     }
     
     func closeScreen() {
+        refreshscreendelegate?.refreshScreen(isRefreshScreen:isRefreshScreen)
+        setuppaymentmethoddelegate?.passData(eventId: eventId, profileId: profileId, token: token, ApiKey: encryptedAPIKey,  eventName: eventName, eventDateTime: eventName, eventTypeIcon: eventTypeIcon, paymentClientToken: paymentClientToken, isSingleReceiverEvent: isSingleReceiverEvent, eventOwnerName: eventOwnerName, eventOwnerId: eventOwnerId)
+        haspaymentdelegate?.hasPaymentMethod(hasPaymentMethod: true, paymentMethodId: Int(newPaymentMethodId))
         if((self.presentingViewController) != nil){
             self.dismiss(animated: false, completion: nil)
             
@@ -175,7 +208,8 @@ class EventPayment2ViewController: UIViewController, STPAddCardViewControllerDel
     }
     
     @IBAction func launchPaymentScreenBtnPressed(_ sender: Any) {
-        launchStripePaymentScreen()
+        //launchStripePaymentScreen()
+        launchSetUpPaymentMethod()
     }
     @IBAction func saveEventPayment(_ sender: Any) {
         print(getSprayAmountInt(amountId: giftAmountSegConrol.selectedSegmentIndex, category: "addgiftamount"))
@@ -242,6 +276,7 @@ class EventPayment2ViewController: UIViewController, STPAddCardViewControllerDel
             Network.shared.send(request) { [self] (result: Result<Data, Error>)  in
                 switch result {
                 case .success(let eventpref): print(eventpref);
+                    isRefreshScreen = true
                     haspaymentdelegate?.hasPaymentMethod(hasPaymentMethod: true, paymentMethodId: Int(paymentMethodId))
                     self.completionAlert(message: "Update Was Successful", timer: 1)
                     //close payment window
@@ -350,6 +385,46 @@ class EventPayment2ViewController: UIViewController, STPAddCardViewControllerDel
         let navigationController = UINavigationController(rootViewController: addCardViewController)
           present(navigationController, animated: true)
     }
+    
+    func launchSetUpPaymentMethod() {
+      
+        let storyboard: UIStoryboard = UIStoryboard(name: "Main", bundle: Bundle.main)
+            let nextVC = storyboard.instantiateViewController(withIdentifier: "SetupPaymentMethodViewController") as! SetupPaymentMethodViewController
+
+       
+
+        nextVC.modalPresentationStyle = UIModalPresentationStyle.formSheet
+        nextVC.navigationController?.modalPresentationStyle = UIModalPresentationStyle.currentContext
+    
+
+        nextVC.eventId = self.eventId
+        nextVC.profileId = self.profileId
+        nextVC.token = token
+        nextVC.encryptedAPIKey = encryptedAPIKey
+        nextVC.eventName = eventName
+        nextVC.eventDateTime = eventDateTime
+        nextVC.eventTypeIcon = eventTypeIcon
+        nextVC.eventOwnerName = eventOwnerName
+        nextVC.eventOwnerId =  eventOwnerId
+//        nextVC.autoReplenishFlg = autoReplenishFlg
+//        nextVC.autoReplenishAmt = autoReplenishAmt
+        
+        nextVC.refreshscreendelegate = self
+        nextVC.haspaymentdelegate = self
+        //nextVC.refreshscreendelegate = self
+        nextVC.setuppaymentmethoddelegate = self
+//        
+        nextVC.paymentClientToken = paymentClientToken
+        nextVC.currentAvailableCredit =  availableBalance
+        self.present(nextVC, animated: true, completion: nil)
+        
+        //let nextVC = storyboard?.instantiateViewController(withIdentifier: "SetupPaymentMethodViewController") as! SetupPaymentMethodViewController
+      
+            
+       // self.navigationController?.pushViewController(nextVC , animated: true)
+        //}
+    }
+    
     func getAvailablePaymentData() {
         let request = Request(path: "/api/PaymentMethod/all/\(profileId)", token: token, apiKey: encryptedAPIKey)
         Network.shared.send(request) { [self] (result: Result<Data, Error>)  in
@@ -459,6 +534,7 @@ class EventPayment2ViewController: UIViewController, STPAddCardViewControllerDel
                         if eventPreferenceJson.count == 0 {
                             self.availableBalance = 0
                             self.currentBalance.text = "$" + String(self.availableBalance)
+                            print("count = 0 availableBalance = \(self.availableBalance)")
                             break
                         } else {
                             for eventPrefData in eventPreferenceJson {
@@ -486,11 +562,14 @@ class EventPayment2ViewController: UIViewController, STPAddCardViewControllerDel
                                     paymentMethodIconName = getPaymentMethodIcon(name: getPaymenthMethodName(paymentmethodid: eventPrefData.paymentMethod))
                                     
                                     
-                                    paymentMethodIcon.image = UIImage(named: paymentMethodIconName)
-                                    
+                                    //paymentMethodIcon.image = UIImage(named: paymentMethodIconName)
+                                    paymentMethodIcon.image = UIImage(named: "paymentInfoIcon")
                                     self.autoReplenishSwitch.isOn = eventPrefData.isAutoReplenish
+                                
                                     //self.availableBalance = eventPrefData.maxSprayAmount - self.gifterTotalTransAmount
                                     self.availableBalance = eventPrefData.maxSprayAmount
+                                    
+                                print("availableBalance = \(self.availableBalance)")
                                     self.currentBalance.text = "$" + String(self.availableBalance)
                                     print("autoreplish = \(eventPrefData.isAutoReplenish)")
                                     if eventPrefData.isAutoReplenish == true {
@@ -894,7 +973,7 @@ class EventPayment2ViewController: UIViewController, STPAddCardViewControllerDel
                 
                 paymentMethodIconName = getPaymentMethodIcon(name: paymentDescription)
                 
-                paymentMethodIcon.image = UIImage(named: paymentMethodIconName)
+                paymentMethodIcon.image = UIImage(named: "paymentInfoIcon")
                 
                 //self.btnSelectPayment.setTitle(self.getPaymenthMethodName(paymentmethodid: eventPrefData.paymentMethodDetails.paymentMethodId), for: .normal)
                 
@@ -1026,8 +1105,95 @@ extension EventPayment2ViewController: UITableViewDelegate, UITableViewDataSourc
         paymentMethodIconName = getPaymentMethodIcon(name: getPaymenthMethodName(paymentmethodid: Int(paymentId!)))
         
         print("paymentMethodIconName \(paymentMethodIconName)")
-        paymentMethodIcon.image = UIImage(named: paymentMethodIconName)
+        paymentMethodIcon.image = UIImage(named: "paymentInfoIcon")
         
         removeTransparentView()
+    }
+}
+
+extension EventPayment2ViewController:  RefreshScreenDelegate {
+    func refreshScreen(isRefreshScreen: Bool) {
+       
+        print("DID SOMEONE CALLED 2")
+        print("DID SOMEONE CALLED 2 =\(isRefreshScreen)")
+        self.setRefreshScreen = isRefreshScreen
+        self.isRefreshScreen = isRefreshScreen
+        print("refreshData Blabablabalba  function was called = \(self.setRefreshScreen)")
+        print(self.setRefreshScreen)
+        //print("refreshHomeScreenDate = \(isShowScreen)")
+        if self.setRefreshScreen == true {
+            
+            completionAction = "" //this is to avoid the need payment method prompt 7/6 may not need this, but hold on for now
+            
+            //getGifterTotalTransBalance()
+            //initializationTask()
+            
+            initiliazationTasks()
+            
+            getAvailablePaymentData()
+            getGifterTotalTransBalance()
+            
+            print("I REFERESHED THE SCREEN")
+            //customeFieldStyling()
+//            getAvailablePaymentData()
+//            //eventNameLabel.text = eventName + "\n \(eventDateTime)"
+//            //loadSprayAmountOptions()
+//            // Do any additional setup after loading the view.
+//            getEventPref()
+//            updateEventInfo()
+        }
+    }
+
+
+}
+
+extension EventPayment2ViewController:  SetupPaymentMethodDelegate {
+    func passData(eventId: Int64, profileId: Int64, token: String, ApiKey: String, eventName: String, eventDateTime: String, eventTypeIcon: String, paymentClientToken: String, isSingleReceiverEvent: Bool, eventOwnerName: String, eventOwnerId: Int64) {
+        self.eventId = eventId
+        self.profileId = profileId
+        self.eventName = eventName
+        //self.eventDateTime = eventDateTime
+        //self.eventTypeIcon = eventTypeIcon
+        self.paymentClientToken = paymentClientToken
+        self.isSingleReceiverEvent = isSingleReceiverEvent
+    
+        print("DID SOMEONE CALLED 1")
+        //7/7 comment this out for now - may revisit
+//        if self.isSingleReceiverEvent == false {
+//            launchSprayCandidate()
+//            circleMenu()
+//        } else {
+//            giftReceiverNameLbl.text = eventOwnerName
+//
+//            giftAmountReceived = 0
+//            giftReceiverId = eventOwnerId
+//            //self.displayNamelbl?.text = "Now Spraying, " + receivername
+//            //self.sprayTotalLblAmt?.text = " -- $0.00"
+//            receiverName =  eventOwnerName
+//            giftAmountReceivedLbl.text = "$" + String(giftAmountReceived)
+//
+//        }
+//        print("I am inside SetupPaymentMethodDelegate")
+//
+//        print("view did appear isRefreshScreen = \(setRefreshScreen)")
+//        //I called viewDidAppear
+        
+    }
+    
+
+}
+
+
+extension EventPayment2ViewController:  HasPaymentMethodDelegate {
+    func hasPaymentMethod(hasPaymentMethod: Bool, paymentMethodId: Int) {
+        
+        print("DID SOMEONE CALLED 3")
+        print("DID SOMEONE CALLED 3 =\(paymentMethodId)")
+        
+        isPaymentMethodAvailable = hasPaymentMethod
+        print("HasPaymentMethodDelegate was called isPaymentMethodAvailable = \(isPaymentMethodAvailable)")
+        if paymentMethodId > 0 {
+            paymentMethod = paymentMethodId
+        }
     }
 }

@@ -10,6 +10,9 @@
 
 import UIKit
 import AVFoundation
+import LocalAuthentication
+import CommonCrypto
+import SwiftKeychainWrapper
 
 class LoginQRScanViewController: UIViewController, UITextFieldDelegate {
     let customtextfield = CustomTextField()
@@ -17,7 +20,7 @@ class LoginQRScanViewController: UIViewController, UITextFieldDelegate {
     @IBOutlet weak var usernameTextField: UITextField!
     @IBOutlet weak var passwordTextField: UITextField!
 
-    @IBOutlet weak var rememberMeSwitch: Switch1!
+   // @IBOutlet weak var rememberMeSwitch: Switch1!
     
     @IBOutlet weak var rememberMeLbl: UILabel!
     //@IBOutlet weak var rememberMeLbl: UILabel!
@@ -31,6 +34,13 @@ class LoginQRScanViewController: UIViewController, UITextFieldDelegate {
     @IBOutlet weak var signInBtn: MyCustomButton! //UIButton!
     
     @IBOutlet weak var signUpBtn: NoNActiveActionButton!
+    
+    @IBOutlet weak var biometricLbl2: UILabel!
+   
+    @IBOutlet weak var biometricSwitchBtn2: UISwitch!
+    
+    @IBOutlet weak var biometricIcon: UIImageView!
+    
     let defaults = UserDefaults.standard
    // @IBOutlet weak var eventCodeTextField: UITextField!
     
@@ -57,6 +67,8 @@ class LoginQRScanViewController: UIViewController, UITextFieldDelegate {
     var eventTypeIcon: String = ""
     var eventCode: String = ""
     var eventType: String = ""
+    var formValidation =   Validation()
+    
     
     var db:DBHelper = DBHelper()
     var senderspraybalance: [SenderSprayBalance] = []
@@ -70,11 +82,120 @@ class LoginQRScanViewController: UIViewController, UITextFieldDelegate {
     var apiKeyValue: String = "9D8ED11F-CD8A-4E47-B1AC-B188AA8C032A" //this needs to come from a secured location"
     let device = Device()
     var encryptdecrypt = EncryptDecrpyt()
+    var isBiometricEnabled: Bool = false
+    var setupUsernamePasswordKeychain: Bool = false
+    var isKeyChainInUse: Bool = false
     
     override func viewDidLoad() {
         super.viewDidLoad()
         setNavigationBar()
         
+        
+        let context = LAContext()
+        CheckIfBiometricEnabled()
+        if isBiometricEnabled == true {
+          
+            //launch auto biometric if not logout and keychainInUse = true
+            let isKeyChainInUse = isKeyPresentInUserDefaults(key: "isKeyChainInUse")
+            
+            if ( context.biometryType == .touchID ) {
+                 print("touch Id enabled")
+                if isKeyChainInUse == true {
+                    biometricLbl2.text = "Touch ID is Enabled"
+                    biometricSwitchBtn2.isHidden = true
+                } else {
+                    biometricLbl2.text = "Enable Touch ID"
+                    biometricSwitchBtn2.isHidden = false
+                    biometricSwitchBtn2.isOn = false
+                }
+                
+                biometricIcon.image = UIImage(named: "touchid_icon")
+                //displayBiometricSelection(imageName: "touchid_icon")
+            } else if  ( context.biometryType == .faceID) {
+                if isKeyChainInUse == true {
+                    biometricLbl2.text = "Face ID is Enabled"
+                    biometricSwitchBtn2.isHidden = true
+                } else  {
+                    biometricLbl2.text = "Enable Face ID"
+                    biometricSwitchBtn2.isHidden = false
+                    biometricSwitchBtn2.isOn = false
+                }
+                
+                biometricIcon.image = UIImage(named: "faceid_icon")
+                //displayBiometricSelection(imageName: "faceid_icon")
+                print("face Id is enabled")
+            } else {
+                print("stone age")
+                biometricLbl2.text = ""
+                biometricSwitchBtn2.isHidden = true
+                biometricIcon.isHidden = true
+            }
+            
+            
+            if isKeyChainInUse == true && logout == false {
+                
+               
+                self.isKeyChainInUse = KeychainWrapper.standard.bool(forKey: "isKeyChainInUse")!
+                print("iskeychaininuse \(self.isKeyChainInUse )")
+                if (self.isKeyChainInUse  == true) {
+                    let usernamekeychainToDisplay = KeychainWrapper.standard.string(forKey: "usernameKeyChain")
+                    let username =  KeychainWrapper.standard.string(forKey: "usernameKeyChain")
+                    let password =  KeychainWrapper.standard.string(forKey: "passwordKeyChain")
+                    
+                    print("USERNAME =\(username)")
+                    print("USERNAME =\(password)")
+                    
+                    let value = redactUsername(username: usernamekeychainToDisplay!)
+                    print("value =\(value)")
+                    usernameTextField.text = redactUsername(username: usernamekeychainToDisplay!)
+                    usernameTextField.isEnabled = false
+                    processEnableBiometric()
+                }
+//            } else  {
+//                biometricLbl2.text = "Enable Biometric"
+//                biometricSwitchBtn2.isHidden = false
+//                biometricSwitchBtn2.isOn = false
+            }
+        
+        
+        } else  {
+//            biometricLbl.text = "Enable Biometric"
+//            biometricSwitchBtn2.isHidden = false
+//            biometricSwitchBtn2.isOn = false
+            //don't show it if it is not enabled
+            biometricLbl2.text = ""
+            biometricSwitchBtn2.isHidden = true
+            biometricIcon.isHidden = true
+//            displayBiometricSelection(imageName: "")
+//            displayRememberMeSelection()
+        }
+        
+        //preset biometric and remember swiftch based option biometric from setting
+        //let isKeyChainInUse = isKeyPresentInUserDefaults(key: "isKeyChainInUse")
+        
+        let checkEnableBiometricNextLogin = isKeyPresentInUserDefaults(key: "isEnablebiometricNextLogin")
+        if checkEnableBiometricNextLogin == true {
+            let isEnableBiometricNextLogin =
+                KeychainWrapper.standard.set(true, forKey: "isEnablebiometricNextLogin")
+            if isEnableBiometricNextLogin == true {
+                biometricSwitchBtn2.isOn = true
+//                rememberMeSwitch.isOn = true
+//                rememberMeSwitch.isEnabled = false
+            }
+        }
+        
+        var error: NSError?
+       if #available(iOS 13, *) {
+           print("this supported")
+           if context.canEvaluatePolicy(.deviceOwnerAuthenticationWithBiometrics, error: &error) {
+               //this is for success
+            print("this is for success")
+           }else{
+              //error.description for type error LAError.biometryLockout, .biometryNotEnrolled and other errors
+            print("error detaisl = \(LAError.biometryLockout) \(LAError.biometryNotEnrolled)")
+            print("this is for failure -")
+           }
+       }
         
         print("LoginQR = \(encryptedAPIKey)")
         NotificationCenter.default.addObserver(self, selector: #selector(keyboardWillShow(sender:)), name: UIResponder.keyboardWillShowNotification, object: nil);
@@ -87,9 +208,11 @@ class LoginQRScanViewController: UIViewController, UITextFieldDelegate {
         eventImageView.image = UIImage(named: eventTypeIcon)
         //eventCodeLabel.text = eventCode
         
-        rememberMeSwitch.isOn = false
+        //rememberMeSwitch.isOn = false
         appInitilialization()
-
+        
+        encryptedAPIKey = encryptdecrypt.encryptDecryptAPIKey(type: "", value: "", action: "encrypt")
+        
         eventUIView.layer.borderColor  = UIColor.lightGray.cgColor
         eventUIView.layer.shadowOffset = CGSize(width: 1, height: 1.0)
         eventUIView.layer.shadowOpacity  = 2.0
@@ -107,6 +230,13 @@ class LoginQRScanViewController: UIViewController, UITextFieldDelegate {
 
         self.passwordTextField.delegate = self
         self.usernameTextField.delegate = self
+    
+        
+        passwordTextField.addTarget(self, action: #selector(LoginQRScanViewController.textFieldDidChange(textField:)),
+                                  for: .editingChanged)
+        usernameTextField.addTarget(self, action: #selector(LoginQRScanViewController.textFieldDidChange(textField:)),
+                                  for: .editingChanged)
+        
         //self.eventCodeTextField.delegate = self
         
         //toggleTorch(on: true)
@@ -126,10 +256,112 @@ class LoginQRScanViewController: UIViewController, UITextFieldDelegate {
     
 
 //
-    
-    @IBAction func rememberMeBtnPressed(_ sender: Any) {
-    }
 
+    func CheckIfBiometricEnabled() {
+        let context = LAContext()
+        var error: NSError?
+        if context.canEvaluatePolicy(.deviceOwnerAuthenticationWithBiometrics, error: &error) {
+            self.isBiometricEnabled = true
+            print("isBiometricEnabled = true")
+        } else {
+            //no biometric
+            self.isBiometricEnabled = false
+            print("isBiometricEnabled = false")
+        }
+    }
+    func processEnableBiometric2() {
+        let context = LAContext()
+        var error: NSError? = nil
+        if context.canEvaluatePolicy(.deviceOwnerAuthenticationWithBiometrics, error: &error) {
+            let reason = "Please authenticate with Face or Touch Id"
+            context.evaluatePolicy(.deviceOwnerAuthenticationWithBiometrics, localizedReason: reason) { [weak self] success, error in
+                DispatchQueue.main.async {
+                    guard success, error == nil else {
+                        print("Failed to authenticate - Try again")
+                        //failed
+                        return
+                    }
+                    
+                    //show other screen
+                    //success
+                    print("This is successful")
+                }
+                
+                //show sother
+            }
+        } else {
+            //cannot use
+            print("not available - you cant use this feature")
+        }
+            
+    }
+        
+    func processEnableBiometric() {
+        let context = LAContext()
+        var error: NSError?
+        if context.canEvaluatePolicy(.deviceOwnerAuthenticationWithBiometrics, error: &error) {
+            let reason = "Identify yourself!"
+            
+            context.evaluatePolicy(.deviceOwnerAuthenticationWithBiometrics, localizedReason: reason) {[weak self] success, authenticationError in
+                DispatchQueue.main.async {
+                    if success {
+                        print("i called authenticationUser")
+                        print("II--")
+                        //self?.loginButton.loadIndicator(true)
+                        
+                        self?.signInBtn.loadIndicator(true)
+                        self?.signInBtn.setTitle("Securely Logging In...", for: .normal)
+                        self?.signInBtn.isEnabled = false
+                        
+                        self?.authenticateUser()
+                    } else {
+                        //error
+                        let ac = UIAlertController(title: "Authentication Failed", message: "You could not be verified, please try again.", preferredStyle: .alert)
+                        
+                        ac.addAction(UIAlertAction(title: "Ok", style: .default))
+                        self?.present(ac, animated: true)                    }
+                }
+            }
+             
+        } else {
+            //no biometric
+            let ac = UIAlertController(title: "Biometric unavailalbe", message: "Your device is not configured for biometric authentication", preferredStyle: .alert)
+            
+            ac.addAction(UIAlertAction(title: "OK", style: .default))
+            present(ac, animated: true)
+        }
+    }
+    
+    func  isKeyPresentInUserDefaults(key: String) -> Bool {
+        guard let _ = KeychainWrapper.standard.object(forKey: key) else {
+         return false;
+        }
+
+       return true;
+    }
+    
+    func redactUsername(username: String) -> String {
+        //let email = "asdfg.hjkl@gmail.com"
+        let atSign = username.firstIndex(of: "@") ?? username.endIndex
+        let userID = username[..<atSign]
+        let hiddenUserID = userID.replacingOccurrences(of: "(?<!^)[^.]", with: "*", options: .regularExpression)
+        return hiddenUserID
+        //print(hiddenUserID + email.suffix(from: atSign)) // a****.****@gmail.com
+    }
+    
+    func disableBiometric() {
+        removeCredentialFromKeyChain()
+        usernameTextField.text =  ""
+        usernameTextField.isEnabled = true
+        passwordTextField.isEnabled = true
+        biometricLbl2.text = "Enable Biometric"
+        biometricSwitchBtn2.isHidden = false
+        biometricSwitchBtn2.isOn = false
+        
+//        displayRememberMeSelection()
+//        displayBiometricSelection(imageName: "")
+        print("disableBiometric was called")
+    }
     
     func textFieldShouldReturn(_ textField: UITextField) -> Bool {
         switch textField {
@@ -145,6 +377,36 @@ class LoginQRScanViewController: UIViewController, UITextFieldDelegate {
         
         return true
     }
+    @objc func textFieldDidChange(textField: UITextField) {
+     
+        
+        if usernameTextField.text!.isEmpty || passwordTextField.text!.isEmpty {
+            signInBtn.isEnabled = false
+
+        } else {
+            signInBtn.isEnabled = true
+
+        }
+        let text = textField.text
+        
+      
+       
+        if text?.utf16.count==1{
+            switch textField{
+            case usernameTextField:
+                customtextfield.borderForTextField(textField: usernameTextField, validationFlag: false)
+            case passwordTextField:
+                customtextfield.borderForTextField(textField: passwordTextField, validationFlag: false)
+ 
+            default:
+                break
+            }
+        }else{
+
+        }
+
+    }
+    
     @objc func keyboardWillShow(sender: NSNotification) {
          self.view.frame.origin.y = -150 // Move view 150 points upward
     }
@@ -332,56 +594,307 @@ class LoginQRScanViewController: UIViewController, UITextFieldDelegate {
         return phonenumber
     }
 
-
-//
-//    func loadingIndicator() {
-//          //self.dismiss(animated: true, completion: nil)
-//
-//                let alert = UIAlertController(title: nil, message: "Securely Logging In, Please Wait...", preferredStyle: .alert)
-//
-//                alert.view.tintColor = UIColor.black
-//
-//                let loadingIndicator = UIActivityIndicatorView(frame: CGRect(x: 10, y: 5, width: 50, height: 50))
-//                loadingIndicator.hidesWhenStopped = true
-//                loadingIndicator.style = UIActivityIndicatorView.Style.medium
-//                loadingIndicator.startAnimating();
-//
-//                alert.view.addSubview(loadingIndicator)
-//                present(alert, animated: true, completion: nil)
-//    }
-    
-    
-    @IBAction func loginButtonPressed(_ sender: Any) {
-        encryptedAPIKey = ""
-        encryptedAPIKey = encryptdecrypt.encryptDecryptAPIKey(type: "", value: "", action: "encrypt")
+    func authenticateUser() {
         
-        usernameTextField.isEnabled = false
-        passwordTextField.isEnabled = false
-       
+        print("func authentication")
+        var proceedWithBiometricAuthentication: Bool = false
+        let usernameKeyChain = KeychainWrapper.standard.valueExists(forKey: "usernameKeyChain") //valueExists(forKey: "usernameKeyChain") //isKeyPresentInUserDefaults(key: "usernameKeyChain")
+        let passwordKeyChain =  KeychainWrapper.standard.valueExists(forKey: "passwordKeyChain") //KeychainWrapper.valueExists(forKey: "passwordKeyChain") //isKeyPresentInUserDefaults(key: "passwordKeyChain")
         
-        username = usernameTextField.text!
-        password = passwordTextField.text!
+        print("usernameKeyChain = \(usernameKeyChain)")
+        print("passwordKeyChain = \(passwordKeyChain)")
         
-      
-        if username != "" {
-            encryptedDeviceId = device.getDeviceId(userName: username)
-            //encryptedDeviceId = device.getDeviceId(userName: self.username!)
-            //device.sendDeviceInfo(encryptedAPIKey: encryptedAPIKey, encryptedDeviceId: encryptedDeviceId)
+        let username =  KeychainWrapper.standard.string(forKey: "usernameKeyChain")
+        let password =  KeychainWrapper.standard.string(forKey: "passwordKeyChain")
+        
+        print("keychain username =\(username)")
+        print("keychain password =\(password)")
+//        if(isKeyPresentInUserDefaults(key: "KeyToCheck")) {
+//        // exists
+//        }else {
+//        // doesn't exists
+//        }
+        if username != nil {
+          //Key exists
+            print("key chain exist")
+            proceedWithBiometricAuthentication = true
+        }
+        if proceedWithBiometricAuthentication == false {
+            print("proceedWithBiometricAuthentication = false")
+            self.signInBtn.loadIndicator(false)
+            self.signInBtn.isEnabled = true
+            self.signInBtn.setTitle("Sign In", for: .normal)
+            self.usernameTextField.isEnabled = true
+            self.passwordTextField.isEnabled = true
+            usernameTextField.becomeFirstResponder()
+            customtextfield.borderForTextField(textField:  usernameTextField, validationFlag: true)
+            //print("Incorrect Email")
+//            emailErrorLabel.text = "Incorrect Email"
+//            loadingLabel.text = "Incorrect Email"
+            let message = "Please login with your email and password to complete biometric setup."
+            //displayAlertMessage(displayMessage: message, textField: eventNameTextField)
+            self.theAlertView(alertType: "GenericError2", message: message)
+            setupUsernamePasswordKeychain = true
+            print("my setupUsernamePasswordKeychain = true")
+        } else {
+            print("proceedWithBiometricAuthentication = true")
+            let username =  KeychainWrapper.standard.string(forKey: "usernameKeyChain")
+            let password =  KeychainWrapper.standard.string(forKey: "passwordKeyChain")
+            
+            usernameTextField.text = redactUsername(username: username!)
             
     
-            print("I send device DEVICE")
-            /*5/29 this code will be removed before production. no need to sendDevice Info during loing
-            this is already establishe dwhen account was created */
+            encryptedDeviceId = device.getDeviceId(userName: username!)
             device.sendDeviceInfo(encryptedAPIKey: encryptedAPIKey, encryptedDeviceId: encryptedDeviceId)
             
-            print("username Encrypted = \(encryptedAPIKey)")
             usernameFieldIsEmpty = false
-            //usernameErrorLabel.text = ""
+            
+            startAuthentication(username: username!, password: password!)
+
+        }
+
+    }
+
+    func startAuthentication(username: String, password: String) {
+        signInBtn.loadIndicator(true)
+        signInBtn.setTitle("Securely Logging In...", for: .normal)
+        signInBtn.isEnabled = false
+
+        let authenticatedUserProfile = AuthenticateUser(username: username, password: password)
+        let request = PostRequest(path: "/api/profile/authenticate", model: authenticatedUserProfile, token: "", apiKey: encryptedAPIKey, deviceId: encryptedDeviceId)
+        print("REQUEST = \(request)")
+        print("USERNAME OUTSIDE = \(username)")
+        print("G")
+        Network.shared.send(request) { [self] (result: Result<Data, Error>)  in
+            switch result {
+            case .success(let user):
+                print("HH")
+                //processEnableBiometric()
+                let decoder = JSONDecoder()
+                do {
+                    let authUser = try decoder.decode(UserData.self, from: user)
+                    if let thetoken = authUser.token {
+                        self.token2pass = thetoken
+
+                        //self.userdata = user
+                        self.profileId = String(authUser.profileId!)
+                        
+                        print("old API Key = \(encryptedAPIKey)")
+                        
+                        print("USERNAME = \(username)")
+                        var encryptdecrypt = EncryptDecrpyt()
+                        encryptedAPIKeyUserName = encryptdecrypt.encryptDecryptAPIKey(type: "username", value: username, action: "encrypt")
+
+                        encryptedAPIKey = encryptedAPIKeyUserName
+                       
+                        //call func to get payment record onfile
+                       
+                        self.getProfileData(profileId1: authUser.profileId!, token1: authUser.token!)
+                        
+                        //call payment initialization
+//                        self.initializePayment(token: authUser.token!, profileId: authUser.profileId!, firstName: authUser.firstName!, lastName: authUser.lastName!, userName: authUser.email!, email: authUser.email!, phone: "")
+
+
+                    } else {
+                        self.signInBtn.loadIndicator(false)
+                        self.signInBtn.isEnabled = true
+                        self.signInBtn.setTitle("Sign In", for: .normal)
+                        self.usernameTextField.isEnabled = true
+                        self.passwordTextField.isEnabled = true
+
+                        theAlertView(alertType: "MissingFields", message: "")
+                    }
+                } catch {
+                }
+
+            case .failure(let error):
+                self.theAlertView(alertType: "IncorrecUserNamePassword", message: error.localizedDescription + " - /api/profile/authenticate")
+            }
+        }
+    }
+    
+    func storeCredentialInKeyChain() {
+        KeychainWrapper.standard.set(usernameTextField.text!, forKey: "usernameKeyChain")
+        KeychainWrapper.standard.set(passwordTextField.text!, forKey: "passwordKeyChain")
+        KeychainWrapper.standard.set(true, forKey: "isKeyChainInUse")
+        //(true, forKey: "isKeyChainInUse")
+    }
+    
+    func removeCredentialFromKeyChain(){
+        KeychainWrapper.standard.removeObject(forKey: "usernameKeyChain")
+        KeychainWrapper.standard.removeObject(forKey: "passwordKeyChain")
+        KeychainWrapper.standard.removeObject(forKey: "isKeyChainInUse")
+        
+       
+        let isEnableBiometricNextLoginExist = isKeyPresentInUserDefaults(key: "isEnablebiometricNextLogin")
+        if isEnableBiometricNextLoginExist == true {
+            KeychainWrapper.standard.removeObject(forKey: "isEnablebiometricNextLogin")
+        }
+    
+        
+        isKeyChainInUse = false
+    }
+    
+    @IBAction func loginButtonPressed(_ sender: Any) {
+//        encryptedAPIKey = ""
+//        encryptedAPIKey = encryptdecrypt.encryptDecryptAPIKey(type: "", value: "", action: "encrypt")
+//        
+//        usernameTextField.isEnabled = false
+//        passwordTextField.isEnabled = false
+//       
+//        
+//        username = usernameTextField.text!
+//        password = passwordTextField.text!
+//        
+//      
+//        if username != "" {
+//            encryptedDeviceId = device.getDeviceId(userName: username)
+//            //encryptedDeviceId = device.getDeviceId(userName: self.username!)
+//            //device.sendDeviceInfo(encryptedAPIKey: encryptedAPIKey, encryptedDeviceId: encryptedDeviceId)
+//            
+//    
+//            print("I send device DEVICE")
+//            /*5/29 this code will be removed before production. no need to sendDevice Info during loing
+//            this is already establishe dwhen account was created */
+//            device.sendDeviceInfo(encryptedAPIKey: encryptedAPIKey, encryptedDeviceId: encryptedDeviceId)
+//            
+//            print("username Encrypted = \(encryptedAPIKey)")
+//            usernameFieldIsEmpty = false
+//            //usernameErrorLabel.text = ""
+//        } else {
+//            usernameFieldIsEmpty = true
+//            usernameTextField.isEnabled = true
+//            usernameTextField.becomeFirstResponder()
+//            //theAlertView(alertType: "MissingFields", message: "")
+//        }
+//        
+//        if password != "" {
+//            passwordFieldIsEmpty = false
+//           // passwordErrorLabel.text = ""
+//        } else {
+//            passwordFieldIsEmpty = true
+//            passwordTextField.isEnabled = true
+//            passwordTextField.becomeFirstResponder()
+//            //userNamePasswordAlert()
+//            //theAlertView(alertType: "MissingFields", message: "")
+//           
+//        }
+//        
+//        if passwordFieldIsEmpty == false && usernameFieldIsEmpty == false {
+//           // encryptedDeviceId = device.getDeviceId(userName: username)
+//           //loadingIndicator()
+//        
+//            signInBtn.loadIndicator(true)
+//            signInBtn.setTitle("Securely Logging In...", for: .normal)
+//            signInBtn.isEnabled = false
+//            //eventCode = eventCodeTextField.text!
+//            
+//
+//            let authenticatedUserProfile = AuthenticateUser(username: self.username, password: self.password)
+//            let request = PostRequest(path: "/api/profile/authenticate", model: authenticatedUserProfile, token: "", apiKey: encryptedAPIKey, deviceId: encryptedDeviceId)
+//            
+//            print("encryptedAPIKey inside request = \(encryptedAPIKey)")
+//           print("the request =\(request)")
+//            //randomly generated phone number - to be changed later 
+//            //phone = ""//generatePhoneNumber()
+//            
+//            Network.shared.send(request) { [self] (result: Result<UserData, Error>)  in
+//                switch result {
+//                case .success(let user):
+//                    self.token2pass = user.token!
+//                    self.userdata = user
+//                    self.profileId = String(user.profileId!)
+//                    
+//                    print("before i call addToEvent")
+//                   
+//                    var encryptdecrypt = EncryptDecrpyt()
+//                    encryptedAPIKeyUserName = encryptdecrypt.encryptDecryptAPIKey(type: "username", value: username, action: "encrypt")
+//                    encryptedAPIKey = encryptedAPIKeyUserName
+//                    
+//                    
+////                    let encryptdecrypt = EncryptDecrpyt()
+////                    encryptedAPIKeyUserName = encryptdecrypt.encryptDecryptAPIKey(type: "username", value: self.username, action: "encrypt")
+////                    encryptedAPIKey = encryptedAPIKeyUserName
+//                    
+//                  
+//                    
+//                    
+//                    //add user to event
+//                   // if self.eventCode != "" {
+//                      //  self.getProfileData(profileId1: user.profileId!, token1: user.token!)
+//                        //self.addToEvent(profileId: user.profileId!, email: user.email!, phone: "", eventCode: eventCode, token: self.token2pass)
+//                    //} else {
+//                    self.getProfileData(profileId1: user.profileId!, token1: user.token!)
+//                        
+//                        //call payment initialization
+//                        //self.initializePayment(token: user.token!, profileId: user.profileId!, firstName: user.firstName!, lastName: user.lastName!, userName: user.email!, email: user.email!, phone: phone)
+//                        //call func to get payment record onfile
+//                        //self.getPaymentMethodRecord(profileId: user.profileId!, token: user.token!)
+//                        //capture profile data
+//                        
+//                    //}
+//                    
+//                    
+//                    print(" this is dominic \(user)")
+//                case .failure(let error):
+//
+//                    self.theAlertView(alertType: "IncorrecUserNamePassword", message: error.localizedDescription)
+//                }
+//            }
+//            
+//        } else {
+//            theAlertView(alertType: "MissingFields", message: "")
+//        }
+//        
+        
+        
+        
+        guard let  username = usernameTextField.text else {
+            return
+        }
+        usernameTextField.isEnabled = false
+        passwordTextField.isEnabled = false
+
+        
+        let isValidateUserName = self.formValidation.validateEmailId(emailID: username)
+        if (isValidateUserName == false) {
+            usernameTextField.becomeFirstResponder()
+            customtextfield.borderForTextField(textField:  usernameTextField, validationFlag: true)
+            //print("Incorrect Email")
+//            emailErrorLabel.text = "Incorrect Email"
+//            loadingLabel.text = "Incorrect Email"
+            let message = "Please correct email address format"
+            //displayAlertMessage(displayMessage: message, textField: eventNameTextField)
+            self.theAlertView(alertType: "GenericError2", message: message)
+         return
+        }else {
+            customtextfield.borderForTextField(textField: usernameTextField, validationFlag: false)
+            
+        }
+        
+       
+        password = passwordTextField.text!
+        
+        if username != "" {
+            self.username = username
+            encryptedDeviceId = device.getDeviceId(userName: username)
+            device.sendDeviceInfo(encryptedAPIKey: encryptedAPIKey, encryptedDeviceId: encryptedDeviceId)
+            
+            usernameFieldIsEmpty = false
+            
+            let udid = UIDevice.current.identifierForVendor?.uuidString
+            let name = UIDevice.current.name
+            //let version = UIDevice.current.systemVersion
+            let modelName = UIDevice.current.model
+
+            let deviceUID = udid! + name + modelName + "|" + username //old hold this for now 5/26
+            //let deviceUID = udid! + name + modelName //does not include userName
+            //print("device \(deviceUID)")
+            
         } else {
             usernameFieldIsEmpty = true
             usernameTextField.isEnabled = true
             usernameTextField.becomeFirstResponder()
-            //theAlertView(alertType: "MissingFields", message: "")
         }
         
         if password != "" {
@@ -391,78 +904,47 @@ class LoginQRScanViewController: UIViewController, UITextFieldDelegate {
             passwordFieldIsEmpty = true
             passwordTextField.isEnabled = true
             passwordTextField.becomeFirstResponder()
-            //userNamePasswordAlert()
-            //theAlertView(alertType: "MissingFields", message: "")
-           
         }
         
         if passwordFieldIsEmpty == false && usernameFieldIsEmpty == false {
-           // encryptedDeviceId = device.getDeviceId(userName: username)
-           //loadingIndicator()
-        
-            signInBtn.loadIndicator(true)
-            signInBtn.setTitle("Securely Logging In...", for: .normal)
-            signInBtn.isEnabled = false
-            //eventCode = eventCodeTextField.text!
-            
-
-            let authenticatedUserProfile = AuthenticateUser(username: self.username, password: self.password)
-            let request = PostRequest(path: "/api/profile/authenticate", model: authenticatedUserProfile, token: "", apiKey: encryptedAPIKey, deviceId: encryptedDeviceId)
-            
-            print("encryptedAPIKey inside request = \(encryptedAPIKey)")
-           print("the request =\(request)")
-            //randomly generated phone number - to be changed later 
-            //phone = ""//generatePhoneNumber()
-            
-            Network.shared.send(request) { [self] (result: Result<UserData, Error>)  in
-                switch result {
-                case .success(let user):
-                    self.token2pass = user.token!
-                    self.userdata = user
-                    self.profileId = String(user.profileId!)
-                    
-                    print("before i call addToEvent")
-                   
-                    var encryptdecrypt = EncryptDecrpyt()
-                    encryptedAPIKeyUserName = encryptdecrypt.encryptDecryptAPIKey(type: "username", value: username, action: "encrypt")
-                    encryptedAPIKey = encryptedAPIKeyUserName
-                    
-                    
-//                    let encryptdecrypt = EncryptDecrpyt()
-//                    encryptedAPIKeyUserName = encryptdecrypt.encryptDecryptAPIKey(type: "username", value: self.username, action: "encrypt")
-//                    encryptedAPIKey = encryptedAPIKeyUserName
-                    
-                  
-                    
-                    
-                    //add user to event
-                   // if self.eventCode != "" {
-                      //  self.getProfileData(profileId1: user.profileId!, token1: user.token!)
-                        //self.addToEvent(profileId: user.profileId!, email: user.email!, phone: "", eventCode: eventCode, token: self.token2pass)
-                    //} else {
-                    self.getProfileData(profileId1: user.profileId!, token1: user.token!)
-                        
-                        //call payment initialization
-                        //self.initializePayment(token: user.token!, profileId: user.profileId!, firstName: user.firstName!, lastName: user.lastName!, userName: user.email!, email: user.email!, phone: phone)
-                        //call func to get payment record onfile
-                        //self.getPaymentMethodRecord(profileId: user.profileId!, token: user.token!)
-                        //capture profile data
-                        
-                    //}
-                    
-                    
-                    print(" this is dominic \(user)")
-                case .failure(let error):
-
-                    self.theAlertView(alertType: "IncorrecUserNamePassword", message: error.localizedDescription)
+            print("A--")
+            if biometricSwitchBtn2.isOn == true  {
+                print("B--")
+                print("biometricSwitchBtn2.isOn == true ")
+                
+                //if setupUsernamePasswordKeychain == true {
+                    print("setupUsernamePasswordKeychain == true")
+                storeCredentialInKeyChain()
+                //}
+                
+                if isBiometricEnabled == false {
+                    print("C--")
+                    processEnableBiometric()
+                } else {
+                    print("D--")
+                    startAuthentication(username:  self.username, password: self.password)
                 }
+                //
+                //self.localAuthentication2()
+                
+                //self.processEnableBiometric()
+            } else {
+                print("E--")
+                    print("setup inside authentication = \(setupUsernamePasswordKeychain)")
+                    startAuthentication(username:  self.username, password: self.password)
             }
+            
+//                if setupUsernamePasswordKeychain == true {
+//                    print("setupUsernamePasswordKeychain == true")
+//                   storeCredentialInKeyChain()
+//                }
+                
+              
+            //}
             
         } else {
             theAlertView(alertType: "MissingFields", message: "")
         }
-        
-        
     }
     
     func theAlertView(alertType: String, message: String){

@@ -103,6 +103,7 @@ class HomeViewController: UIViewController, UITextFieldDelegate {
     var paymentCustomerId: String = ""
     var paymentConnectedActId: String = ""
     var encryptedAPIKey: String = ""
+    var encryptedDeviceId: String = ""
    // var myProfileData: [MyProfile] = []
     //var refreshscreendelegate: RefreshScreenDelegate?
     
@@ -1604,8 +1605,7 @@ class HomeViewController: UIViewController, UITextFieldDelegate {
             inviteFriendsVC.eventId = theEventId
             inviteFriendsVC.profileId = theProfileId
             inviteFriendsVC.token = token!
-            
-
+            inviteFriendsVC.encryptedDeviceId = encryptedDeviceId
         }
         
     }
@@ -2694,6 +2694,7 @@ extension HomeViewController:   MyEventsCustomCellDelegate  {
             nextVC.encryptedAPIKey = ApiKey
             nextVC.eventTypeIcon = eventTypeIcon
             nextVC.paymentClientToken  =  paymentClientToken
+            nextVC.encryptedDeviceId = encryptedDeviceId
             
 
             self.navigationController?.pushViewController(nextVC , animated: true)
