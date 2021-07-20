@@ -84,6 +84,14 @@ class SelectAttendeeToSprayViewController: UIViewController, UITableViewDelegate
     
     override func viewDidLoad() {
         super.viewDidLoad()
+        
+        tableView.tableFooterView = UIView(frame: .zero) //use to remove lines when no cell is returned
+        searchBar.text = ""
+        /*make the search bar background white*/
+        self.searchBar.isTranslucent = false
+        self.searchBar.backgroundImage = UIImage()
+        self.searchBar.barTintColor = .white
+        
         eventSettingBtn.isHidden = true
         //print("gifterBalanceAfterSpray \(gifterBalanceAfterSpray)")
         senderspraybalance = db.readSenderSprayBalanceById(eventId: eventId!, senderId: Int64(profileId!))
@@ -957,9 +965,25 @@ extension SelectAttendeeToSprayViewController: UISearchBarDelegate {
     }
     func searchBar(_ searchBar: UISearchBar, textDidChange searchText: String) {
         //contact = contacts.filter({$0.name.prefix(searchText.count) == searchText})
-        rsvpAttendees2 =  rsvpAttendees.filter({$0.firstName.lowercased().prefix(searchText.count) == searchText.lowercased()})
         
-        print("rsvpAttendees2 func searchbar = \(rsvpAttendees2)")
+        
+        if searchText.count > 0 {
+            rsvpAttendees2 =  rsvpAttendees.filter({$0.firstName.lowercased().prefix(searchText.count) == searchText.lowercased()})
+            
+            print("rsvpAttendees2 func searchbar = \(rsvpAttendees2)")
+        } else {
+            self.rsvpAttendees2.removeAll()
+            //contact = contacts
+            print("TABLE REFRESH WAS CALLED")
+            //tableView.reloadData()
+//            self.contact.removeAll()
+//            self.contacts.removeAll()
+//            self.rsvpAttendees.removeAll()
+//            self.invitees.removeAll()
+//            self.getInvitedGuest(eventId: self.eventId!)
+        }
+        
+        
        // contacts = contacts.filter({$0.lowercased().prefix(searchText.count) == searchText.lowercased()})
 //            //= //countryNameARr.fitler({$0.lowercased().prefix(searchText.count) == searchText.lowercased()})
 //        contact = contacts.filter {
@@ -984,9 +1008,13 @@ extension SelectAttendeeToSprayViewController: UISearchBarDelegate {
     func searchBarCancelButtonClicked(_ searchBar: UISearchBar) {
         searching = false
         searchBar.text = ""
-        rsvpAttendees.removeAll()
-        rsvpAttendees2.removeAll()
+        
+        //rsvpAttendees2.removeAll()
+        /*reset data*/
+        //rsvpAttendees2 = rsvpAttendees
         tableView.reloadData()
+        
+        print("I was cancelled")
     }
 }
 

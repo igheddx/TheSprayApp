@@ -350,10 +350,10 @@ class GoSprayViewController: UIViewController, UIViewControllerTransitioningDele
                 print("it was removed2")
            }
         }
-        sprayCandidateBtn.circleView.color = UIColor(red: 40/256, green: 82/256, blue: 122/256, alpha: 1.0)
+        sprayCandidateBtn.circleView.color = UIColor(red: 7/256, green: 104/256, blue: 159/256, alpha: 1.0)
             
             //old light blue UIColor(red: 138/256, green: 196/256, blue: 208/256, alpha: 1.0) //UIColor(red: 61/256, green: 126/256, blue: 166/256, alpha: 1.0)
-        mainMenuBtn.circleView.color = UIColor(red: 40/256, green: 82/256, blue: 122/256, alpha: 1.0)
+        mainMenuBtn.circleView.color = UIColor(red: 7/256, green: 104/256, blue: 159/256, alpha: 1.0)
         //old light blue UIColor(red: 138/256, green: 196/256, blue: 208/256, alpha: 1.0)
         
         sprayCandidateBtn.buttonDiameter = 45
@@ -1465,7 +1465,9 @@ class GoSprayViewController: UIViewController, UIViewControllerTransitioningDele
                                         //automatically increment by replenis amount
                                     print("CC")
                                     //increase gifterBalance
-                                    gifterBalance = gifterBalance +  autoReplenishAmount
+                                    //gifterBalance = gifterBalance +  autoReplenishAmount
+                                    print("gifterBalance = \(gifterBalance)")
+                                    gifterBalance = autoReplenishAmount
                                     giftBalanceLbl.text = currencySymbol + String(gifterBalance)
                                     
                                     UIView.transition(with: self.currencyImage,

@@ -49,11 +49,13 @@ class MenuViewController: UIViewController {
     var isBiometricSwitchFlag: Bool = false
     var biometricCellDesc: String = ""
     var biometricCellIcon: String = ""
-    
+    var setstatusbarbgcolor = StatusBarBackgroundColor()
     override func viewDidLoad() {
         super.viewDidLoad()
         
         let isKeyChainInUse = isKeyPresentInUserDefaults(key: "isKeyChainInUse")
+        
+        tableView.tableFooterView = UIView(frame: .zero)
         
         let context = LAContext()
         CheckIfBiometricEnabled()
@@ -152,7 +154,7 @@ class MenuViewController: UIViewController {
     override func viewDidAppear(_ animated: Bool) {
         //menulists = MenuListData()
         
-       
+        setstatusbarbgcolor.setBackground()
         deSelectReloadData()
         AppUtility.lockOrientation(.portrait)
         

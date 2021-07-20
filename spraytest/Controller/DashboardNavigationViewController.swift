@@ -21,7 +21,7 @@ class DashboardNavigationViewController: UINavigationController {
 //        UINavigationBar.appearance().shadowImage = UIImage()
 //        // Do any additional setup after loading the view.
         
-        UINavigationBar.appearance().barTintColor = .white
+       /* UINavigationBar.appearance().barTintColor = .white
         //previous colore
         //UIColor(red: 40/256, green: 82/256, blue: 122/256, alpha: 1.0)
         UINavigationBar.appearance().backgroundColor = .white
@@ -30,7 +30,18 @@ class DashboardNavigationViewController: UINavigationController {
         UINavigationBar.appearance().isTranslucent = false
         
         UINavigationBar.appearance().setBackgroundImage(UIImage(named: ""), for: .default)
-        UINavigationBar.appearance().shadowImage = UIImage(named: "")
+        UINavigationBar.appearance().shadowImage = UIImage(named: "")*/
+        
+        
+        
+        UINavigationBar.appearance().barTintColor = UIColor(red: 244/256, green: 209/256, blue: 96/256, alpha: 1.0)
+            //UIColor(red: 138/256, green: 196/256, blue: 208/256, alpha: 1.0)
+        UINavigationBar.appearance().tintColor = .black //UIColor(red: 244/256, green: 209/256, blue: 96/256, alpha: 1.0)
+            //UIColor(red: 138/256, green: 196/256, blue: 208/256, alpha: 1.0) //.black
+        UINavigationBar.appearance().backgroundColor = UIColor(red: 244/256, green: 209/256, blue: 96/256, alpha: 1.0)
+        UINavigationBar.appearance().titleTextAttributes = [NSAttributedString.Key.foregroundColor: UIColor.black]
+        UINavigationBar.appearance().isTranslucent = false
+        
     }
     
 

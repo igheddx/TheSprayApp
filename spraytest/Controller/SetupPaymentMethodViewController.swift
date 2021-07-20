@@ -96,7 +96,7 @@ class SetupPaymentMethodViewController: UIViewController, STPAuthenticationConte
         let button = UIButton(type: .custom)
         button.layer.cornerRadius = 5
         //button.backgroundColor = UIColor(red: 138/256, green: 196/256, blue: 208/256, alpha: 1.0)//.systemBlue
-        button.backgroundColor = UIColor(red: 40/256, green: 82/256, blue: 122/256, alpha: 1.0)
+        button.backgroundColor = UIColor(red: 7/256, green: 104/256, blue: 159/256, alpha: 1.0)
         button.titleLabel?.font = UIFont.systemFont(ofSize: 22)
         button.setTitle("Add Payment Method", for: .normal)
         button.layer.borderWidth = 1.0

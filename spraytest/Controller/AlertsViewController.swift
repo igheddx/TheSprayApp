@@ -25,7 +25,7 @@ class AlertsViewController: UIViewController, UITableViewDelegate, UITableViewDa
         navigationController?.navigationBar.prefersLargeTitles = true
        
         navigationController?.navigationBar.topItem?.backBarButtonItem = UIBarButtonItem(title: "", style: .plain, target: nil, action: nil)
-        
+        navigationController?.navigationBar.backgroundColor = UIColor(red: 244/256, green: 209/256, blue: 96/256, alpha: 1.0)
         // Do any additional setup after loading the view.
     }
     
@@ -48,6 +48,25 @@ class AlertsViewController: UIViewController, UITableViewDelegate, UITableViewDa
         1
     }
     
+
+    override func viewDidAppear(_ animated: Bool) {
+        navigationController?.navigationBar.backgroundColor = UIColor(red: 244/256, green: 209/256, blue: 96/256, alpha: 1.0)
+       
+        AppUtility.lockOrientation(.portrait)
+       
+         // print("isRefreshData  Did Appear 2 \(isRefreshData)")
+    }
+    override func viewWillAppear(_ animated: Bool) {
+        print("View will appear was called")
+        //LoadingStart(message: "Loading...")
+       
+    }
+    override func viewWillDisappear(_ animated: Bool) {
+        super.viewWillDisappear(animated)
+        
+        // Don't forget to reset when view is being removed
+        AppUtility.lockOrientation(.all)
+    }
     
     
     func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {

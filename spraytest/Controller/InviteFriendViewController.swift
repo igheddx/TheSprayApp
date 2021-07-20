@@ -55,18 +55,25 @@ class InviteFriendViewController: UIViewController, UITableViewDelegate, UITable
     var searching = false
     var encryptedAPIKey: String = ""
     var resetCheckmark: Bool = false
+    var isRecordUpdated: Bool = false
     
     override func viewDidLoad() {
         super.viewDidLoad()
         tableView.delegate = self
         tableView.dataSource = self
+        tableView.tableFooterView = UIView(frame: .zero) //use to remove lines when no cell is returned
+        tableView.allowsMultipleSelection = true
         
         searchBar.text = ""
+        /*make the search bar background white*/
+        self.searchBar.isTranslucent = false
+        self.searchBar.backgroundImage = UIImage()
+        self.searchBar.barTintColor = .white
+      
         
         navigationController?.navigationBar.topItem?.backBarButtonItem = UIBarButtonItem(title: "", style: .plain, target: nil, action: nil)
         
         //tableView.allowsMultipleSelectionDuringEditing = true self.navigationItem.rightBarButtonItem = editButtonItem
-        tableView.allowsMultipleSelection = true
         
         contactStore.requestAccess(for: .contacts) { (success, error) in
             if success {
@@ -301,6 +308,18 @@ class InviteFriendViewController: UIViewController, UITableViewDelegate, UITable
             
             }
         }
+        
+        /*do this when invite is sent - we want to retain
+         the search criteria and the results when the invite
+         was subnitted
+         */
+        
+        if isRecordUpdated == true {
+            self.searchBar.becomeFirstResponder()
+            let searchCriteria = searchBar.text!
+            self.searchBar(self.searchBar, textDidChange: searchCriteria)
+        }
+       
         
         tableView.reloadData()
          print("STEP 12  fetContacts2() - tableView.reloadData()")
@@ -561,7 +580,8 @@ class InviteFriendViewController: UIViewController, UITableViewDelegate, UITable
         //only update data if condition is true
         if postJoinEventData == true {
             
-            resetCheckmark == false //reset checkmarks after update
+            resetCheckmark = false //reset checkmarks after update
+            isRecordUpdated = false
             
             let joinTheEvent = JoinEvent(joinList: joineventlist)
             //}
@@ -592,6 +612,7 @@ class InviteFriendViewController: UIViewController, UITableViewDelegate, UITable
                     //self.messageLabel.textColor = UIColor(red: 32/256, green: 106/256, blue: 93/256, alpha: 1.0)
                     print("AWELE IGHEDOSA - ")
                     self.resetCheckmark = true
+                    self.isRecordUpdated = true
                     self.joineventlist.removeAll()
                     self.contact.removeAll()
                     self.contacts.removeAll()
@@ -641,11 +662,13 @@ class InviteFriendViewController: UIViewController, UITableViewDelegate, UITable
     func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
         if searching {
             return contact.count
+//        } else {
+//            return contacts.count
         } else {
-            return contacts.count
+            return 0
         }
         
-       }
+    }
   
 
     func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
@@ -676,18 +699,21 @@ class InviteFriendViewController: UIViewController, UITableViewDelegate, UITable
                 //cell.backgroundColor = UIColor(red: 0.1, green: 0.1, blue: 0.92, alpha: 1)
             }
             
-        } else {
+        }
+        
+        /* comment out - going to search first to show data
+        else {
             if contacts[indexPath.row].isRSVP == true || contacts[indexPath.row].isInvited == true {
                 cell.selectionStyle = .none
                 cell.accessoryType = UITableViewCell.AccessoryType.none
             }
-            
+
             cell.nameLbl.text = contacts[indexPath.row].name
             cell.name = contacts[indexPath.row].name
             cell.avatarInitial.image = cell.imageWith(name: contacts[indexPath.row].name)
             attendeeNameSelected = contacts[indexPath.row].name
             cell.phoneLbl.text = contacts[indexPath.row].phone
-                
+
             if contacts[indexPath.row].isRSVP == true {
                 //cell.backgroundColor = .green
                 cell.backgroundColor = UIColor(red: 206/255, green: 229/255, blue: 208/255, alpha: 1)
@@ -697,7 +723,7 @@ class InviteFriendViewController: UIViewController, UITableViewDelegate, UITable
             } else {
                 cell.backgroundColor = UIColor.white
             }
-        }
+        } */
 
         return cell
     }
@@ -712,7 +738,10 @@ class InviteFriendViewController: UIViewController, UITableViewDelegate, UITable
                     invitees.remove(at: index)
                 }
             }
-        } else {
+        }
+        
+        /*  comment out - going to search first to show data*
+        else {
             if tableView.cellForRow(at: indexPath)?.accessoryType == UITableViewCell.AccessoryType.checkmark {
                 tableView.cellForRow(at: indexPath)?.accessoryType = UITableViewCell.AccessoryType.none
                 let index = invitees.firstIndex{ $0.phone == contacts[indexPath.row].phone && $0.name == contacts[indexPath.row].name}
@@ -721,7 +750,7 @@ class InviteFriendViewController: UIViewController, UITableViewDelegate, UITable
                     //print("invitees object after delete (non-search) = \(invitees)")
                 }
             }
-        }
+        } */
     }
     func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath) {
         let bgColorView = UIView()
@@ -756,7 +785,10 @@ class InviteFriendViewController: UIViewController, UITableViewDelegate, UITable
             //self.invitees[indexPath.row] = Invitees(name: contact[indexPath.row].name, phone: contact[indexPath.row].phone, email: "me@mail.com", sentInvite: false)
             invitees.append(inviteeRecord)
             
-         } else {
+         }
+        
+        /* comment out - going to search first to show data
+         else {
 
             if contacts[indexPath.row].isRSVP == true || contacts[indexPath.row].isInvited == true {
                 
@@ -773,7 +805,7 @@ class InviteFriendViewController: UIViewController, UITableViewDelegate, UITable
             }
             let inviteeRecord = Invitees(name: contacts[indexPath.row].name, phone: contacts[indexPath.row].phone, email: contacts[indexPath.row].email, sentInvite: contacts[indexPath.row].isInvited)
                         invitees.append(inviteeRecord)
-        }
+        } */
     }
     
     func tableView(_ tableView: UITableView, commit editingStyle: UITableViewCell.EditingStyle, forRowAt indexPath: IndexPath) {
@@ -813,7 +845,7 @@ class InviteFriendViewController: UIViewController, UITableViewDelegate, UITable
         //layer.masksToBounds = true
         
         //61, 126, 166 – Hcolor
-        button.backgroundColor = UIColor(red: 40/256, green: 82/256, blue: 122/256, alpha: 1.0)
+        button.backgroundColor = UIColor(red: 7/256, green: 104/256, blue: 159/256, alpha: 1.0)
             
             //old UIColor(red: 138/256, green: 196/256, blue: 208/256, alpha: 1.0)
             //UIColor(red: 61/256, green: 126/256, blue: 166/256, alpha: 1.0)
@@ -877,7 +909,26 @@ extension InviteFriendViewController: UISearchBarDelegate {
         self.searchBar.endEditing(true)
     }
     func searchBar(_ searchBar: UISearchBar, textDidChange searchText: String) {
-        contact = contacts.filter({$0.name.prefix(searchText.count) == searchText})
+        //contact = contacts.filter({$0.name.prefix(searchText.count) == searchText})
+        if searchText.count > 0 {
+            contact = contacts.filter({$0.name.prefix(searchText.count) == searchText})
+            
+            print("contact = \(contact)")
+            print("text was selected ---")
+        } else {
+            self.contact.removeAll()
+            //contact = contacts
+            print("TABLE REFRESH WAS CALLED")
+            //tableView.reloadData()
+//            self.contact.removeAll()
+//            self.contacts.removeAll()
+//            self.rsvpAttendees.removeAll()
+//            self.invitees.removeAll()
+//            self.getInvitedGuest(eventId: self.eventId!)
+        }
+        
+        
+        
        // contacts = contacts.filter({$0.lowercased().prefix(searchText.count) == searchText.lowercased()})
 //            //= //countryNameARr.fitler({$0.lowercased().prefix(searchText.count) == searchText.lowercased()})
 //        contact = contacts.filter {
@@ -902,8 +953,14 @@ extension InviteFriendViewController: UISearchBarDelegate {
     func searchBarCancelButtonClicked(_ searchBar: UISearchBar) {
         searching = false
         searchBar.text = ""
-        contact.removeAll()
-        contacts.removeAll()
+//        contact.removeAll()
+//        contacts.removeAll()
+        
+        self.contact.removeAll()
+        //contact = contacts
+        print("TABLE REFRESH WAS CALLED")
         tableView.reloadData()
+        
+       // tableView.reloadData()
     }
 }

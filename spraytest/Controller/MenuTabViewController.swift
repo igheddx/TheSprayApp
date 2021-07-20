@@ -52,8 +52,18 @@ class MenuTabViewController: UITabBarController {
             }
         }
 
+        /*for viewController in viewControllers {
+            if let menuTabViewController = viewController as? MenuTabViewController {
+                if let loginViewController = menuTabViewController.viewControllers?.first as? ScannerViewController {
+    //                    loginViewController.profileId = profileId
+    //                    loginViewController.token = token
+                }
+            }
+        }*/
+        
                 
         for viewController in viewControllers {
+            
             if let homeNavigationController = viewController as? HomeNavigationViewController {
                 if let homeViewController = homeNavigationController.viewControllers.first as? HomeViewController {
                     homeViewController.profileId = profileId!
@@ -71,17 +81,63 @@ class MenuTabViewController: UITabBarController {
         }
         
         
+        /*menu tab for getting to dashboard - hold for now 7/11
         for viewController in viewControllers {
+            print("viewControllers = \(viewControllers)")
             if let dashboardNavigationController = viewController as? DashboardNavigationViewController {
-                if let dashboardViewController = dashboardNavigationController.viewControllers.first as? DashboardViewController {
-                    dashboardViewController.profileId = profileId!
-                    dashboardViewController.token = token!
-                    dashboardViewController.paymentClientToken = paymentClientToken
-                    dashboardViewController.encryptedAPIKey = encryptedAPIKey
+                if let dashboardViewController =
+                    
+                    dashboardNavigationController.viewControllers.first as? QRScanner2ViewController {
+                    
+                    print("I AM HERE")
+//                    dashboardViewController.profileId = profileId!
+//                    dashboardViewController.token = token!
+//                    dashboardViewController.paymentClientToken = paymentClientToken
+//                    dashboardViewController.encryptedAPIKey = encryptedAPIKey
                     
                 }
             }
+        }*/
+         
+        
+        
+        /*use this to call join event scannerViewController*/
+        for viewController in viewControllers {
+            if let dashboardNavigationController = viewController as? DashboardNavigationViewController {
+                if let dashboardViewController = dashboardNavigationController.viewControllers.first as? QRScanner2ViewController {
+                    dashboardViewController.completionAction = "postloginscan"
+                    dashboardViewController.profileId = profileId!
+                    dashboardViewController.myProfileData = myProfileData
+                    dashboardViewController.token = token!
+                    dashboardViewController.encryptedAPIKey = encryptedAPIKey
+//                    dashboardViewController.profileId = profileId!
+//                    dashboardViewController.completionAction = "postloginscan"
+//                    dashboardViewController.token = token!
+//                    dashboardViewController.myProfileData = myProfileData
+//                    //dashboardViewController.paymentClientToken = paymentClientToken
+//                    dashboardViewController.encryptedAPIKey = encryptedAPIKey
+
+                }
+            }
         }
+//
+        /*
+        for viewController in viewControllers {
+            if let menuTabViewController = viewController as? MenuTabViewController {
+                if let scanViewController = menuTabViewController.viewControllers?.first as? ScannerViewController {
+    //                    loginViewController.profileId = profileId
+    //                    loginViewController.token = token
+                    scanViewController.profileId = profileId!
+                    scanViewController.completionAction = "postloginscan"
+                    scanViewController.token = token!
+                    scanViewController.myProfileData = myProfileData
+                    //dashboardViewController.paymentClientToken = paymentClientToken
+                    scanViewController.encryptedAPIKey = encryptedAPIKey
+                }
+            }
+        }*/
+        
+      
     
     }
 }

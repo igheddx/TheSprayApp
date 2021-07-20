@@ -57,7 +57,7 @@ class HomeViewController: UIViewController, UITextFieldDelegate {
     var stripeBalancePending = [AmountCurrency]() //new data
     var infoBoardMetric =  [BalanceAmountCurrency]()
     
-    
+    var setstatusbarbgcolor = StatusBarBackgroundColor()
     
     @IBOutlet weak var tableView: UITableView!
     //@IBOutlet weak var lablemessage: UILabel!
@@ -116,8 +116,26 @@ class HomeViewController: UIViewController, UITextFieldDelegate {
 //        ])
         
         self.tabBarController?.delegate = self
+        setstatusbarbgcolor.setBackground()
         
-        if #available(iOS 13.2, *) {
+       // UIApplication.shared.statusBarView?.backgroundColor = UIColor.red
+       /* if #available(iOS 13.0, *) {
+                   let statusBar = UIView(frame: UIApplication.shared.keyWindow?.windowScene?.statusBarManager?.statusBarFrame ?? CGRect.zero)
+                    statusBar.backgroundColor = UIColor.init(red: 244/255, green: 209/255, blue: 96/255, alpha: 1.0)
+                    UIApplication.shared.keyWindow?.addSubview(statusBar)
+            print("NOAH")
+            //rgb(244, 209, 96)
+        } else {
+                
+            print("NAYLA")
+//            var statusBarManager: UIView? {
+//                  return  value(forKey: "statusBarManager") as? UIView
+//            }
+                UIApplication.shared.statusBarManager?.backgroundColor = UIColor.init(red: 237/255, green: 85/255, blue: 61/255, alpha: 1.0)
+        } */
+        /*comment out for now 7/11
+         
+         if #available(iOS 13.2, *) {
             print("i am here statusBarManager")
             let statusBar = UIView(frame: UIApplication.shared.keyWindow?.windowScene?.statusBarManager?.statusBarFrame ?? CGRect.zero)
              statusBar.backgroundColor = UIColor.init(red: 255/250, green: 255/250, blue: 255/250, alpha: 1)
@@ -129,7 +147,7 @@ class HomeViewController: UIViewController, UITextFieldDelegate {
             //    }
              UIApplication.shared.statusBarManager?.backgroundColor = UIColor.init(red: 255/250, green: 255/250, blue: 255/250, alpha: 1)
             
-        }
+        } */
 
         
         
@@ -193,7 +211,7 @@ class HomeViewController: UIViewController, UITextFieldDelegate {
         //self.rightBarButton.titleLabel.text = @"Test";
         //self.navigationItem.rightBarButtonItem = UIBarButtonItem(title: "Dominic", style: UIBarButtonItem.Style.plain, target: self, action: #selector(handleClick))
         
-        setStatusBarColor()
+        //setStatusBarColor()  commented out for now
         
 //        NotificationCenter.default.addObserver(self, selector: Selector(("keyboardWillShow:")), name:UIResponder.keyboardWillShowNotification, object: nil);
 //        NotificationCenter.default.addObserver(self, selector: Selector(("keyboardWillHide:")), name:UIResponder.keyboardWillHideNotification, object: nil);
@@ -274,25 +292,26 @@ class HomeViewController: UIViewController, UITextFieldDelegate {
             self.tabBarController?.tabBar.isHidden = false
         }
         print("isRefreshData = \(isRefreshData)")
+        setstatusbarbgcolor.setBackground()
         // print("View Did Appear isEventEdited = \(isEventEdited)")
 //        if isEventEdited == true {
 //            clearData()
 //        }
         
-        if #available(iOS 13.2, *) {
-            print("i am here statusBarManager")
-            let statusBar = UIView(frame: UIApplication.shared.keyWindow?.windowScene?.statusBarManager?.statusBarFrame ?? CGRect.zero)
-             statusBar.backgroundColor = UIColor.init(red: 255/250, green: 255/250, blue: 255/250, alpha: 1)
-             UIApplication.shared.keyWindow?.addSubview(statusBar)
-        } else {
-            print("i am here - nope didn't work statusBarManager")
-            //   var statusBarManager: UIView? {
-            //      return value(forKey: "statusBarManager") as? UIView
-            //    }
-             UIApplication.shared.statusBarManager?.backgroundColor = UIColor.init(red: 255/250, green: 255/250, blue: 255/250, alpha: 1)
-            
-        }
-        
+//        if #available(iOS 13.2, *) {
+//            print("i am here statusBarManager")
+//            let statusBar = UIView(frame: UIApplication.shared.keyWindow?.windowScene?.statusBarManager?.statusBarFrame ?? CGRect.zero)
+//             statusBar.backgroundColor = UIColor.init(red: 255/250, green: 255/250, blue: 255/250, alpha: 1)
+//             UIApplication.shared.keyWindow?.addSubview(statusBar)
+//        } else {
+//            print("i am here - nope didn't work statusBarManager")
+//            //   var statusBarManager: UIView? {
+//            //      return value(forKey: "statusBarManager") as? UIView
+//            //    }
+//             UIApplication.shared.statusBarManager?.backgroundColor = UIColor.init(red: 255/250, green: 255/250, blue: 255/250, alpha: 1)
+//            
+//        }
+//        
         //uncommented this so that getMyEvents is not called on initial load of screen
         if isRefreshData == true {
            // print("isRefreshData Did Appear 1 = \(isRefreshData)")
@@ -317,17 +336,21 @@ class HomeViewController: UIViewController, UITextFieldDelegate {
        
          // print("isRefreshData  Did Appear 2 \(isRefreshData)")
     }
+    
     override func viewWillAppear(_ animated: Bool) {
+           super.viewWillAppear(animated)
+           navigationController?.isHiddenHairline = true
         print("View will appear was called")
-        //LoadingStart(message: "Loading...")
-       
-    }
-    override func viewWillDisappear(_ animated: Bool) {
-        super.viewWillDisappear(animated)
-        
-        // Don't forget to reset when view is being removed
+       }
+
+       override func viewWillDisappear(_ animated: Bool) {
+           super.viewWillDisappear(animated)
+           navigationController?.isHiddenHairline = false
         AppUtility.lockOrientation(.all)
-    }
+       }
+    
+   
+ 
     
     @objc func keyboardWillShow(sender: NSNotification) {
          self.view.frame.origin.y = -150 // Move view 150 points upward
@@ -729,14 +752,15 @@ class HomeViewController: UIViewController, UITextFieldDelegate {
 
                let statusBar1 =  UIView()
                statusBar1.frame = UIApplication.shared.keyWindow?.windowScene?.statusBarManager!.statusBarFrame as! CGRect
-               statusBar1.backgroundColor = UIColor.white
+               statusBar1.backgroundColor = UIColor(red: 138/256, green: 196/256, blue: 208/256, alpha: 1.0) //UIColor.white
 
                UIApplication.shared.keyWindow?.addSubview(statusBar1)
     
             } else {
 
                let statusBar1: UIView = UIApplication.shared.value(forKey: "statusBar") as! UIView
-               statusBar1.backgroundColor = UIColor.white
+               statusBar1.backgroundColor = UIColor(red: 138/256, green: 196/256, blue: 208/256, alpha: 1.0)
+                //UIColor.white
                
             }
 
@@ -2865,3 +2889,11 @@ extension HomeViewController: UITabBarControllerDelegate {
        }
 }
 
+//extension UIApplication {
+//    var statusBarView: UIView? {
+//        if responds(to: Selector(("statusBar"))) {
+//            return value(forKey: "statusBar") as? UIView
+//        }
+//        return nil
+//    }
+//}

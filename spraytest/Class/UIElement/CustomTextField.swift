@@ -46,7 +46,7 @@ class CustomTextField {
             
             textField.layer.cornerRadius = 6.0
             textField.layer.masksToBounds = true
-            textField.layer.borderColor = UIColor(red: 0/256, green: 0/256, blue: 0/256, alpha: 1.0 ).cgColor
+            textField.layer.borderColor = UIColor(red: 154/256, green: 154/256, blue: 154/256, alpha: 1.0 ).cgColor
             textField.layer.borderWidth = 1.0
             textField.borderStyle = .none
         //yes error
@@ -59,7 +59,27 @@ class CustomTextField {
         }
    }
 
-        
+
+    func activeBorderForTextField(textField: UITextField, isActive: Bool) {
+        //no error
+        if isActive == false {
+            
+            textField.layer.cornerRadius = 6.0
+            textField.layer.masksToBounds = true
+            textField.layer.borderColor = UIColor(red: 154/256, green: 154/256, blue: 154/256, alpha: 1.0 ).cgColor
+            textField.layer.borderWidth = 1.0
+            textField.borderStyle = .none
+        //yes error
+        } else {
+            textField.layer.cornerRadius = 6.0
+            textField.layer.masksToBounds = true
+            textField.layer.borderColor = UIColor(red: 162/256, green: 213/256, blue: 242/256, alpha: 1.0 ).cgColor
+            textField.layer.borderWidth = 1.0
+            textField.borderStyle = .none
+            //rgb(162, 213, 242)
+            //rgb(64, 168, 196)
+        }
+   }
     
 }
 

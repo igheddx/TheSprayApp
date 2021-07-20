@@ -41,12 +41,14 @@ class SelectPersonToSprayViewController: UIViewController {
         tableView.dataSource = self
         searchBar.delegate = self
         
-        searchBar.searchBarStyle = .minimal
+        tableView.tableFooterView = UIView(frame: .zero) //use to remove lines when no cell is returned
+//        tableView.separatorStyle = .none
+//        searchBar.searchBarStyle = .minimal
         //searchBar.backgroundImage = UIImage()
         searchBar.layer.borderWidth = 0
         //searchBar.barTintColor = UIColor.white
         searchBar.layer.masksToBounds = false
-        tableView.separatorStyle = .none
+        
         //tableView.layer.borderColor  = UIColor.lightGray.cgColor
        //        sprayCardView.layer.shadowOffset = CGSize(width: 1, height: 1.0)
        //        sprayCardView.layer.shadowOpacity  = 1.0
@@ -162,7 +164,14 @@ extension SelectPersonToSprayViewController: UISearchBarDelegate {
     }
     func searchBar(_ searchBar: UISearchBar, textDidChange searchText: String) {
         //contact = contacts.filter({$0.name.prefix(searchText.count) == searchText})
-        rsvpAttendees2 =  rsvpAttendees.filter({$0.firstName.lowercased().prefix(searchText.count) == searchText.lowercased()})
+        if searchText.count > 0 {
+            rsvpAttendees2 =  rsvpAttendees.filter({$0.firstName.lowercased().prefix(searchText.count) == searchText.lowercased()})
+        } else {
+            self.rsvpAttendees2.removeAll()
+            //contact = contacts
+            print("TABLE REFRESH WAS CALLED")
+        }
+        
         
         
         searching = true
@@ -173,7 +182,7 @@ extension SelectPersonToSprayViewController: UISearchBarDelegate {
     func searchBarCancelButtonClicked(_ searchBar: UISearchBar) {
         searching = false
         searchBar.text = ""
-        rsvpAttendees.removeAll()
+        //rsvpAttendees.removeAll()
         rsvpAttendees2.removeAll()
         tableView.reloadData()
     }

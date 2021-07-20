@@ -33,6 +33,7 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
     func application(_ application: UIApplication, didFinishLaunchingWithOptions launchOptions: [UIApplication.LaunchOptionsKey: Any]?) -> Bool {
         // Override point for customization after application launch.
         
+        
         AppCenter.start(withAppSecret: "ec81818c-6d8c-452d-9011-85b7ecbf8a5e", services:[
           Analytics.self,
             Crashes.self, Distribute.self
@@ -127,4 +128,13 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
 //    }
       
 }
+
+//extension UIApplication {
+//
+//    var statusBarView: UIView? {
+//        return value(forKey: "statusBar") as? UIView
+//    }
+//
+//}
+
 

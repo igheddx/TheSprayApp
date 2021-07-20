@@ -51,7 +51,7 @@ class EventUIView: UIButton {
         super.awakeFromNib()
         
         //UIColor(red: 40/256, green: 82/256, blue: 122/256, alpha: 1.0)
-        let sprayBlue = UIColor(red: 40/256, green: 82/256, blue: 122/256, alpha: 1.0)
+        let sprayBlue = UIColor(red: 7/256, green: 104/256, blue: 159/256, alpha: 1.0)
         layer.borderWidth = 0.5
         layer.borderColor  = sprayBlue.cgColor
         layer.shadowOffset = CGSize(width: 0.5, height: 0.5)
@@ -224,7 +224,7 @@ class SecondaryActionBtn : UIButton{
         
         layer.cornerRadius = self.frame.height / 2
         //backgroundColor = UIColor(red: 61/256, green: 126/256, blue: 166/256, alpha: 1.0) old
-        backgroundColor = UIColor(red: 40/256, green: 82/256, blue: 122/256, alpha: 1.0)
+        backgroundColor = UIColor(red: 7/256, green: 104/256, blue: 159/256, alpha: 1.0)
         
         clipsToBounds = true
         tintColor = UIColor.white
@@ -256,7 +256,7 @@ class CircleActionBtn : UIButton{
         
         layer.cornerRadius = 0.5 * self.bounds.size.width
         //self.frame.height / 2
-        backgroundColor = UIColor(red: 40/256, green: 82/256, blue: 122/256, alpha: 1.0) //UIColor(red: 251/256, green: 238/256, blue: 172/256, alpha: 1.0)
+        backgroundColor = UIColor(red: 7/256, green: 104/256, blue: 159/256, alpha: 1.0) //UIColor(red: 251/256, green: 238/256, blue: 172/256, alpha: 1.0)
         //251, 238, 172
         clipsToBounds = true
         //tintColor = UIColor.white
@@ -323,7 +323,7 @@ class SecondaryActiveActionButton: UIButton {
         //layer.borderWidth = 1
         //layer.borderColor =  UIColor(red: 138/256, green: 196/256, blue: 208/256, alpha: 1.0).cgColor //old color
         
-        layer.borderColor = UIColor(red: 40/256, green: 82/256, blue: 122/256, alpha: 1.0).cgColor
+        layer.borderColor = UIColor(red: 7/256, green: 104/256, blue: 159/256, alpha: 1.0).cgColor
         //138,196,208
         
         //61, 126, 166 – Hcolor
@@ -354,8 +354,12 @@ class MyCustomButton : UIButton{
         
         //61, 126, 166 – Hcolor
         //backgroundColor = UIColor(red: 138/256, green: 196/256, blue: 208/256, alpha: 1.0) //light blu
-        backgroundColor = UIColor(red: 40/256, green: 82/256, blue: 122/256, alpha: 1.0)
+        backgroundColor = UIColor(red: 7/256, green: 104/256, blue: 159/256, alpha: 1.0)
             //UIColor(red: 61/256, green: 126/256, blue: 166/256, alpha: 1.0)
+        //rgb(7, 104, 159)
+        
+        //red: 40/256, green: 82/256, blue: 122/256, alpha: 1.0
+        
         layer.cornerRadius = 4
         layer.shadowColor = UIColor.white.cgColor
         layer.shadowOffset = CGSize(width: 2, height: 2)

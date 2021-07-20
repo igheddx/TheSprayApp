@@ -59,7 +59,7 @@ class ScannerViewController: UIViewController {
     override func viewDidLoad() {
         super.viewDidLoad()
         
-        navigationController?.navigationBar.topItem?.backBarButtonItem = UIBarButtonItem(title: "", style: .plain, target: nil, action: nil)
+        setNavigationBar()
         
         for myprofile in myProfileData {
             firstname = myprofile.firstName
@@ -74,6 +74,39 @@ class ScannerViewController: UIViewController {
         }
         
         openScanner()
+    }
+
+    func setNavigationBar() {
+        print("I was called")
+        let screenSize: CGRect = UIScreen.main.bounds
+        let navBar = UINavigationBar(frame: CGRect(x: 0, y: 35, width: screenSize.width, height: 44))
+        let navItem = UINavigationItem(title: "")
+        let image = UIImage(named: "closeicon")!.withRenderingMode(.alwaysOriginal)
+        
+        //self.navigationController?.navigationBar.topItem?.title = "Your Title"
+
+     
+        
+        //let NavTitle = navBar.topItem?.title = "Scan"
+        
+        //self.navigationController?.navigationBar.topItem?.title = "Scan"
+        navItem.title = "Scan QR Code"
+        //let doneItem = UIBarButtonItem(image: image, style: .plain, target: nil, action: #selector(done))
+          // navItem.leftBarButtonItem = doneItem
+        navBar.setItems([navItem], animated: false)
+           self.view.addSubview(navBar)
+    }
+    
+    //returns user to login when back button is pressed
+    @objc func done() {
+        let loginVC = self.storyboard?.instantiateViewController(withIdentifier: "LoginViewController") as? LoginViewController
+        let window = UIApplication.shared.windows.first
+
+        // Embed loginVC in Navigation Controller and assign the Navigation Controller as windows root
+        let nav = UINavigationController(rootViewController: loginVC!)
+        window?.rootViewController = nav
+
+       self.navigationController?.popToRootViewController(animated: true)
     }
     
    func openScanner() {

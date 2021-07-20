@@ -56,12 +56,21 @@ class EventMetricsViewController: UIViewController, ChartViewDelegate, UITableVi
     var eventmetricsspraydetails3: [EventMetricsSprayDetails] = []
     var encryptedAPIKey: String = ""
     
+    var isForSearch: Bool = false
+    
     override func viewDidLoad() {
         super.viewDidLoad()
         tableView.delegate = self
         tableView.dataSource = self
         thePieChart.delegate = self
-       
+        tableView.tableFooterView = UIView(frame: .zero)
+        
+        searchBar.text = ""
+        /*make the search bar background white*/
+        self.searchBar.isTranslucent = false
+        self.searchBar.backgroundImage = UIImage()
+        self.searchBar.barTintColor = .white
+        
         //pieChart.delegate = self
         self.navigationItem.title = "Event Metrics"
    
@@ -281,6 +290,9 @@ class EventMetricsViewController: UIViewController, ChartViewDelegate, UITableVi
         print("chartValueSelected")
         // Extract the SliceType from the selected value
         //highlight.x
+        searching = false
+        searchBar.text = ""
+        
         if let dataSet = thePieChart.data?.dataSets[ highlight.dataSetIndex] {
 
                 let sliceIndex: Int = dataSet.entryIndex( entry: entry)
@@ -345,10 +357,13 @@ class EventMetricsViewController: UIViewController, ChartViewDelegate, UITableVi
                         let data1 = EventMetricsSprayDetails(lastName: sprayData.lastName, firstName: sprayData.firstName, totalAmount: sprayData.totalAmount, recordType: "Receiver")
                         
                         eventmetricsspraydetails2.append(data1)
+                        
+                        
                     case false:
                         let data1 = EventMetricsSprayDetails(lastName: sprayData.lastName, firstName: sprayData.firstName, totalAmount: sprayData.totalAmount, recordType: "Receiver")
                         
                         eventmetricsspraydetails.append(data1)
+                        print("chart getReceiverSprayDetailss was SELECTED")
                     default:
                         break
                     }
@@ -361,6 +376,7 @@ class EventMetricsViewController: UIViewController, ChartViewDelegate, UITableVi
                 print(error)
             }
             
+            eventmetricsspraydetails3.removeAll()
             tableView.reloadData()
       
         case .failure(let error):
@@ -391,6 +407,7 @@ class EventMetricsViewController: UIViewController, ChartViewDelegate, UITableVi
                     case false:
                         let data1 = EventMetricsSprayDetails(lastName: sprayData.lastName, firstName: sprayData.firstName, totalAmount: sprayData.totalAmount, recordType: "Sender")
                         eventmetricsspraydetails.append(data1)
+                        print("chart getSenderSprayDetails was SELECTED")
                     default:
                         break
                     }
@@ -402,6 +419,7 @@ class EventMetricsViewController: UIViewController, ChartViewDelegate, UITableVi
                 print(error)
             }
             
+            eventmetricsspraydetails3.removeAll()
             tableView.reloadData()
       
         case .failure(let error):
@@ -445,6 +463,14 @@ class EventMetricsViewController: UIViewController, ChartViewDelegate, UITableVi
         return cell
     }
     
+    
+    func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath) {
+        let bgColorView = UIView()
+        bgColorView.backgroundColor = UIColor(red: 249/255, green: 249/255, blue: 249/255, alpha: 1)//UIColor.red
+
+        tableView.cellForRow(at: indexPath)?.selectedBackgroundView = bgColorView
+    }
+    
     /*
     // MARK: - Navigation
 
@@ -464,7 +490,17 @@ extension EventMetricsViewController: UISearchBarDelegate {
         //if searchText == "" {
           print("searchText \(searchText)")
        // } else {
+        if searchText.count > 0 {
+            searching = true
             eventmetricsspraydetails3 =  eventmetricsspraydetails2.filter({$0.firstName.lowercased().prefix(searchText.count) == searchText.lowercased()})
+        } else {
+            searching = false
+            eventmetricsspraydetails3.removeAll()
+            eventmetricsspraydetails = eventmetricsspraydetails2
+            
+            print("eventmetricsspraydetails DOMINIC =\(eventmetricsspraydetails)")
+        }
+           
             
         //}
         print("eventmetricsspraydetails3 \(eventmetricsspraydetails3)")
@@ -485,7 +521,7 @@ extension EventMetricsViewController: UISearchBarDelegate {
         //*** this is good
     
         
-        searching = true
+        
         tableView.reloadData()
     }
     

@@ -94,6 +94,13 @@ class LoginViewController: UIViewController, UITextFieldDelegate {
     
     override func viewDidLoad() {
         super.viewDidLoad()
+        
+        //usernameTextField.becomeFirstResponder()
+        
+        /*global setting for searchBar this affects invite and select to spray search bar - */
+        let cancelButtonAttributes = [NSAttributedString.Key.foregroundColor: UIColor(red: 7/256, green: 104/256, blue: 122/256, alpha: 1.0)]
+         UIBarButtonItem.appearance().setTitleTextAttributes(cancelButtonAttributes , for: .normal)
+        
         //reeet all default values
         
         //let key128   = "1234567890123456"                   // 16 bytes for AES128
@@ -451,8 +458,13 @@ class LoginViewController: UIViewController, UITextFieldDelegate {
         print("textFieldDidBeginEditing")
         
         switch textField{
+        case usernameTextField:
+            customtextfield.activeBorderForTextField(textField: usernameTextField, isActive: true)
+            customtextfield.activeBorderForTextField(textField: passwordTextField, isActive: false)
         case passwordTextField:
-           
+            customtextfield.activeBorderForTextField(textField: passwordTextField, isActive: true)
+            customtextfield.activeBorderForTextField(textField: usernameTextField, isActive: false)
+            
             if isKeyChainInUse == true {
                 self.view.endEditing(true)
                 //if passwordTextField.isFirstR
@@ -474,40 +486,25 @@ class LoginViewController: UIViewController, UITextFieldDelegate {
     //        }else{
 
     }
-//    func textFieldShouldBeginEditing(_ textField: UITextField) -> Bool {
-////        print("isKeyChainInUse = UNA \(isKeyChainInUse)")
-////
-////        let text = textField.text
-////
-////
-////
-////        //if text?.utf16.count==0{
-////            switch textField{
-//////            case usernameTextField:
-//////                customtextfield.borderForTextField(textField: usernameTextField, validationFlag: false)
-////            case passwordTextField:
-////                if isKeyChainInUse == true {
-////                    //if passwordTextField.isFirstR
-////                    print("isKeyChainInUse = UNA 222 \(isKeyChainInUse)") //esponder == true {
-////                        let alert = UIAlertController(title: "Please Confirm", message: "You are about to disable your Face ID. If you continue, to use these features again, you will need to re-enroll", preferredStyle: .actionSheet)
-////
-////                        //alert.addAction(UIAlertAction(title: "Cancel", style: .default, handler: { [self] (action) in }))
-////                        alert.addAction(UIAlertAction(title: "Cancel", style: .cancel, handler: nil))
-////                        alert.addAction(UIAlertAction(title: "Continue", style: .default, handler: { [self] (action) in disableBiometric()}))
-////
-////                        self.present(alert, animated: true)
-////
-////                    //}
-////                }
-////
-////            default:
-////                break
-////            }
-//////        }else{
-//////
-//////        }
-//       return false
-//    }
+    /*func textFieldShouldBeginEditing(_ textField: UITextField) -> Bool {
+        //print("isKeyChainInUse = UNA \(isKeyChainInUse)")
+
+        //let text = textField.text
+
+            switch textField{
+                case usernameTextField:
+                    customtextfield.activeBorderForTextField(textField: usernameTextField, isActive: true)
+                    customtextfield.activeBorderForTextField(textField: passwordTextField, isActive: false)
+                case passwordTextField:
+                    customtextfield.activeBorderForTextField(textField: passwordTextField, isActive: true)
+                    customtextfield.activeBorderForTextField(textField: usernameTextField, isActive: false)
+        
+                    default:
+                    break
+            }
+
+       return true
+    }*/
     
     
     func textFieldShouldReturn(_ textField: UITextField) -> Bool {
@@ -589,9 +586,12 @@ class LoginViewController: UIViewController, UITextFieldDelegate {
         if text?.utf16.count==1{
             switch textField{
             case usernameTextField:
-                customtextfield.borderForTextField(textField: usernameTextField, validationFlag: false)
+                customtextfield.activeBorderForTextField(textField: usernameTextField, isActive: true)
+                customtextfield.activeBorderForTextField(textField: passwordTextField, isActive: false)
             case passwordTextField:
-                customtextfield.borderForTextField(textField: passwordTextField, validationFlag: false)
+                
+                customtextfield.activeBorderForTextField(textField: passwordTextField, isActive: true)
+                customtextfield.activeBorderForTextField(textField: usernameTextField, isActive: false)
  
             default:
                 break

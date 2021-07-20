@@ -194,7 +194,7 @@ class CreateEventViewController: UIViewController {
         AppUtility.lockOrientation(.portrait)
             // Or to rotate and lock
             // AppUtility.lockOrientation(.portrait, andRotateTo: .portrait)
-        scroll2Top()
+        // scroll2Top()  - comment out for now 7/13
     }
     
     override func viewWillDisappear(_ animated: Bool) {

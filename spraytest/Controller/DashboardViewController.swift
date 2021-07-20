@@ -74,7 +74,8 @@ class DashboardViewController: UIViewController, ChartViewDelegate, UITableViewD
         tableView.delegate = self
         tableView.dataSource = self
         thePieChart.delegate = self
-       
+        tableView.tableFooterView = UIView(frame: .zero)
+        
         self.navigationItem.title = "My Dashboard"
    
         navigationItem.largeTitleDisplayMode = .automatic

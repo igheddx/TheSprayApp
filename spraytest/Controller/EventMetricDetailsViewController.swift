@@ -60,6 +60,7 @@ class EventMetricDetailsViewController: UIViewController, UITableViewDelegate, U
         
         tableView.delegate = self
         tableView.dataSource = self
+        tableView.tableFooterView = UIView(frame: .zero)
         
         eventNameLabel.text = eventName
         eventDateTimeLabel.text = eventDateTime
