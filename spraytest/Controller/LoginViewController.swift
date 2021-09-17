@@ -91,9 +91,23 @@ class LoginViewController: UIViewController, UITextFieldDelegate {
     var isBiometricEnabled: Bool = false
     var setupUsernamePasswordKeychain: Bool = false
     var isKeyChainInUse: Bool = false
+    var countryData = CountryData()
     
     override func viewDidLoad() {
         super.viewDidLoad()
+        
+        let countries = NSLocale.isoCountryCodes.map { (code:String) -> String in
+            let id = NSLocale.localeIdentifier(fromComponents: [NSLocale.Key.countryCode.rawValue: code])
+            return NSLocale(localeIdentifier: "en_US").displayName(forKey: NSLocale.Key.identifier, value: id) ?? "Country not found for code: \(code)"
+        }
+
+        print(countries)
+        
+        let locale = Locale.current
+        
+        let mycurrency = countryData.getCurrencyCode(regionCode: locale.regionCode!)
+        print("mycurrency = \(mycurrency)")
+        print("my region =\(locale.regionCode)")
         
         //usernameTextField.becomeFirstResponder()
         
@@ -286,7 +300,10 @@ class LoginViewController: UIViewController, UITextFieldDelegate {
         customtextfield.borderForTextField(textField: passwordTextField, validationFlag: false)
         customtextfield.borderForTextField(textField: usernameTextField, validationFlag: false)
         if logout == true {
+            print("LOGOUT = TRUE")
             logoutCleanUp()
+        } else {
+            print("LOGOUT = FALSE ")
         }
     }
     
@@ -667,6 +684,8 @@ class LoginViewController: UIViewController, UITextFieldDelegate {
         eventCode = ""
         myprofiledata.removeAll()
         cleanUserDefaults()
+        
+        print("PROFILE LOGOUT = \(profileId)")
     }
     
     //biometric authentication
@@ -746,6 +765,19 @@ class LoginViewController: UIViewController, UITextFieldDelegate {
     }
     
     @IBAction func launchScanner(_ sender: Any) {
+        
+        //QRScanner2ViewController
+        
+        let nextVC = storyboard?.instantiateViewController(withIdentifier: "QRScanner2ViewController") as! QRScanner2ViewController
+        
+        nextVC.completionAction = ""
+//        nextVC.profileId = profileId
+//        nextVC.myProfileData = myProfileData
+//        nextVC.token = token!
+//        nextVC.encryptedAPIKey = encryptedAPIKey
+//
+        self.navigationController?.pushViewController(nextVC , animated: true)
+        
     }
     
     @IBAction func privacyPolicyBtnPressed(_ sender: Any) {
@@ -1208,6 +1240,7 @@ class LoginViewController: UIViewController, UITextFieldDelegate {
             }
             
         
+            print("BIG PHONE NUMBER \(profileData.phone)")
             //add profile record into object to be used later
             let data1 = MyProfile(token: "", profileId: profileId1, firstName: profileData.firstName, lastName: profileData.lastName, userName: profileData.userName, email: profileData.email, phone: profileData.phone, avatar: profileData.avatar, paymentCustomerId: profileData.paymentCustomerId, paymentConnectedActId: profileData.paymentConnectedActId, success: true, returnUrl: "", refreshUrl: "",  hasValidPaymentMethod: profileData.hasValidPaymentMethod, defaultPaymentMethod: profileData.defaultPaymentMethod, defaultPaymentMethodCustomName: defaultEventPaymentCustomName)
             self.myprofiledata.append(data1)

@@ -38,6 +38,7 @@ struct AddPayment: Model {
     let paymentType: Int64?
     let paymentDescription: String?
     let paymentExpiration: String?
+    let currency: String
     let profileId: Int64?
 }
 
@@ -58,6 +59,7 @@ struct PaymentTypeData: Decodable  {
     let paymentDescription: String?
     let paymentExpiration: String?
     let defaultPaymentMethod: Bool?
+    let currency: String?
     let success: Bool?
     let errorCode: String?
     let errorMessage: String?
@@ -72,6 +74,7 @@ struct PaymentTypeData2: Decodable  {
     let paymentDescription: String?
     let paymentExpiration: String?
     let defaultPaymentMethod: Bool?
+    let currency: String?
     let paymentImage: String?
     
     

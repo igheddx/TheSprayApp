@@ -41,11 +41,11 @@ struct Request: Requestable {
 
     func urlRequest() -> URLRequest {
         //guard let url = URL(string: "https://projectxapiapp.azurewebsites.net")?.appendingPathComponent(path) else {
-        let url = URL(string: "https://projectxapiapp.azurewebsites.net")
+        let url = URL(string: "https://projectxapi-dev.azurewebsites.net")
         let urlWithPath = url.flatMap { URL(string: $0.absoluteString + path) }
         
         guard let url2 = urlWithPath else {
-        //guard let url = URL(string: "https://projectxapiapp.azurewebsites.net")?.appendingPathComponent(path) else {
+        //guard let url = URL(string: "https://projectxapiapp-dev.azurewebsites.net")?.appendingPathComponent(path) else {
                 
             Log.assertFailure("Failed to create base url")
             return URLRequest(url: URL(fileURLWithPath: ""))
@@ -149,7 +149,8 @@ struct PostRequest<Model: Encodable>: Requestable {
     
 
     func urlRequest() -> URLRequest {
-        guard let url = URL(string: "https://projectxapiapp.azurewebsites.net")?.appendingPathComponent(path) else {
+        //https://projectxapiapp.azurewebsites.net old
+        guard let url = URL(string: "https://projectxapi-dev.azurewebsites.net")?.appendingPathComponent(path) else {
             Log.assertFailure("Failed to create base url")
             return URLRequest(url: URL(fileURLWithPath: ""))
         }
@@ -180,6 +181,54 @@ struct PostRequest<Model: Encodable>: Requestable {
            
         } catch let error {
             Log.assertFailure("Post request model parsing failed: \(error.localizedDescription)")
+        }
+
+        return urlRequest
+    }
+}
+
+
+struct PutRequest<Model: Encodable>: Requestable {
+    let path: String
+    let model: Model
+    let token: String
+    let apiKey: String
+    let deviceId: String
+    
+
+    func urlRequest() -> URLRequest {
+        //https://projectxapiapp.azurewebsites.net old
+        guard let url = URL(string: "https://projectxapi-dev.azurewebsites.net")?.appendingPathComponent(path) else {
+            Log.assertFailure("Failed to create base url")
+            return URLRequest(url: URL(fileURLWithPath: ""))
+        }
+//        var accessToken: String?
+//
+//        if accessToken == "" || token != "" {
+//             accessToken = token
+//        } else {
+//            accessToken = ""
+//        }
+       
+        print("apikey from request = \(apiKey)")
+        print("deviceId from request = \(deviceId)")
+        
+        var urlRequest = URLRequest(url: url)
+        urlRequest.httpMethod = "PUT"
+        urlRequest.setValue("*/*", forHTTPHeaderField: "Accept")
+        urlRequest.setValue("application/json", forHTTPHeaderField: "Content-Type")
+        urlRequest.setValue("Bearer " + token, forHTTPHeaderField: "Authorization")
+        urlRequest.setValue(apiKey, forHTTPHeaderField: "X-Api-Key")
+        urlRequest.setValue(deviceId, forHTTPHeaderField: "X-DeviceId")
+        
+        do {
+            let encoder = JSONEncoder()
+            let data = try encoder.encode(model)
+            urlRequest.httpBody = data
+            urlRequest.setValue("application/json", forHTTPHeaderField: "Content-Type")
+           
+        } catch let error {
+            Log.assertFailure("PUT request model parsing failed: \(error.localizedDescription)")
         }
 
         return urlRequest

@@ -43,15 +43,17 @@ class MyInvitationsTableViewCell: UITableViewCell {
     var myProfileData: [MyProfile] = []
     var myIsRsvprequired: Bool?
     var myIsSingleReceiver: Bool?
+    var myIsForBusiness: Bool?
     var myDefaultEventPaymentMethod: Int = 0
     var myDefaultEventPaymentCustomName: String = ""
     var encryptedAPIKey: String = ""
+    var myCountry: String = ""
     
        static func nib() -> UINib {
            return UINib(nibName: "MyInvitationsTableViewCell", bundle: nil)
        }
        
-    public func configure(with eventName: String, eventAddress: String, eventDateTime: String, eventCityStateZipCountry: String, eventCode: String, isActiveFlag: Bool, eventType: String, imageName: String, eventId: Int64, profileId: Int64, ownerId: Int64, token: String, ApiKey: String, paymentClientToken: String, myProfileData: [MyProfile], isRsvprequired: Bool, isSingleReceiver: Bool, defaultEventPaymentMethod: Int, defaultEventPaymentCustomName: String) {
+    public func configure(with eventName: String, eventAddress: String, eventDateTime: String, eventCityStateZipCountry: String, eventCode: String, isActiveFlag: Bool, eventType: String, imageName: String, eventId: Int64, profileId: Int64, ownerId: Int64, token: String, ApiKey: String, paymentClientToken: String, myProfileData: [MyProfile], isRsvprequired: Bool, isSingleReceiver: Bool, isForBusiness: Bool, defaultEventPaymentMethod: Int, defaultEventPaymentCustomName: String, country: String) {
            
            
         myEventName = eventName
@@ -70,15 +72,17 @@ class MyInvitationsTableViewCell: UITableViewCell {
         
         myIsRsvprequired = isRsvprequired
         myIsSingleReceiver = isSingleReceiver
+        myIsForBusiness = isForBusiness
         myDefaultEventPaymentMethod = defaultEventPaymentMethod
         myDefaultEventPaymentCustomName = defaultEventPaymentCustomName
+        myCountry = country
         
-       eventNameLabel.text = eventName
-       eventAddressLabel.text = eventAddress
-       eventDateTimeLabel.text = eventDateTime
-       eventCityStateZipCountryLabel.text = eventCityStateZipCountry
-       eventCodeLabel.text = eventCode
-       eventImage.image = UIImage(named: imageName)
+        eventNameLabel.text = eventName
+        eventAddressLabel.text = eventAddress
+        eventDateTimeLabel.text = eventDateTime
+        eventCityStateZipCountryLabel.text = eventCityStateZipCountry
+        eventCodeLabel.text = eventCode
+        eventImage.image = UIImage(named: imageName)
         
         myInviteCardView.layer.borderColor  = UIColor.lightGray.cgColor
         myInviteCardView.layer.shadowOffset = CGSize(width: 1, height: 1.0)
@@ -101,7 +105,7 @@ class MyInvitationsTableViewCell: UITableViewCell {
            
           print("my attempt to segue")
            if(self.myInvitationCustomCellDelegate != nil){ //Just to be safe.
-            self.myInvitationCustomCellDelegate?.callEventSettingFromCell(eventName: myEventName!, eventDateTime: myEventDateTime!, eventCode: myEventCode!, isActiveFlag: myisActiveFlag!, eventType: myEventType, eventId: myEventId!, profileId: myProfileId!, ownerId: myOwnerId!, token: myToken!, ApiKey: myApiKey!, paymentClientToken:  myPaymentClientToken!, screenIdentifier: "RSVP", eventTypeIcon:  myEventTypeIcon, profileData: myProfileData, isRsvprequired: myIsRsvprequired!, isSingleReceiver: myIsSingleReceiver!, defaultEventPaymentMethod: myDefaultEventPaymentMethod, defaultEventPaymentCustomName: myDefaultEventPaymentCustomName)
+            self.myInvitationCustomCellDelegate?.callEventSettingFromCell(eventName: myEventName!, eventDateTime: myEventDateTime!, eventCode: myEventCode!, isActiveFlag: myisActiveFlag!, eventType: myEventType, eventId: myEventId!, profileId: myProfileId!, ownerId: myOwnerId!, token: myToken!, ApiKey: myApiKey!, paymentClientToken:  myPaymentClientToken!, screenIdentifier: "RSVP", eventTypeIcon:  myEventTypeIcon, profileData: myProfileData, isRsvprequired: myIsRsvprequired!, isSingleReceiver: myIsSingleReceiver!, isForBusiness: myIsForBusiness!, defaultEventPaymentMethod: myDefaultEventPaymentMethod, defaultEventPaymentCustomName: myDefaultEventPaymentCustomName, country: myCountry)
            }
        }
        
@@ -109,7 +113,7 @@ class MyInvitationsTableViewCell: UITableViewCell {
        
         if(self.myInvitationCustomCellDelegate != nil){ //Just to be safe.
             print("my attempt to segue- QRCode3")
-            self.myInvitationCustomCellDelegate?.callEventSettingFromCell(eventName: myEventName!, eventDateTime: myEventDateTime!, eventCode: myEventCode!, isActiveFlag: myisActiveFlag!, eventType: myEventType, eventId: myEventId!, profileId: myProfileId!, ownerId: myOwnerId!, token: myToken!, ApiKey: myApiKey!, paymentClientToken:  myPaymentClientToken!, screenIdentifier: "QRCode", eventTypeIcon:  myEventTypeIcon, profileData: myProfileData, isRsvprequired: myIsRsvprequired!, isSingleReceiver: myIsSingleReceiver!, defaultEventPaymentMethod: myDefaultEventPaymentMethod, defaultEventPaymentCustomName: myDefaultEventPaymentCustomName)
+            self.myInvitationCustomCellDelegate?.callEventSettingFromCell(eventName: myEventName!, eventDateTime: myEventDateTime!, eventCode: myEventCode!, isActiveFlag: myisActiveFlag!, eventType: myEventType, eventId: myEventId!, profileId: myProfileId!, ownerId: myOwnerId!, token: myToken!, ApiKey: myApiKey!, paymentClientToken:  myPaymentClientToken!, screenIdentifier: "QRCode", eventTypeIcon:  myEventTypeIcon, profileData: myProfileData, isRsvprequired: myIsRsvprequired!, isSingleReceiver: myIsSingleReceiver!, isForBusiness: myIsForBusiness!, defaultEventPaymentMethod: myDefaultEventPaymentMethod, defaultEventPaymentCustomName: myDefaultEventPaymentCustomName, country: myCountry)
         } else {
             print("self.myInvitationCustomCellDelegate is NILL\(self.myInvitationCustomCellDelegate)")
         }

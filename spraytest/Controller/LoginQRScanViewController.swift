@@ -90,6 +90,8 @@ class LoginQRScanViewController: UIViewController, UITextFieldDelegate {
         super.viewDidLoad()
         setNavigationBar()
         
+       
+        //navigationController?.navigationBar.topItem?.backBarButtonItem = UIBarButtonItem(title: "", style: .plain, target: nil, action: nil)
         
         let context = LAContext()
         CheckIfBiometricEnabled()
@@ -203,7 +205,8 @@ class LoginQRScanViewController: UIViewController, UITextFieldDelegate {
         NotificationCenter.default.addObserver(self, selector: #selector(keyboardWillHide(sender:)), name: UIResponder.keyboardWillHideNotification, object: nil);
         
         print("I WAS CALLED")
-        eventNameLbl.text = eventName
+        let newEventNameStr = eventName.replacingOccurrences(of: "&apos;", with: "'")
+        eventNameLbl.text = newEventNameStr //eventName
         eventDateTimeLbl.text = eventDateTime
         eventImageView.image = UIImage(named: eventTypeIcon)
         //eventCodeLabel.text = eventCode
@@ -427,7 +430,13 @@ class LoginQRScanViewController: UIViewController, UITextFieldDelegate {
         print("I was called")
         let screenSize: CGRect = UIScreen.main.bounds
         let navBar = UINavigationBar(frame: CGRect(x: 0, y: 35, width: screenSize.width, height: 44))
-        let navItem = UINavigationItem(title: "")
+        let navItem = UINavigationItem(title: "Join Event")
+     
+        
+        navItem.largeTitleDisplayMode = .automatic
+        //navigationController?.navigationBar.prefersLargeTitles = true
+        navBar.prefersLargeTitles = true
+        
         let image = UIImage(named: "closeicon")!.withRenderingMode(.alwaysOriginal)
         let doneItem = UIBarButtonItem(image: image, style: .plain, target: nil, action: #selector(done))
            navItem.leftBarButtonItem = doneItem
@@ -1059,6 +1068,8 @@ class LoginQRScanViewController: UIViewController, UITextFieldDelegate {
             firstName = profileData.firstName
             lastName = profileData.lastName
             
+            checkOnboardingStatus()
+            
             if self.eventCode != "" {
                 self.addToEvent(profileId: profileData.profileId, email: profileData.email, phone: profileData.phone, eventCode: eventCode, token: self.token2pass)
            
@@ -1079,6 +1090,65 @@ class LoginQRScanViewController: UIViewController, UITextFieldDelegate {
         }
     }
  
+    func checkOnboardingStatus() {
+        var myName: String = ""
+        var myLastName: String = ""
+        var myusername: String = ""
+        var myEmail: String = ""
+        var myPhone: String = ""
+        var myAvatar: String?
+        var myPaymentCustomerId: String?
+        var myPaymentConnectedActId: String?
+        var myReturnUrl: String = ""
+        var myRefreshUrl: String = ""
+        var myProfileId: Int64 = 0
+ 
+        for myprofile in myprofiledata {
+            myProfileId = myprofile.profileId
+            myName = myprofile.firstName
+            myLastName = myprofile.lastName
+            myusername = myprofile.email
+            myEmail = myprofile.email
+            myPhone = myprofile.phone
+            myAvatar = myprofile.avatar
+            myPaymentCustomerId = myprofile.paymentCustomerId
+            myPaymentConnectedActId = myprofile.paymentConnectedActId
+        }
+        
+        myReturnUrl = "https://projectxclientapp.azurewebsites.net/stripe/Index?profileid=\(myProfileId)&status=success&token=\(token2pass)"
+        myRefreshUrl = "https://projectxclientapp.azurewebsites.net/stripe/Index?profileid=\(myProfileId)&status=failed&token=\(token2pass)"
+        
+        let onboardingProfile = ProfileOnboarding(token: token2pass, profileId: myProfileId, firstName: myName, lastName: myLastName, userName: myusername, email: myEmail, phone: myPhone, avatar: myAvatar, paymentCustomerId: myPaymentCustomerId, paymentConnectedActId: myPaymentConnectedActId, success: true, returnUrl: myReturnUrl, refreshUrl: myRefreshUrl)
+       
+        let request = PostRequest(path: "/api/profile/addaccount", model: onboardingProfile, token: token2pass, apiKey: encryptedAPIKey, deviceId: "")
+        Network.shared.send(request) { [self] (result: Result<Data, Error>) in
+            switch result {
+            case .success(let urldata):
+
+                //let m = URL(string: String(data: urldata, encoding: .utf8) ?? "*")
+                let redirectUrl = String(data: urldata, encoding: .utf8) ?? "*"
+     
+                let redirectURL2 = redirectUrl.replacingOccurrences(of: " ", with: "", options: NSString.CompareOptions.literal, range:nil)
+              
+                let jsonData = redirectURL2.data(using: .utf8)!
+                let connectedaccount: ConnectedAccount = try! JSONDecoder().decode(ConnectedAccount.self, from: jsonData)
+                
+               // print("MY URL IS \(connectedaccount.url!)")
+                print("IS ACCOUNT CONNECTED Login \(connectedaccount.isAccountConnected)")
+                
+                UserDefaults.standard.set(connectedaccount.isAccountConnected, forKey: "isAccountConnected")
+                //self.performSegue(withIdentifier: "nextVC", sender: nil)
+                //break
+
+            case .failure(let error):
+                UserDefaults.standard.set(false, forKey: "isAccountConnected")
+                self.theAlertView(alertType: "GenericError", message: error.localizedDescription + " - /api/profile/addaccount ")
+                print(" DOMINIC H IGHEDOSA 1 ERROR \(error.localizedDescription)")
+            }
+        }
+    }
+    
+    
     @IBAction func registerLinkButtonPressed(_ sender: Any) {
         self.performSegue(withIdentifier: "RegistrationViewController", sender: self)
     }

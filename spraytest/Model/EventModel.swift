@@ -29,6 +29,7 @@ struct EventModel: Model {
     let eventType: Int?
     let isRsvprequired: Bool
     let isSingleReceiver: Bool
+    let isForBusiness: Bool
     let eventId: Int64?
     let isActive: Bool?
     let eventState: Int64?
@@ -47,6 +48,7 @@ struct EventModelEdit: Model {
     let eventType: Int?
     let isRsvprequired: Bool
     let isSingleReceiver: Bool
+    let isForBusiness: Bool
     let eventId: Int64
     let isActive: Bool
     let eventState: Int64
@@ -110,6 +112,7 @@ struct EventsOwnedModel:  Decodable {
     var eventType: Int?
     var isRsvprequired: Bool?
     var isSingleReceiver: Bool?
+    var isForBusiness: Bool?
     var defaultEventPaymentMethod: Int?
     var defaultEventPaymentCustomName: String?
 }
@@ -132,6 +135,7 @@ struct EventsAttendingModel:  Decodable {
     var eventType: Int?
     var isRsvprequired: Bool?
     var isSingleReceiver: Bool?
+    var isForBusiness: Bool?
     var defaultEventPaymentMethod: Int?
     var defaultEventPaymentCustomName: String?
 }
@@ -153,6 +157,7 @@ struct EventsInvitedModel: Decodable  {
     var eventType: Int?
     var isRsvprequired: Bool?
     var isSingleReceiver: Bool?
+    var isForBusiness: Bool?
     var defaultEventPaymentMethod: Int?
     var defaultEventPaymentCustomName: String?
 }
@@ -203,6 +208,7 @@ struct EventProperty {
     var eventType: Int?
     var isRsvprequired: Bool
     var isSingleReceiver: Bool
+    var isForBusiness: Bool
     var defaultEventPaymentMethod: Int?
     var defaultEventPaymentCustomName: String?
     var isAttending: Bool?

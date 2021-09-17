@@ -52,7 +52,9 @@ class CreateAccountQRScanViewController: UIViewController {
     var otpCode: String =  ""
     var userdata: UserData?
     var token2pass: String?
-    var profileId: String?
+    var profileId: String = ""
+    var profileId2: Int64 = 0
+    
     var eventCode: String?
     var message: String?
     var paymentClientToken: String = ""
@@ -129,7 +131,7 @@ class CreateAccountQRScanViewController: UIViewController {
         print("I was called")
         let screenSize: CGRect = UIScreen.main.bounds
         let navBar = UINavigationBar(frame: CGRect(x: 0, y: 35, width: screenSize.width, height: 44))
-        let navItem = UINavigationItem(title: "")
+        let navItem = UINavigationItem(title: "Join Event")
         let image = UIImage(named: "closeicon")!.withRenderingMode(.alwaysOriginal)
         let doneItem = UIBarButtonItem(image: image, style: .plain, target: nil, action: #selector(done))
            navItem.leftBarButtonItem = doneItem
@@ -437,7 +439,7 @@ class CreateAccountQRScanViewController: UIViewController {
             
             let userData = UserModel(firstName: firstName, lastName: lastName, username: username!, password: password, email: email, phone: phoneFromOTP)
 
-            print(userData)
+            print("userData = \(userData)")
             let request = PostRequest(path: "/api/profile/register", model: userData, token: "", apiKey: encryptedAPIKey, deviceId: encryptedDeviceId)
             Network.shared.send(request) { [self] (result: Result<UserData, Error>) in
                 switch result {
@@ -446,6 +448,7 @@ class CreateAccountQRScanViewController: UIViewController {
                     print(userdata)
                     //call authentication func
                     self.authenticateUser(userName: self.username!, password: password, phone: phoneFromOTP, email: email, eventCode: eventCode!)
+                    print("I call authentication")
 
                 case .failure(let error):
                     self.presentUIAlert(alertMessage: "", alertTitle: "", errorMessage: error.localizedDescription, alertType: "systemError")
@@ -477,15 +480,24 @@ class CreateAccountQRScanViewController: UIViewController {
                 
                 //self.token2pass = user.token!
                 self.userdata = user
-                self.profileId = String(user.profileId!)
-
-                print(" this is dominic \(user)")
+                
+                //print("My PROFILE ID \(user.profileId!)")
+                
+                
+                if let profId =  user.profileId {
+                    profileId2 = profId
+                    print(" this is dominic 1 \(profileId2)")
+                } else {
+                    profileId2 = 0
+                    print(" this is dominic 2 \(profileId2)")
+                }
+                print(" this is dominic \(profileId2)")
                 
                 var encryptdecrypt = EncryptDecrpyt()
                 encryptedAPIKeyUserName = encryptdecrypt.encryptDecryptAPIKey(type: "username", value: userName, action: "encrypt")
                 encryptedAPIKey = encryptedAPIKeyUserName
                 //capture profile data
-                self.getProfileData(profileId1: user.profileId!, token1: user.token!)
+                self.getProfileData(profileId1: profileId2, token1: user.token!)
                 
                 //add user to event
              
@@ -632,7 +644,7 @@ class CreateAccountQRScanViewController: UIViewController {
     override func prepare(for segue: UIStoryboardSegue, sender: Any?) {
         if(segue.identifier == "Reg2MenuTab"){
             let NextVC = segue.destination as! MenuTabViewController
-            NextVC.profileId = Int64(profileId!)
+            NextVC.profileId =  profileId2 //Int64(profileId)
             NextVC.token = token2pass
             NextVC.encryptedAPIKey = encryptedAPIKey
             NextVC.eventType = eventType

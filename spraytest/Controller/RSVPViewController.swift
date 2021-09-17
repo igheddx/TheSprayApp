@@ -35,6 +35,9 @@ class RSVPViewController: UIViewController {
     var setRefreshScreen: Bool = false
     var encryptedAPIKey: String = ""
     var confettiBirthRate: Float = 0
+    var country: String = ""
+
+    
     //let isPaymentMethodAvailable: Bool = UserDefaults.standard.bool(forKey: "isPaymentMethodAvailable")
     var myProfileData: [MyProfile] = []
     override func viewDidLoad() {
@@ -201,6 +204,7 @@ class RSVPViewController: UIViewController {
         nextVC.encryptedAPIKey = encryptedAPIKey
         nextVC.completionAction = completionAction
         nextVC.paymentClientToken = paymentClientToken
+        nextVC.country = country
 
         self.navigationController?.pushViewController(nextVC , animated: true)
     }

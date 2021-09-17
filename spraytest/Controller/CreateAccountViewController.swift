@@ -110,7 +110,7 @@ class CreateAccountViewController: UIViewController, UINavigationBarDelegate, UI
         print("I was called")
         let screenSize: CGRect = UIScreen.main.bounds
         let navBar = UINavigationBar(frame: CGRect(x: 0, y: 35, width: screenSize.width, height: 44))
-        let navItem = UINavigationItem(title: "")
+        let navItem = UINavigationItem(title: "Registration")
         let image = UIImage(named: "closeicon")!.withRenderingMode(.alwaysOriginal)
         let doneItem = UIBarButtonItem(image: image, style: .plain, target: nil, action: #selector(done))
            navItem.leftBarButtonItem = doneItem

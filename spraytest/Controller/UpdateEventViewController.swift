@@ -37,13 +37,14 @@ class UpdateEventViewController: UIViewController {
     @IBOutlet weak var isSingleReceiverSwitch: UISwitch!
     
     @IBOutlet weak var isRSVPRequiredSwitch: UISwitch!
-    @IBOutlet weak var eventCodeTextField: UITextField!
+    @IBOutlet weak var eventCodeLbl: UILabel! //UITextField!
     
     @IBOutlet weak var eventStatusSwitch: UISwitch!
     
     @IBOutlet weak var closeEventLabel: UILabel!
     
     @IBOutlet weak var saveButton: MyCustomButton!
+    @IBOutlet weak var isForBusinessSwitch: Switch1!
     //@IBOutlet weak var eventDateTimeErrorLabel: UILabel!
 //    @IBOutlet weak var eventTypeErrorLabel: UILabel!
 //    @IBOutlet weak var address1ErrorLabel: UILabel!
@@ -87,6 +88,9 @@ class UpdateEventViewController: UIViewController {
     var isSingleReceiverEvent: Bool = false
     var eventCurrentState: Int = 2 //99 is default
     var isRefreshScreen: Bool = false
+    var isForBusiness: Bool?
+    var isForBusinessCheck: Bool = false
+    var eventStage: Int = 1
 //    var eventName: String?
 //    var eventDateTime: String?
 //    var eventZipCode: String?
@@ -107,8 +111,8 @@ class UpdateEventViewController: UIViewController {
         navigationController?.navigationBar.topItem?.backBarButtonItem = UIBarButtonItem(title: "", style: .plain, target: nil, action: nil)
         
         //always disable eventcode
-        eventCodeTextField.isEnabled = false
-        loadEventCurrentStateSegCont()
+        eventCodeLbl.isEnabled = false
+        //loadEventCurrentStateSegCont()
         
         NotificationCenter.default.addObserver(self, selector: #selector(keyboardWillShow(sender:)), name: UIResponder.keyboardWillShowNotification, object: nil);
 
@@ -116,18 +120,18 @@ class UpdateEventViewController: UIViewController {
         
         //default value
         //eventCurrentStateSegCont.selectedSegmentIndex = eventCurrentState
-        switch eventCurrentState {
-        case 1:
-            eventCurrentStateSegCont.selectedSegmentIndex = 0
-        case 2:
-            eventCurrentStateSegCont.selectedSegmentIndex = 1
-        case 3:
-            eventCurrentStateSegCont.selectedSegmentIndex = 2
-        case 4:
-            eventCurrentStateSegCont.selectedSegmentIndex = 3
-        default:
-            eventCurrentStateSegCont.selectedSegmentIndex = 0
-        }
+//        switch eventCurrentState {
+//        case 1:
+//            eventCurrentStateSegCont.selectedSegmentIndex = 0
+//        case 2:
+//            eventCurrentStateSegCont.selectedSegmentIndex = 1
+//        case 3:
+//            eventCurrentStateSegCont.selectedSegmentIndex = 2
+//        case 4:
+//            eventCurrentStateSegCont.selectedSegmentIndex = 3
+//        default:
+//            eventCurrentStateSegCont.selectedSegmentIndex = 0
+//        }
         
         if eventStatus == true {
             eventStatusSwitch.isOn = false
@@ -139,9 +143,17 @@ class UpdateEventViewController: UIViewController {
             closeEventLabel.text = "Inactive Event"
         }
         
+        
+       
+        if let i = isForBusiness {
+            isForBusinessCheck = i
+        } else {
+            isForBusinessCheck = false
+        }
+        
         isSingleReceiverSwitch.isOn = isSingleReceiverEvent
         isRSVPRequiredSwitch.isOn = isRSVPRequired
-        
+        isForBusinessSwitch.isOn = isForBusinessCheck
     
         //countryList = ["Algeria", "Andorra", "Angola", "India", "Thailand"]
         
@@ -162,7 +174,7 @@ class UpdateEventViewController: UIViewController {
         eventStateTextField.text = eventState
         eventZipCodeTextField.text = eventZipCode
         eventCountryTextField.text = eventCountry
-        eventCodeTextField.text = eventCode
+        eventCodeLbl.text = eventCode
         eventTypeTextField.text = eventType
         
         eventNameTextField.delegate = self
@@ -194,8 +206,8 @@ class UpdateEventViewController: UIViewController {
                                   for: .editingChanged)
         eventCountryTextField.addTarget(self, action: #selector(UpdateEventViewController.textFieldDidChange(_:)),
                                   for: .editingChanged)
-        eventCodeTextField.addTarget(self, action: #selector(UpdateEventViewController.textFieldDidChange(_:)),
-                                  for: .editingChanged)
+        //eventCodeTextField.addTarget(self, action: #selector(UpdateEventViewController.textFieldDidChange(_:)),
+                                  //for: .editingChanged)
 //        statePickerView.delegate = self
 //        statePickerView.dataSource = self
 //        countryPickerView.delegate = self
@@ -236,7 +248,7 @@ class UpdateEventViewController: UIViewController {
         customtextfield.borderForTextField(textField: eventZipCodeTextField, validationFlag: false)
         customtextfield.borderForTextField(textField: eventCountryTextField, validationFlag: false)
         customtextfield.borderForTextField(textField: eventTypeTextField, validationFlag: false)
-        customtextfield.borderForTextField(textField: eventCodeTextField, validationFlag: false)
+        //customtextfield.borderForTextField(textField: eventCodeTextField, validationFlag: false)
         
         
 //        eventNameErrorLabel.isHidden = true
@@ -315,6 +327,7 @@ class UpdateEventViewController: UIViewController {
         }
     }
     
+    /*no longer in use 7/19/2021*/
     func loadEventCurrentStateSegCont() {
         eventCurrentStateSegCont.setTitle("Created", forSegmentAt: 0)
         eventCurrentStateSegCont.setTitle("Open", forSegmentAt: 1)
@@ -322,6 +335,44 @@ class UpdateEventViewController: UIViewController {
         eventCurrentStateSegCont.setTitle("Cancel", forSegmentAt: 3)
     }
     
+    @IBAction func sprayCelebrantSwitchSelect(_ sender: Any) {
+        if isSingleReceiverSwitch.isOn == true {
+            isForBusinessSwitch.isOn = false
+           // isForBusinessSwitch.isEnabled = false
+        } else {
+            isForBusinessSwitch.isOn = false
+            //isForBusinessSwitch.isEnabled = true
+        }
+        
+    }
+    
+    @IBAction func rsvpSwitchSelect(_ sender: Any) {
+        if isRSVPRequiredSwitch.isOn == true {
+            isForBusinessSwitch.isOn = false
+            //isForBusinessSwitch.isEnabled = false
+        } else {
+            isForBusinessSwitch.isOn = false
+            //isForBusinessSwitch.isEnabled = true
+        }
+     
+    }
+    
+    
+    @IBAction func forBusinessSwitchSelect(_ sender: Any) {
+        if isForBusinessSwitch.isOn == true {
+            isSingleReceiverSwitch.isOn = false
+            //isSingleReceiverSwitch.isEnabled = false
+            isRSVPRequiredSwitch.isOn = false
+            //isRSVPRequiredSwitch.isEnabled = false
+        } else {
+            isSingleReceiverSwitch.isOn = false
+            //isSingleReceiverSwitch.isEnabled = true
+            isRSVPRequiredSwitch.isOn = false
+            //isRSVPRequiredSwitch.isEnabled = true
+        }
+      
+        
+    }
     
     @IBAction func eventCurrentStateSegContPressed(_ sender: Any) {
         eventCurrentState = eventCurrentStateSegCont.selectedSegmentIndex
@@ -370,7 +421,6 @@ class UpdateEventViewController: UIViewController {
         countrylist.append(data3)
         let data4 = CountryList(countryCode: "IN", countryName: "India")
         countrylist.append(data4)
-        
         
     }
     func loadCountryStateListData() {
@@ -994,7 +1044,7 @@ class UpdateEventViewController: UIViewController {
             }
             
             print("new event name \(eventName)")
-            let eventData = EventModelEdit(ownerId: profileId, name: eventName, dateTime: formatedEventDateTime, address1: eventAddress1, address2: eventAddress2, city: eventCity, zipCode: eventZipCode, country: eventCountry, state: eventState, eventType: eventTypeId,  isRsvprequired: isRSVPRequiredSwitch.isOn, isSingleReceiver: isSingleReceiverSwitch.isOn, eventId: eventId!, isActive: eventStatus!, eventState: Int64(eventCurrentState))
+            let eventData = EventModelEdit(ownerId: profileId, name: eventName, dateTime: formatedEventDateTime, address1: eventAddress1, address2: eventAddress2, city: eventCity, zipCode: eventZipCode, country: eventCountry, state: eventState, eventType: eventTypeId,  isRsvprequired: isRSVPRequiredSwitch.isOn, isSingleReceiver: isSingleReceiverSwitch.isOn, isForBusiness: isForBusinessSwitch.isOn, eventId: eventId!, isActive: eventStatus!, eventState: Int64(eventStage))
             
             /*
              isSingleReceiverSwitch.isOn = isSingleReceiverEvent

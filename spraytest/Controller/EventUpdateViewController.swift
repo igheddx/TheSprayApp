@@ -10,7 +10,7 @@ import UIKit
 
 class EventUpdateViewController: UIViewController  {
 
-    
+    /*
     @IBOutlet weak var scrollView: UIScrollView!
     @IBOutlet weak var eventNameTextField: UITextField!
     @IBOutlet weak var eventDateTimeTextField: UITextField!
@@ -616,7 +616,8 @@ class EventUpdateViewController: UIViewController  {
             print("event date time =\(eventDateTime)")
             print("this is the 3rd event name \(eventName)")
             //let newUser = UserModel(id: 2, name: "Peter", username: "Livesey", email: "941ecfff8dc3@medium.com")
-            let eventData = EventModelEdit(ownerId: profileId!, name: eventName, dateTime: formatedEventDateTime, address1: eventAddress1, address2: eventAddress2, city: eventCity, zipCode: eventZipCode, country: eventCountry, state: eventState, eventType: eventTypeId, isRsvprequired: isRSVPRequiredSwitch.isOn, isSingleReceiver: isSingleReceiverSwitch.isOn, eventId: eventId!, isActive: eventStatus!, eventState: 1)
+            let eventData = EventModelEdit(ownerId: profileId!, name: eventName, dateTime: formatedEventDateTime, address1: eventAddress1, address2: eventAddress2, city: eventCity, zipCode: eventZipCode, country: eventCountry, state: eventState, eventType: eventTypeId, isRsvprequired: isRSVPRequiredSwitch.isOn, isSingleReceiver: isSingleReceiverSwitch.isOn, isForBusiness: 
+                                           eventId: eventId!, isActive: eventStatus!, eventState: 1)
                     
             print(eventData)
             let request = PostRequest(path: "/api/Event/update", model: eventData, token: token!, apiKey: encryptedAPIKey, deviceId: "")
@@ -919,5 +920,5 @@ extension UIScrollView {
             setContentOffset(bottomOffset, animated: true)
         }
     }
-
+ */
 }

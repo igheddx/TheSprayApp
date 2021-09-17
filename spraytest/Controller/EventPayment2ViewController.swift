@@ -50,6 +50,7 @@ class EventPayment2ViewController: UIViewController, STPAddCardViewControllerDel
     var availablePaymentData = [PaymentTypeData2]()
     var addSprayAmountOptions = [AddSprayAmountOptions]()
     var addSprayAmountOptionsAutoReplenish = [AddSprayAmountOptions]()
+    var countryData = CountryData()
     
     var profileId: Int64 = 0
     var eventId: Int64 = 0
@@ -83,19 +84,35 @@ class EventPayment2ViewController: UIViewController, STPAddCardViewControllerDel
     var setuppaymentmethoddelegate: SetupPaymentMethodDelegate?
     //var haspaymentdelegate: HasPaymentMethodDelegate?
     
-    var currencycode: String = "usd"
+    //var currencycode: String = "usd" /*this is no longer used.. delete later*/
     var newPaymentMethodAdded: Bool = false
     var paymentMethodIconName: String = ""
     var encryptedAPIKey: String = ""
     var receiverName: String = ""
     var isPaymentMethodAvailable: Bool = false
+    var isPaymentMethodAvailable2: Bool = false /*used to set the the payment method button default value Select Payment or Add Payment*/
     var isSingleReceiverEvent: Bool = false
     var setRefreshScreen: Bool = false
     var paymentMethod: Int = 0
     var isRefreshScreen: Bool = false
+    var currencyCode: String = ""
+    var currencycode: String = ""
+    var currencySymbol: String = ""
+    var eventDefaultCurrencyCode: String = ""
+    var country: String = ""
+    var isCurrencyMisalignedWithEvent: Bool = false
+    
     override func viewDidLoad() {
         super.viewDidLoad()
         
+        /*initialize*/
+        paymentMethodIcon.image = UIImage(named: "paymentInfoIcon")
+        
+        /*use event country to identify the default currency*/
+        print("COUNTRY IN VIEWDID LOAD \(country)")
+        eventDefaultCurrencyCode = countryData.getCurrencyCodeWithCountryName(country: country)
+        
+        print("EVENT DEAFULT CURRENCY CODE VIEWDID LOAD \(eventDefaultCurrencyCode)")
         //use to keep keyboard down
         NotificationCenter.default.addObserver(self, selector: #selector(keyboardWillShow(sender:)), name: UIResponder.keyboardWillShowNotification, object: nil);
 
@@ -134,9 +151,11 @@ class EventPayment2ViewController: UIViewController, STPAddCardViewControllerDel
             initiliazationTasks()
             customeFieldStyling()
             
-            getAvailablePaymentData()
-            getGifterTotalTransBalance()
-            loadSprayAmountOptions()
+            DispatchQueue.global(qos: .background).async {
+                self.getAvailablePaymentData() // self.getEventPref() is called withing getAvailablePaymentData
+                self.getGifterTotalTransBalance()
+            }
+
         } else  {
             print("no VIEWDID LOAD REFRESH - SECOND TIME WAS REFRESHED FROM SETUPAYMENT")
         }
@@ -153,8 +172,11 @@ class EventPayment2ViewController: UIViewController, STPAddCardViewControllerDel
             print("I WAS REFRESHED FROM SETUPAYMENT")
             initiliazationTasks()
             
-            getAvailablePaymentData()
-            getGifterTotalTransBalance()
+    
+            DispatchQueue.global(qos: .background).async {
+                self.getAvailablePaymentData() // self.getEventPref() is called withing getAvailablePaymentData
+                self.getGifterTotalTransBalance()
+            }
 
         } else {
             print("viewDidAppear I WAS nOT REFRESHED FROM SETUPAYMENT")
@@ -216,11 +238,20 @@ class EventPayment2ViewController: UIViewController, STPAddCardViewControllerDel
         
         print(getSprayAmountInt(amountId: autoReplenishAmountSegControl.selectedSegmentIndex, category: "addreplenishamount"))
         print(autoReplenishSwitch.isOn)
-        print(btnSelectPayment.currentTitle!)
+        print("Selected button title \(btnSelectPayment.currentTitle!)")
         
         print("paymentmethodId = \(getPaymenthMethodId(customName: btnSelectPayment.currentTitle!))")
         print("seg val \(autoReplenishAmountSegControl.selectedSegmentIndex)")
-        if autoReplenishSwitch.isOn == true && autoReplenishAmountSegControl.selectedSegmentIndex < 0 {
+        if btnSelectPayment.currentTitle! == "Select Payment" {
+            // create the alert
+            let alert = UIAlertController(title: "Select Payment Method", message: "Please select a Payment Method from the list to continue.", preferredStyle: UIAlertController.Style.alert)
+
+            // add an action (button)
+            alert.addAction(UIAlertAction(title: "OK", style: UIAlertAction.Style.default, handler: nil))
+
+            // show the alert
+            self.present(alert, animated: true, completion: nil)
+        } else if autoReplenishSwitch.isOn == true && autoReplenishAmountSegControl.selectedSegmentIndex < 0 {
             // create the alert
             let alert = UIAlertController(title: "Missing Information", message: "Since Auto Replenish is On, you must select Auto Replenish Amount.", preferredStyle: UIAlertController.Style.alert)
 
@@ -248,6 +279,10 @@ class EventPayment2ViewController: UIViewController, STPAddCardViewControllerDel
             }
             if newPaymentMethodAdded == false {
                 paymentMethodId = getPaymenthMethodId(customName: btnSelectPayment.currentTitle!)
+            } else {
+                
+                print("newPaymentMethodAdded == false ")
+                paymentMethodId = getPaymenthMethodId(customName: btnSelectPayment.currentTitle!)
             }
             
             print("the new PaymentMethodid = \(paymentMethodId)")
@@ -266,7 +301,7 @@ class EventPayment2ViewController: UIViewController, STPAddCardViewControllerDel
                 updatedAutoReplenishAmount = 0
             }
             
-            let addEventPreference = EventPreference(eventId: 0, profileId: profileId, paymentMethod: Int(paymentMethodId), maxSprayAmount: updatedGiftAmount, replenishAmount: updatedAutoReplenishAmount, notificationAmount:  0, isAutoReplenish: updatedAutoReplenishFlag, currency: currencycode)
+            let addEventPreference = EventPreference(eventId: 0, profileId: profileId, paymentMethod: Int(paymentMethodId), maxSprayAmount: updatedGiftAmount, replenishAmount: updatedAutoReplenishAmount, notificationAmount:  0, isAutoReplenish: updatedAutoReplenishFlag, currency: currencyCode)
 
             print("ADD EVENT PREFERENCE \(addEventPreference)")
         
@@ -286,6 +321,9 @@ class EventPayment2ViewController: UIViewController, STPAddCardViewControllerDel
                 print(error.localizedDescription)
                 }
             }
+            
+            
+            //need to update 
         }
     }
     
@@ -312,6 +350,33 @@ class EventPayment2ViewController: UIViewController, STPAddCardViewControllerDel
             }
         }
         return thePaymentMethodName
+    }
+    
+    //get paymentmethodCurrency
+    func getPaymentMethodCurrency(paymentMethodId: Int64) -> String {
+        var thePaymentMethodCurrency: String = ""
+        if paymentMethodId > 0 {
+            for i in availablePaymentData {
+                if i.paymentMethodId == paymentMethodId {
+                    if let currency = i.currency {
+                        thePaymentMethodCurrency = currency
+                    } else  {
+                        //let locale = Locale.current /*get default country code*/
+                        //currencyCode = eventDefaultCurrencyCode //countryData.getCurrencyCode(regionCode: locale.regionCode!)
+                        thePaymentMethodCurrency = "none" //eventDefaultCurrencyCode //currencyCode
+                    }
+                    
+                    break
+                }
+            }
+            return thePaymentMethodCurrency
+        } else {
+           // let locale = Locale.current /*get default country code*/
+            currencyCode = eventDefaultCurrencyCode //countryData.getCurrencyCode(regionCode: locale.regionCode!)
+            
+            thePaymentMethodCurrency = "none" //currencyCode
+            return thePaymentMethodCurrency
+        }
     }
     
     func getPaymentMethodIcon(name: String) -> String {
@@ -416,6 +481,7 @@ class EventPayment2ViewController: UIViewController, STPAddCardViewControllerDel
 //        
         nextVC.paymentClientToken = paymentClientToken
         nextVC.currentAvailableCredit =  availableBalance
+        nextVC.country = country
         self.present(nextVC, animated: true, completion: nil)
         
         //let nextVC = storyboard?.instantiateViewController(withIdentifier: "SetupPaymentMethodViewController") as! SetupPaymentMethodViewController
@@ -426,47 +492,146 @@ class EventPayment2ViewController: UIViewController, STPAddCardViewControllerDel
     }
     
     func getAvailablePaymentData() {
+        print("I am inside getavailablePaument222")
         let request = Request(path: "/api/PaymentMethod/all/\(profileId)", token: token, apiKey: encryptedAPIKey)
         Network.shared.send(request) { [self] (result: Result<Data, Error>)  in
         switch result {
            case .success(let paymentmethod1):
+            print("I am inside getavailablePaument = \(paymentmethod1.count)")
                //self.parse(json: event)
              let decoder = JSONDecoder()
              do {
                 let paymentJson: [PaymentTypeData] = try decoder.decode([PaymentTypeData].self, from: paymentmethod1)
-                for paymenttypedata in paymentJson {
-                    if paymenttypedata.customName != "" {
-                        let adddata = PaymentTypeData2(paymentMethodId: paymenttypedata.paymentMethodId!,
-                                                       profileId: paymenttypedata.profileId,
-                                                       paymentType: paymenttypedata.paymentType,
-                                                       customName: paymenttypedata.customName,
-                                                       paymentDescription: paymenttypedata.paymentDescription,
-                                                       paymentExpiration: paymenttypedata.paymentExpiration,
-                                                       defaultPaymentMethod: paymenttypedata.defaultPaymentMethod,
-                                                       paymentImage: paymenttypedata.paymentDescription)
-                        self.availablePaymentData.append(adddata)
+                
+                if paymentJson.count == 0 {
+                    if eventDefaultCurrencyCode == currencyCode {
+                        //isCurrencyMisalignedWithEvent = false
+                        currencySymbol = Currency.shared.findSymbol(currencyCode: currencyCode)
+                        print("DEFAULT PAYMENT IS TRUE AWELE I - \(currencyCode)")
+                       
+                        print("currencySymbol 1 = \(currencySymbol)")
+                        //getCurrencyData2(currencyCode: currencyCode)
+                        loadSprayAmountOptions(currencyCode: currencyCode)
                         
-                        //display the default payment on the dropdown list
-                        /* comment this out for now 4/5 i don't need it*/
-//                        if paymenttypedata.defaultPaymentMethod == true {
-//                            self.btnSelectPayment.setTitle(paymenttypedata.customName, for: .normal)
-//                            paymentMethodIconName = getPaymentMethodIcon(name: paymenttypedata.customName!)
-//
-//                            paymentMethodIcon.image = UIImage(named: paymentMethodIconName)
-//
-//                        }
-                           
-                        
-                        print("paymentmethodId = \(paymenttypedata.paymentMethodId!)")
-                        print("customName = \(paymenttypedata.customName!)")
-                        print("paymenttype = \(paymenttypedata.paymentType!)")
-                        
-                        print("paymenttypedata.paymentType! = \(paymenttypedata.paymentType!)")
-                        print("paymenttypedata.paymentMethodId = \(paymenttypedata.paymentMethodId!)")
-                        print("paymenttypedata.defaultPaymentMethod = \(paymenttypedata.defaultPaymentMethod!)")
+                        self.btnSelectPayment.setTitle("Add Payment Method", for: .normal)
+                    } else {
+                        print("EVENT CURRENCY CODE 1 = \(eventDefaultCurrencyCode)")
+                        currencySymbol = Currency.shared.findSymbol(currencyCode: eventDefaultCurrencyCode)
+                        print("DEFAULT PAYMENT IS TRUE AWELE U - \(eventDefaultCurrencyCode)")
+                       
+                        print("currencySymbol 2 = \(currencySymbol)")
+                        //getCurrencyData2(currencyCode: currencyCode)
+                        loadSprayAmountOptions(currencyCode: eventDefaultCurrencyCode)
                     }
-                    
+                } else {
+                    print("RECORD COUNT = \(paymentJson.count)")
+                    isPaymentMethodAvailable2 = true
+                    for paymenttypedata in paymentJson {
+                        if paymenttypedata.customName != "" {
+                            /*assign currency, */
+                            if let currency = paymenttypedata.currency {
+                                currencyCode = currency
+                                print("my currencode 1 = \(currencyCode)")
+                            } else {
+                                let locale = Locale.current /*get default country code*/
+                                currencyCode = countryData.getCurrencyCode(regionCode: locale.regionCode!)
+                                
+                                print("my currencode 2 = \(currencyCode)")
+                            }
+                            if paymenttypedata.defaultPaymentMethod == true {
+                                /*check if currency is nill if so use the default country name to identify the currency*/
+                                print("DEFAULT PAYMENT NAME = \(paymenttypedata.customName)")
+                                print("DEFAULT PAYMENT NAME = \(paymenttypedata.currency)")
+                                print("DEFAULT PAYMENT NAME = \(paymenttypedata.paymentMethodId)")
+                                
+                               
+                                //currencyCode = paymenttypedata.currency!
+                                print("EVENT CURRENCY CODE 0 = \(eventDefaultCurrencyCode)")
+                                if eventDefaultCurrencyCode == currencyCode {
+                                    //isCurrencyMisalignedWithEvent = false
+                                    currencySymbol = Currency.shared.findSymbol(currencyCode: currencyCode)
+                                    print("DEFAULT PAYMENT IS TRUE AWELE I - \(currencyCode)")
+                                   
+                                    print("currencySymbol 1 = \(currencySymbol)")
+                                    //getCurrencyData2(currencyCode: currencyCode)
+                                    loadSprayAmountOptions(currencyCode: currencyCode)
+                                    
+                                    
+    //                                currencySymbol = Currency.shared.findSymbol(currencyCode: currencyCode)
+    //                                print("DEFAULT PAYMENT IS TRUE AWELE - \(currencyCode)")
+    //                                country = countryData.getCurrencyCode(regionCode: currencyCode)
+    //                                getCurrencyData2(currencyCode: currencyCode)
+                                } else {
+                                    
+                                    print("EVENT CURRENCY CODE 1 = \(eventDefaultCurrencyCode)")
+                                    currencySymbol = Currency.shared.findSymbol(currencyCode: eventDefaultCurrencyCode)
+                                    print("DEFAULT PAYMENT IS TRUE AWELE U - \(eventDefaultCurrencyCode)")
+                                   
+                                    print("currencySymbol 2 = \(currencySymbol)")
+                                    //getCurrencyData2(currencyCode: currencyCode)
+                                    loadSprayAmountOptions(currencyCode: eventDefaultCurrencyCode)
+                                    
+                                    
+    //                                getCurrencyData2(currencyCode: eventDefaultCurrencyCode)
+    //                                currencySymbol = Currency.shared.findSymbol(currencyCode: eventDefaultCurrencyCode)
+    //                                country = countryData.getCountryNameWithCurrencyCode(currencyCode: eventDefaultCurrencyCode)
+    //                                print("MY COUNTRY FROM GOTOSPRAY = \(country)")
+    //                                displayPaymentMethodMismatchAlert()
+                                   // isCurrencyMisalignedWithEvent = true
+                                    /*send alert that payment could not be used and redirect users to would you like to add new payment method*/
+                                }
+                                
+                                
+                               
+                            }
+                            /*only add payment menthod that matches event  currency*/
+                            if eventDefaultCurrencyCode == currencyCode {
+                                let adddata = PaymentTypeData2(paymentMethodId: paymenttypedata.paymentMethodId!,
+                                   profileId: paymenttypedata.profileId,
+                                   paymentType: paymenttypedata.paymentType,
+                                   customName: paymenttypedata.customName,
+                                   paymentDescription: paymenttypedata.paymentDescription,
+                                   paymentExpiration: paymenttypedata.paymentExpiration,
+                                   defaultPaymentMethod: paymenttypedata.defaultPaymentMethod, currency: paymenttypedata.currency,
+                                   paymentImage: paymenttypedata.paymentDescription)
+                                self.availablePaymentData.append(adddata)
+                            }
+                           
+                            
+    //                        let adddata = PaymentTypeData2(paymentMethodId: paymenttypedata.paymentMethodId!,
+    //                                                       profileId: paymenttypedata.profileId,
+    //                                                       paymentType: paymenttypedata.paymentType,
+    //                                                       customName: paymenttypedata.customName,
+    //                                                       paymentDescription: paymenttypedata.paymentDescription,
+    //                                                       paymentExpiration: paymenttypedata.paymentExpiration,
+    //                                                       defaultPaymentMethod: paymenttypedata.defaultPaymentMethod,
+    //                                                       currency: paymenttypedata.currency,
+    //                                                       paymentImage: paymenttypedata.paymentDescription)
+    //                        self.availablePaymentData.append(adddata)
+                            
+                            //display the default payment on the dropdown list
+                            /* comment this out for now 4/5 i don't need it*/
+    //                        if paymenttypedata.defaultPaymentMethod == true {
+    //                            self.btnSelectPayment.setTitle(paymenttypedata.customName, for: .normal)
+    //                            paymentMethodIconName = getPaymentMethodIcon(name: paymenttypedata.customName!)
+    //
+    //                            paymentMethodIcon.image = UIImage(named: paymentMethodIconName)
+    //
+    //                        }
+                               
+                            
+                            print("paymentmethodId = \(paymenttypedata.paymentMethodId!)")
+                            print("customName = \(paymenttypedata.customName!)")
+                            print("paymenttype = \(paymenttypedata.paymentType!)")
+                            
+                            print("paymenttypedata.paymentType! = \(paymenttypedata.paymentType!)")
+                            print("paymenttypedata.paymentMethodId = \(paymenttypedata.paymentMethodId!)")
+                            print("paymenttypedata.defaultPaymentMethod = \(paymenttypedata.defaultPaymentMethod!)")
+                        }
+                        
+                    }
                 }
+               
              } catch {
                 print(error)
              }
@@ -497,7 +662,12 @@ class EventPayment2ViewController: UIViewController, STPAddCardViewControllerDel
                     //for gifter in gifterBalanceJson {
                     if  gifterBalanceJson.eventId == eventId &&  gifterBalanceJson.profileId == profileId {
                            //theGifterTotalTransBalance = gifter.totalAmountAllTransactions
-                        self.gifterTotalTransAmount =  gifterBalanceJson.totalAmountAllTransactions
+                        if isCurrencyMisalignedWithEvent == false {
+                            self.gifterTotalTransAmount =  gifterBalanceJson.totalAmountAllTransactions
+                        } else {
+                            self.gifterTotalTransAmount =  0 //default value when payment method currency and event country does not match
+                        }
+                        
                         print("self.gifterTotalTransAmount = \(gifterBalanceJson.totalAmountAllTransactions)")
                     }
                    //}
@@ -506,7 +676,7 @@ class EventPayment2ViewController: UIViewController, STPAddCardViewControllerDel
                    print(error)
                }
                 //self.getEventPref2(paymenttypeData: paymentmethod1)
-                self.gifterTotalTransAmountLbl.text = "$" + String(self.gifterTotalTransAmount)
+                self.gifterTotalTransAmountLbl.text = currencySymbol + String(self.gifterTotalTransAmount)
             case .failure(let error):
                     print(" DOMINIC IGHEDOSA ERROR 2 \(error.localizedDescription)")
             }
@@ -520,32 +690,64 @@ class EventPayment2ViewController: UIViewController, STPAddCardViewControllerDel
         //for this event
         getGifterTotalTransBalance()
         
-        
+        print("getEventPref was called")
         //var eventprefdate:  [EventPreferenceData] = [] //paymentmethod1
         //let request = Request(path: "/api/Event/prefs/\(profileId)/\(eventId)", token: token)
         let request = Request(path: "/api/Event/prefs/\(profileId)/0", token: token, apiKey: encryptedAPIKey)
-        
+        print("getEventPref \(request)")
         Network.shared.send(request) { [self] (result: Result<Data, Error>)   in
             switch result {
                 case .success(let eventPreferenceData):
+                    print("getEventPref success 1")
                     let decoder = JSONDecoder()
                     do {
                         let eventPreferenceJson: [EventPreferenceData2] = try decoder.decode([EventPreferenceData2].self, from: eventPreferenceData)
                         if eventPreferenceJson.count == 0 {
+                            print("getEventPref record count = 0")
                             self.availableBalance = 0
-                            self.currentBalance.text = "$" + String(self.availableBalance)
-                            print("count = 0 availableBalance = \(self.availableBalance)")
+                            self.currentBalance.text = currencySymbol + String(self.availableBalance)
+                            self.autoReplenishLbl.isHidden = true
+                            self.autoReplenishAmountSegControl.isHidden = true
+                            
+                            print("I didn't land 1 \( isPaymentMethodAvailable2)")
+                            if isPaymentMethodAvailable2 == false  {
+                                self.btnSelectPayment.setTitle("Add Payment Method", for: .normal)
+                            } else {
+                                self.btnSelectPayment.setTitle("Select Payment", for: .normal)
+                            }
+                            
+                            print("1 count = 0 availableBalance = \(self.availableBalance)")
                             break
                         } else {
-                            for eventPrefData in eventPreferenceJson {
-                                print("Event Id = \(eventPrefData.eventId)")
-                                print("Incoming Event Id = \(String(describing: self.eventId))")
+                            print("getEventPref record count > 0")
+                            /*payment method does not align with event currencycode - reset everything*/
+                            if  isCurrencyMisalignedWithEvent == true {
+                                self.availableBalance = 0
+                                self.currentBalance.text = currencySymbol + String(self.availableBalance)
+                                self.autoReplenishSwitch.isOn = false
+                                self.autoReplenishLbl.isHidden = true
+                                self.autoReplenishAmountSegControl.isHidden = true
                                 
+                                print("I didn't land 1 \( isPaymentMethodAvailable2)")
+                                if isPaymentMethodAvailable2 == false  {
+                                    self.btnSelectPayment.setTitle("Add Payment Method", for: .normal)
+                                } else {
+                                    self.btnSelectPayment.setTitle("Select Payment", for: .normal)
+                                }
                                 
-                                //if eventPrefData.eventId == self.eventId {
-                                self.paymentMethodIdFromPreference = Int64(eventPrefData.paymentMethod)
-                                //only use the payment for the event that you are on...
-                                //if eventPrefData.paymentMethodDetails.paymentMethodId == eventPrefData.paymentMethod {
+                                print("2 count = 0 availableBalance = \(self.availableBalance)")
+                                break
+                            } else {
+                                print("getEventPref record count = 0")
+                                for eventPrefData in eventPreferenceJson {
+                                    print("Event Id = \(eventPrefData.eventId)")
+                                    print("Incoming Event Id = \(String(describing: self.eventId))")
+                                    
+                                    currencycode = getPaymentMethodCurrency(paymentMethodId: Int64(eventPrefData.paymentMethod))
+                                    //if eventPrefData.eventId == self.eventId {
+                                    self.paymentMethodIdFromPreference = Int64(eventPrefData.paymentMethod)
+                                    //only use the payment for the event that you are on...
+                                    //if eventPrefData.paymentMethodDetails.paymentMethodId == eventPrefData.paymentMethod {
                                     self.isReadyToSavePayment = true
                                     print("eventPreferenceData.paymentMethod == paymenttypedata.paymentType! ")
 
@@ -554,48 +756,69 @@ class EventPayment2ViewController: UIViewController, STPAddCardViewControllerDel
                                     print("paymentTypeFromPaymentType =\(eventPrefData.paymentMethodDetails.paymentType)")
                                     self.paymentMethodIdFromGetPaymentType = Int64(eventPrefData.paymentMethodDetails.paymentMethodId)
                                     self.orignalPaymentMethodId = Int(eventPrefData.paymentMethodDetails.paymentMethodId)
-         
+             
+                                    if eventDefaultCurrencyCode == currencycode {
+                                        self.btnSelectPayment.setTitle(self.getPaymenthMethodName(paymentmethodid: eventPrefData.paymentMethod), for: .normal)
+                                        
+                                        self.btnSelectPayment.tag = eventPrefData.paymentMethod
+                                        print("self.getPaymenthMethodName(paymentmethodid: eventPrefData.paymentMethodDetails.paymentMethodId) \(self.getPaymenthMethodName(paymentmethodid: eventPrefData.paymentMethod))")
+                                        paymentMethodIconName = getPaymentMethodIcon(name: getPaymenthMethodName(paymentmethodid: eventPrefData.paymentMethod))
+                                        
+                                        
+                                        //paymentMethodIcon.image = UIImage(named: paymentMethodIconName)
+                                        //paymentMethodIcon.image = UIImage(named: "paymentInfoIcon")
+                                        self.autoReplenishSwitch.isOn = eventPrefData.isAutoReplenish
                                     
-                                    self.btnSelectPayment.setTitle(self.getPaymenthMethodName(paymentmethodid: eventPrefData.paymentMethod), for: .normal)
-                                    
-                                    print("self.getPaymenthMethodName(paymentmethodid: eventPrefData.paymentMethodDetails.paymentMethodId) \(self.getPaymenthMethodName(paymentmethodid: eventPrefData.paymentMethod))")
-                                    paymentMethodIconName = getPaymentMethodIcon(name: getPaymenthMethodName(paymentmethodid: eventPrefData.paymentMethod))
-                                    
-                                    
-                                    //paymentMethodIcon.image = UIImage(named: paymentMethodIconName)
-                                    paymentMethodIcon.image = UIImage(named: "paymentInfoIcon")
-                                    self.autoReplenishSwitch.isOn = eventPrefData.isAutoReplenish
-                                
-                                    //self.availableBalance = eventPrefData.maxSprayAmount - self.gifterTotalTransAmount
-                                    self.availableBalance = eventPrefData.maxSprayAmount
-                                    
-                                print("availableBalance = \(self.availableBalance)")
-                                    self.currentBalance.text = "$" + String(self.availableBalance)
-                                    print("autoreplish = \(eventPrefData.isAutoReplenish)")
-                                    if eventPrefData.isAutoReplenish == true {
-                                        self.autoReplenishAmountSegControl.selectedSegmentIndex = self.getSegControlIndex(amount: eventPrefData.replenishAmount, category: "replenishamount" )
-                                    }
+                                        //self.availableBalance = eventPrefData.maxSprayAmount - self.gifterTotalTransAmount
+                                        self.availableBalance = eventPrefData.maxSprayAmount
+                                        
+                                                                                print("availableBalance = \(self.availableBalance)")
+                                        self.currentBalance.text = currencySymbol + String(self.availableBalance)
+                                        print("autoreplish = \(eventPrefData.isAutoReplenish)")
+                                        if eventPrefData.isAutoReplenish == true {
+                                            self.autoReplenishAmountSegControl.selectedSegmentIndex = self.getSegControlIndex(amount: eventPrefData.replenishAmount, category: "replenishamount" )
+                                        }
 
-                                    if self.autoReplenishSwitch.isOn == false {
+                                        if self.autoReplenishSwitch.isOn == false {
+                                            
+                                            self.autoReplenishLbl.isHidden = true
+                                            self.autoReplenishAmountSegControl.isHidden = true
+
+                                        } else {
+                                            self.autoReplenishLbl.isHidden = false
+                                            self.autoReplenishAmountSegControl.isHidden = false
+                                        }
+                                    } else {
+                                        print("I didn't land 1")
+                                        //self.btnSelectPayment.setTitle("Select Payment", for: .normal)
+                                        print("I didn't land 1 \( isPaymentMethodAvailable2)")
+                                        if isPaymentMethodAvailable2 == false  {
+                                            self.btnSelectPayment.setTitle("Add Payment Method", for: .normal)
+                                        } else {
+                                            self.btnSelectPayment.setTitle("Select Payment", for: .normal)
+                                        }
+                                        
+                                        self.autoReplenishSwitch.isOn = false
+
+                                        self.availableBalance = 0
+                                        self.currentBalance.text = currencySymbol  + String(self.availableBalance)
                                         
                                         self.autoReplenishLbl.isHidden = true
                                         self.autoReplenishAmountSegControl.isHidden = true
-
-                                    } else {
-                                        self.autoReplenishLbl.isHidden = false
-                                        self.autoReplenishAmountSegControl.isHidden = false
                                     }
+                                        
+                                       
                                     break
-//                                }
-//                                break
-                                
-                                //else if eventId <> eventId
-//                                } else {
-//                                    self.autoReplenishSwitch.isOn = false
-//                                    self.autoReplenishLbl.isHidden = true
-//                                    self.autoReplenishAmountSegControl.isHidden = true
+    //                                }
+    //                                break
+                                    
+                                    //else if eventId <> eventId
+    //                                } else {
+    //                                    self.autoReplenishSwitch.isOn = false
+    //                                    self.autoReplenishLbl.isHidden = true
+    //                                    self.autoReplenishAmountSegControl.isHidden = true
 //
-//                                }
+                                }
                             }
                         }
                         
@@ -612,7 +835,7 @@ class EventPayment2ViewController: UIViewController, STPAddCardViewControllerDel
         //var eventprefdate:  [EventPreferenceData] = [] //paymentmethod1
         //let request = Request(path: "/api/Event/prefs/\(profileId)/\(eventId)", token: token)
         let request = Request(path: "/api/Event/prefs/\(profileId)/0", token: token, apiKey: encryptedAPIKey)
-        Network.shared.send(request) { (result: Result<Data, Error>)   in
+        Network.shared.send(request) { [self] (result: Result<Data, Error>)   in
             switch result {
                 case .success(let eventPreferenceData):
                     let decoder = JSONDecoder()
@@ -646,7 +869,7 @@ class EventPayment2ViewController: UIViewController, STPAddCardViewControllerDel
                                     
                                     self.autoReplenishSwitch.isOn = eventPrefData.isAutoReplenish
                                     self.availableBalance = eventPrefData.maxSprayAmount - self.gifterTotalTransAmount
-                                    self.currentBalance.text = "$" + String(self.availableBalance)
+                                    self.currentBalance.text = currencySymbol + String(self.availableBalance)
                                     print("autoreplish = \(eventPrefData.isAutoReplenish)")
 
                                     
@@ -682,8 +905,81 @@ class EventPayment2ViewController: UIViewController, STPAddCardViewControllerDel
         }
     }
     
-  
-    func loadSprayAmountOptions() {
+    func loadSprayAmountOptions(currencyCode: String) {
+        print("NAYLA NOAH IGHEDOA - \(currencyCode)")
+        addSprayAmountOptionsAutoReplenish.removeAll()
+        addSprayAmountOptions.removeAll() /*cleanup*/
+        switch currencyCode {
+        case "usd":
+            //load data for spray amount segment control
+            let data0 = AddSprayAmountOptions(id: 0, amount: 0, displayAmount: currencySymbol + "0")
+            addSprayAmountOptions.append(data0)
+            let data1 = AddSprayAmountOptions(id: 1, amount: 10, displayAmount: currencySymbol + "10")
+            addSprayAmountOptions.append(data1)
+            let data2 = AddSprayAmountOptions(id: 2, amount: 15, displayAmount: currencySymbol + "15")
+            addSprayAmountOptions.append(data2)
+            let data3 = AddSprayAmountOptions(id: 3, amount: 25, displayAmount: currencySymbol + "25")
+            addSprayAmountOptions.append(data3)
+            let data4 = AddSprayAmountOptions(id: 4, amount: 50, displayAmount: currencySymbol + "50")
+            addSprayAmountOptions.append(data4)
+            let data5 = AddSprayAmountOptions(id: 5, amount: 100, displayAmount: currencySymbol + "100")
+            addSprayAmountOptions.append(data5)
+            
+            //load data for replenish amount segment control
+           
+            let data00 = AddSprayAmountOptions(id: 0, amount: 0, displayAmount: currencySymbol +  "0")
+            addSprayAmountOptionsAutoReplenish.append(data00)
+            let data11 = AddSprayAmountOptions(id: 1, amount: 10, displayAmount: currencySymbol + "10")
+            addSprayAmountOptionsAutoReplenish.append(data11)
+            let data22 = AddSprayAmountOptions(id: 2, amount: 15, displayAmount: currencySymbol + "15")
+            addSprayAmountOptionsAutoReplenish.append(data22)
+            let data33 = AddSprayAmountOptions(id: 3, amount: 25, displayAmount: currencySymbol + "25")
+            addSprayAmountOptionsAutoReplenish.append(data33)
+            let data44 = AddSprayAmountOptions(id: 4, amount: 50, displayAmount: currencySymbol + "50")
+            addSprayAmountOptionsAutoReplenish.append(data44)
+            let data55 = AddSprayAmountOptions(id: 5, amount: 100, displayAmount: currencySymbol + "100")
+            addSprayAmountOptionsAutoReplenish.append(data55)
+            loadSegmentsTitle()
+        case "ngn":
+            print("NAYLA IGHEDOA - \(currencyCode)")
+            //load data for spray amount segment control
+            let data0 = AddSprayAmountOptions(id: 0, amount: 0, displayAmount: currencySymbol +  "0")
+            addSprayAmountOptions.append(data0)
+            let data1 = AddSprayAmountOptions(id: 1, amount: 500, displayAmount: currencySymbol + "500")
+            addSprayAmountOptions.append(data1)
+            let data2 = AddSprayAmountOptions(id: 2, amount: 1000, displayAmount: currencySymbol + "1000")
+            addSprayAmountOptions.append(data2)
+            let data3 = AddSprayAmountOptions(id: 3, amount: 1500, displayAmount: currencySymbol +  "1500")
+            addSprayAmountOptions.append(data3)
+            let data4 = AddSprayAmountOptions(id: 4, amount: 2000, displayAmount: currencySymbol +  "2000")
+            addSprayAmountOptions.append(data4)
+            //let data5 = AddSprayAmountOptions(id: 5, amount: 100, displayAmount: "100")
+            //addSprayAmountOptions.append(data5)
+            
+            //load data for replenish amount segment control
+           
+            let data00 = AddSprayAmountOptions(id: 0, amount: 0, displayAmount: currencySymbol + "0")
+            addSprayAmountOptionsAutoReplenish.append(data00)
+            let data11 = AddSprayAmountOptions(id: 1, amount: 500, displayAmount: currencySymbol + "500")
+            addSprayAmountOptionsAutoReplenish.append(data11)
+            let data22 = AddSprayAmountOptions(id: 2, amount: 1000, displayAmount: currencySymbol + "1000")
+            addSprayAmountOptionsAutoReplenish.append(data22)
+            let data33 = AddSprayAmountOptions(id: 3, amount: 1500, displayAmount: currencySymbol + "1500")
+            addSprayAmountOptionsAutoReplenish.append(data33)
+            let data44 = AddSprayAmountOptions(id: 4, amount: 2000, displayAmount: currencySymbol + "2000")
+            addSprayAmountOptionsAutoReplenish.append(data44)
+            //let data55 = AddSprayAmountOptions(id: 5, amount: 100, displayAmount: "100")
+            //addSprayAmountOptionsAutoReplenish.append(data55)
+            loadSegmentsTitle()
+        default:
+            break
+        }
+        
+       
+    }
+    
+    /* remove later
+     func loadSprayAmountOptions(currencyCode: String) {
         //load data for spray amount segment control
         let data0 = AddSprayAmountOptions(id: 0, amount: 0, displayAmount: "Open")
         addSprayAmountOptions.append(data0)
@@ -713,7 +1009,7 @@ class EventPayment2ViewController: UIViewController, STPAddCardViewControllerDel
         let data55 = AddSprayAmountOptions(id: 5, amount: 100, displayAmount: "$100")
         addSprayAmountOptionsAutoReplenish.append(data55)
         loadSegmentsTitle()
-    }
+    } */
     func loadSegmentsTitle() {
         //poplulate spray amount segment control
         for i in addSprayAmountOptions {
@@ -775,7 +1071,7 @@ class EventPayment2ViewController: UIViewController, STPAddCardViewControllerDel
     @IBAction func amountSegControlPressed(_ sender: Any) {
         print(getSprayAmountInt(amountId: giftAmountSegConrol.selectedSegmentIndex, category: "addgiftamount"))
         updatedBalance = availableBalance + getSprayAmountInt(amountId: giftAmountSegConrol.selectedSegmentIndex, category: "addreplenishamount")
-        currentBalance.text = "$" + String(updatedBalance)
+        currentBalance.text = currencySymbol + String(updatedBalance)
     }
     
     @IBAction func replenishAmountSegControlPressed(_ sender: Any) {
@@ -835,6 +1131,7 @@ class EventPayment2ViewController: UIViewController, STPAddCardViewControllerDel
             self.tableView.frame = CGRect(x: frames.origin.x, y: frames.origin.y + frames.height + 5, width: frames.width, height: CGFloat(availablePaymentData.count * 50))
             
         }, completion: nil)
+        
     }
     
     @objc func removeTransparentView () {
@@ -843,11 +1140,16 @@ class EventPayment2ViewController: UIViewController, STPAddCardViewControllerDel
             self.tableView.frame = CGRect(x: frames.origin.x, y: frames.origin.y, width: frames.height + 5, height: 0)
             
         }, completion: nil)
+       
     }
     
     @IBAction func selectPaymentBtnPressed(_ sender: Any) {
         //dataSource = ["Visa ..1234", "Mastcard...1234", "Amex...9987"]
         selectedButton = btnSelectPayment
+       
+        /*add code to update prefe with new payment method selected  -
+         currency doesn't match then show alert.call refresh getAvailablePayment*/
+       
         addTransparentView(frames: btnSelectPayment.frame)
     }
     
@@ -874,7 +1176,7 @@ class EventPayment2ViewController: UIViewController, STPAddCardViewControllerDel
         dismiss(animated: true)
     }
     //this is an old function remove later 3/31/2021
-    func addMyPaymentOld(paymentMethodToken
+    /*func addMyPaymentOld(paymentMethodToken
                         : String, customName: String, paymentOptionType: Int64, paymentDescription: String, paymentExpiration: String) {
         
         let addPayment = AddPayment(paymentMethodToken: paymentMethodToken, isUpdate: false, customName: customName, paymentType:1, paymentDescription: paymentDescription, paymentExpiration: "08/17/2030", profileId: profileId)
@@ -888,14 +1190,14 @@ class EventPayment2ViewController: UIViewController, STPAddCardViewControllerDel
                 print(error.localizedDescription)
             }
         }
-    }
+    }*/
     
     
     func addMyPayment(paymentMethodToken
-                        : String, customName: String, paymentOptionType: Int64, paymentDescription: String, paymentExpiration: String) {
+                        : String, customName: String, paymentOptionType: Int64, paymentDescription: String, paymentExpiration: String, currencyCode: String) {
         //if i want to add default payment method, use the paymentmethod Id from this call to setup AddPref...
         //paymentmethodtoken is from the stripe UI
-        let addPayment = AddPayment(paymentMethodToken: paymentMethodToken, isUpdate: false, customName: customName, paymentType:1, paymentDescription: paymentDescription, paymentExpiration: "08/17/2030", profileId: profileId)
+        let addPayment = AddPayment(paymentMethodToken: paymentMethodToken, isUpdate: false, customName: customName, paymentType:1, paymentDescription: paymentDescription, paymentExpiration: "08/17/2030", currency: currencyCode, profileId: profileId)
         
         print("paymentmethodToke = \(paymentMethodToken)")
         print("addPayment \(addPayment)")
@@ -913,7 +1215,7 @@ class EventPayment2ViewController: UIViewController, STPAddCardViewControllerDel
                     paymentMethodId = newPaymentJson.paymentMethodId!
                     availablePaymentData.removeAll() //clear object
                     getAvailablePaymentData() //refresh paymentData
-                    addGeneralPaymentPref(paymentMethodId: newPaymentJson.paymentMethodId!, paymentDescription: customName)
+                    addGeneralPaymentPref(paymentMethodId: newPaymentJson.paymentMethodId!, paymentDescription: customName, currencyCode: newPaymentJson.currency!)
                     
                     haspaymentdelegate?.hasPaymentMethod(hasPaymentMethod: true, paymentMethodId: Int(newPaymentJson.paymentMethodId!))
                     //for data in newPaymentJson {
@@ -935,15 +1237,15 @@ class EventPayment2ViewController: UIViewController, STPAddCardViewControllerDel
     
     
     
-    func addGeneralPaymentPref(paymentMethodId: Int64, paymentDescription: String) {
+    func addGeneralPaymentPref(paymentMethodId: Int64, paymentDescription: String, currencyCode: String) {
         
         //self.launchSprayCandidate()
         
         let updatedPaymentMethodId = paymentMethodId
-        let updatedGiftAmount = 15
+        let updatedGiftAmount = 15 //7/28 this will be based on currency code
         let updatedAutoReplenishFlag = false
         let updatedAutoReplenishAmount: Int = 0
-        let currencyCode = "usd"
+        let currencyCode = currencyCode //"usd"
         
         let addEventPreference = EventPreference(eventId: 0, profileId: profileId, paymentMethod: Int(updatedPaymentMethodId), maxSprayAmount: updatedGiftAmount, replenishAmount: updatedAutoReplenishAmount, notificationAmount:  0, isAutoReplenish: updatedAutoReplenishFlag, currency: currencyCode)
             
@@ -966,14 +1268,14 @@ class EventPayment2ViewController: UIViewController, STPAddCardViewControllerDel
                 giftAmountSegConrol.selectedSegmentIndex = 2
                 //segmentedControl.selectedSegmentIndex = index
                 availableBalance = updatedGiftAmount
-                currentBalance.text = "$" + String(self.availableBalance)
+                currentBalance.text = currencySymbol + String(self.availableBalance)
                 
                 //currentBalance.text = "$" + String(updatedBalance)
                 btnSelectPayment.setTitle(paymentDescription, for: .normal)
-                
+               // btnSelectPayment.tag =  eventpref.paym
                 paymentMethodIconName = getPaymentMethodIcon(name: paymentDescription)
                 
-                paymentMethodIcon.image = UIImage(named: "paymentInfoIcon")
+                //paymentMethodIcon.image = UIImage(named: "paymentInfoIcon")
                 
                 //self.btnSelectPayment.setTitle(self.getPaymenthMethodName(paymentmethodid: eventPrefData.paymentMethodDetails.paymentMethodId), for: .normal)
                 
@@ -1019,7 +1321,7 @@ class EventPayment2ViewController: UIViewController, STPAddCardViewControllerDel
         
         
         
-        if paymentmethodCustNameExist(customName: paymentMethod.label) == false {
+        /*if paymentmethodCustNameExist(customName: paymentMethod.label) == false {
             addMyPayment(paymentMethodToken: paymentClientToken, customName: paymentMethod.label, paymentOptionType: 0, paymentDescription: paymentMethod.image.description, paymentExpiration: "08/17/2030")
             
             print("customName Payment name does not exist... going to add it")
@@ -1042,7 +1344,7 @@ class EventPayment2ViewController: UIViewController, STPAddCardViewControllerDel
             //currentBalance.text = "$" + String(updatedBalance)
             //btnSelectPayment.setTitle(paymentMethod.label, for: .normal)
            
-        }
+        } */
         
         
         
@@ -1086,7 +1388,6 @@ extension EventPayment2ViewController: UITableViewDelegate, UITableViewDataSourc
         
        
         cell.textLabel?.text = availablePaymentData[indexPath.row].customName
-        
         return cell
     }
     
@@ -1106,6 +1407,27 @@ extension EventPayment2ViewController: UITableViewDelegate, UITableViewDataSourc
         
         print("paymentMethodIconName \(paymentMethodIconName)")
         paymentMethodIcon.image = UIImage(named: "paymentInfoIcon")
+        
+        print("BTN Payment Pressed - Dominic \(availablePaymentData[indexPath.row].paymentMethodId!)")
+        let paymentMethodCurrency = getPaymentMethodCurrency(paymentMethodId: availablePaymentData[indexPath.row].paymentMethodId!)
+        if paymentMethodCurrency  == "none" {
+            print("no currenc ")
+            let alert = UIAlertController(title: "Currency Mismatch", message: "The currency of the Payment Method you selected does not match the currency of Country where this event is being held. Please add or select a new Payment Method.", preferredStyle: UIAlertController.Style.alert)
+
+            // add an action (button)
+            alert.addAction(UIAlertAction(title: "OK", style: UIAlertAction.Style.default, handler: nil))
+
+            // show the alert
+            self.present(alert, animated: true, completion: nil)
+        } else  {
+            if paymentMethodCurrency  == eventDefaultCurrencyCode {
+                print("currency code matche")
+            } else {
+                print("currency does not match")
+            }
+            
+        }
+        print("paymentMethodCurrency =  \(paymentMethodCurrency)")
         
         removeTransparentView()
     }

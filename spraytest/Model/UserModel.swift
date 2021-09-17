@@ -46,6 +46,8 @@ struct UserUpdateModel: Model {
     var lastName: String
     let userName: String
     var phone: String?
+}
+struct UserUpdatePasswordeModel: Model {
     let newPassword: String?
     let oldPassword: String?
 }

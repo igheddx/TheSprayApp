@@ -10,7 +10,7 @@
 import UIKit
 import Stripe
 
-let backendUrl = "https://projectxapiapp.azurewebsites.net/" //http://127.0.0.1:4242/"
+let backendUrl = "https://projectxapi-dev.azurewebsites.net/" //http://127.0.0.1:4242/"
 
 
 class SetupPaymentMethodViewController: UIViewController, STPAuthenticationContext, UITextFieldDelegate {
@@ -44,6 +44,11 @@ class SetupPaymentMethodViewController: UIViewController, STPAuthenticationConte
     var encryptedAPIKey: String = ""
     var cardImage1: String = ""
     var image = UIImage(named: "")
+    var countrylist: [CountryList] = []
+    var activePickerViewTextField = UITextField()
+    var pickerView = UIPickerView()
+    var country: String = ""
+    var countryData = CountryData()
     
     lazy var cardTextField: STPPaymentCardTextField = {
         let cardTextField = STPPaymentCardTextField()
@@ -60,12 +65,32 @@ class SetupPaymentMethodViewController: UIViewController, STPAuthenticationConte
         return paymentLabel
     }()
     
+    
     lazy var cardNickNameTextField:UITextField = {
         let textField = UITextField()
         textField.translatesAutoresizingMaskIntoConstraints = false
         textField.placeholder = "Card Nick Name"
         textField.keyboardType = UIKeyboardType.default
         textField.layer.cornerRadius = 5
+        textField.returnKeyType = UIReturnKeyType.done
+        textField.autocorrectionType = UITextAutocorrectionType.no
+        textField.font = UIFont.systemFont(ofSize: 22)
+        textField.borderStyle = UITextField.BorderStyle.roundedRect
+        textField.clearButtonMode = UITextField.ViewMode.whileEditing;
+        textField.contentVerticalAlignment = UIControl.ContentVerticalAlignment.center
+        return textField
+    }()
+    lazy var countryTextField:UITextField = {
+        let textField = UITextField()
+        textField.translatesAutoresizingMaskIntoConstraints = false
+        textField.placeholder = "Country"
+        textField.keyboardType = UIKeyboardType.default
+        textField.layer.cornerRadius = 5
+        textField.text = country
+        textField.frame.size.height = 45
+        //CGRect frameRect.size.height = 100; // <-- Specify the height you want here.
+        //textField.frame = frameRect;
+        
         textField.returnKeyType = UIReturnKeyType.done
         textField.autocorrectionType = UITextAutocorrectionType.no
         textField.font = UIFont.systemFont(ofSize: 22)
@@ -136,18 +161,22 @@ class SetupPaymentMethodViewController: UIViewController, STPAuthenticationConte
         print("paymentClientToken = \(paymentClientToken)")
         
         cardNickNameTextField.delegate = self
+        countryTextField.delegate = self
+        pickerView.delegate = self
+        pickerView.dataSource = self
         //textFiled.delegate = self
         
         cardNickNameTextField.addTarget(self, action: #selector(SetupPaymentMethodViewController.textFieldDidChange(_:)),
                                   for: .editingChanged)
-        
+        countryTextField.addTarget(self, action: #selector(SetupPaymentMethodViewController.textFieldDidChange(_:)),
+                                  for: .editingChanged)
         availablePaymentData.removeAll()
         getAvailablePaymentData()
         
         StripeAPI.defaultPublishableKey = STRIPE_KEY //"pk_test_51I4w7tH6yOvhR5k1FrjaRKUcGG3LLzcuTx1LOWJj6bprUylHErpYHXsSRFxfdepAxz3KDbPLp2cDjpP54AWdc9qG00C8jcO2o4" //"pk_test_51I4w7tH6yOvhR5k1FrjaRKUcGG3LLzcuTx1LOWJj6bprUylHErpYHXsSRFxfdepAxz3KDbPLp2cDjpP54AWdc9qG00C8jcO2o4"
 
         view.backgroundColor = .white
-        let stackView = UIStackView(arrangedSubviews: [paymentTitle, cardTextField, paymentMessageLbl, payButton])
+        let stackView = UIStackView(arrangedSubviews: [paymentTitle, countryTextField, cardTextField, paymentMessageLbl, payButton])
         stackView.axis = .vertical
         stackView.spacing = 20
         stackView.translatesAutoresizingMaskIntoConstraints = false
@@ -162,10 +191,19 @@ class SetupPaymentMethodViewController: UIViewController, STPAuthenticationConte
         self.paymentIntentClientSecret = paymentClientToken
         
         print("self.paymentIntentClientSecret = \(self.paymentIntentClientSecret)")
+        
+        
+        countrylist.removeAll()
+        
+      
+        loadCountryList()
+        
+        dismissPickerView()
     }
     
     override func viewDidDisappear(_ animated: Bool) {
         if launchedFromMenu == false {
+            print("I AM CALLING EVENTPAYENT2VIEWE OR GO TO SPRAY?")
             refreshscreendelegate?.refreshScreen(isRefreshScreen:isRefreshScreen)
             setuppaymentmethoddelegate?.passData(eventId: eventId, profileId: profileId, token: token, ApiKey: encryptedAPIKey,  eventName: eventName, eventDateTime: eventName, eventTypeIcon: eventTypeIcon, paymentClientToken: paymentClientToken, isSingleReceiverEvent: isSingleReceiverEvent, eventOwnerName: eventOwnerName, eventOwnerId: eventOwnerId)
             haspaymentdelegate?.hasPaymentMethod(hasPaymentMethod: true, paymentMethodId: Int(newPaymentMethodId))
@@ -216,18 +254,71 @@ class SetupPaymentMethodViewController: UIViewController, STPAuthenticationConte
        print("CVC", cardTextField.cvc)
         print("Brand Type", STPCardValidator.brand(forNumber: cardTextField.cardNumber!))
     }
-  func displayAlert(title: String, message: String, restartDemo: Bool = false) {
-    DispatchQueue.main.async {
-      let alert = UIAlertController(title: title, message: message, preferredStyle: .alert)
-      alert.addAction(UIAlertAction(title: "OK", style: .cancel))
-      self.present(alert, animated: true, completion: nil)
+    
+    func displayAlert(title: String, message: String, restartDemo: Bool = false) {
+        DispatchQueue.main.async {
+            let alert = UIAlertController(title: title, message: message, preferredStyle: .alert)
+        alert.addAction(UIAlertAction(title: "OK", style: .cancel))
+        self.present(alert, animated: true, completion: nil)
+        }
     }
-  }
 
+    
     func authenticationPresentingViewController() -> UIViewController {
         return self
     }
     
+    func loadCountryList() {
+        let data0 = CountryList(countryCode: "OO", countryName: "Select Country")
+        countrylist.append(data0)
+        let data1 = CountryList(countryCode: "usd", countryName: "United States")
+        countrylist.append(data1)
+        let data2 = CountryList(countryCode: "ngn", countryName: "Nigeria")
+        countrylist.append(data2)
+        let data3 = CountryList(countryCode: "gbp", countryName: "United Kingdom")
+        countrylist.append(data3)
+        let data4 = CountryList(countryCode: "inr", countryName: "India")
+        countrylist.append(data4)
+        
+    }
+    
+    func getCountryCode(countryName: String) -> String {
+        var myCountryCode: String = ""
+        for country in countrylist {
+            print("my country name is \(country.countryName)")
+            if countryName == country.countryName {
+                myCountryCode = country.countryCode
+                print(" i got a country code =\(country.countryCode) ")
+                break
+            }
+        }
+        print("myCountryCode = \(myCountryCode)")
+       return myCountryCode
+    }
+    
+//    func createPickerView() {
+//           let pickerView = UIPickerView()
+//           pickerView.delegate = self
+//           //textFiled.inputView = pickerView
+//    }
+    func dismissPickerView() {
+//       let toolBar = UIToolbar()
+//       toolBar.sizeToFit()
+//       let button = UIBarButtonItem(title: "Done", style: .plain, target: self, action: #selector(self.action))
+//       toolBar.setItems([button], animated: true)
+        let toolBar = UIToolbar()
+        toolBar.sizeToFit()
+        let doneBtn = UIBarButtonItem(barButtonSystemItem: .done, target: self, action: #selector(self.action))
+        toolBar.isUserInteractionEnabled = true
+        toolBar.setItems([doneBtn], animated: true)
+        //textFiled.inputAccessoryView = toolBar
+       
+        countryTextField.inputAccessoryView = toolBar
+    }
+    @objc func action() {
+        customtextfield.borderForTextField(textField: countryTextField, validationFlag: false)
+          view.endEditing(true)
+    }
   func startCheckout() {
     // Create a PaymentIntent as soon as the view loads
     let url = URL(string: backendUrl + "create-payment-intent")!
@@ -315,6 +406,7 @@ class SetupPaymentMethodViewController: UIViewController, STPAuthenticationConte
                        paymentDescription: paymenttypedata.paymentDescription,
                        paymentExpiration: paymenttypedata.paymentExpiration,
                        defaultPaymentMethod: paymenttypedata.defaultPaymentMethod,
+                       currency: paymenttypedata.currency,
                        paymentImage: paymenttypedata.paymentDescription)
                         self.availablePaymentData.append(adddata)
                         
@@ -343,6 +435,16 @@ class SetupPaymentMethodViewController: UIViewController, STPAuthenticationConte
         textField.becomeFirstResponder()
         customtextfield.borderForTextField(textField: textField, validationFlag: true)
     }
+    
+    func textFieldDidBeginEditing(_ textField: UITextField) {
+        self.pickerView.delegate = self
+        self.pickerView.dataSource = self
+        activePickerViewTextField = textField
+       if activePickerViewTextField == countryTextField {
+            activePickerViewTextField.inputView = pickerView
+        }
+        
+    }
     func displayAlertMessage(displayMessage: String, textField: UITextField) {
         let alert2 = UIAlertController(title: "Missing Information", message: displayMessage, preferredStyle: .alert)
         //alert2.addAction(UIAlertAction(title: "Ok", style: .default, handler: nil))
@@ -356,24 +458,69 @@ class SetupPaymentMethodViewController: UIViewController, STPAuthenticationConte
     @objc func pay() {
         // LoadingStart() comment this out
             print("pay was called")
-//        guard let cardNickName = cardNickNameTextField.text
-//
-//        else {
-//            return
-//        }
-//        let isValidateCardNickName = self.formValidation.validateName2(name2: cardNickName).isValidate
-//        if (isValidateCardNickName == false) {
-//
-//            let message = "Card Nick Name is Required"
-//            displayAlertMessage(displayMessage: message, textField: cardNickNameTextField)
-//
-//            return
-//        } else {
-//            customtextfield.borderForTextField(textField: cardNickNameTextField, validationFlag: false)
-//        }
+        
+        let currencyCode = getCountryCode(countryName: countryTextField.text!)
+        
+        print("the currency code = \(currencyCode)")
+        
+        guard let countryName = countryTextField.text
+              //,
+              //let cardInfo = cardTextField
+        else {
+            return
+        }
+        
+        var isCountrySelected: Bool = false
+        var isCardInfoAdded: Bool = false
+        //let isValidateCardNumber = self.formValidation.validateName2(name2: countryName).isValidate
+        let cardParams = cardTextField.cardParams
+        let last4Digit = cardParams.last4
+        if (last4Digit == "") {
+            isCardInfoAdded = false
+            let message = "Card Information is Required"
+            
+            let alert2 = UIAlertController(title: "Missing Information", message: message, preferredStyle: .alert)
+            //alert2.addAction(UIAlertAction(title: "Ok", style: .default, handler: nil))
+            
+            alert2.addAction(UIAlertAction(title: "OK", style: .default, handler: nil))
+            
+            self.present(alert2, animated: true)
+            
+            //displayAlertMessage(displayMessage: message, textField: countryTextField)
+            
+            cardTextField.becomeFirstResponder()
+            return
+        } else {
+            isCardInfoAdded = true
+            //cardTextField.becomeFirstResponder()
+        }
+        
+        
+        if countryName == "Select Country" || countryName == "" {
+            isCountrySelected = false
+            let message = "Country Name is Required"
+            displayAlertMessage(displayMessage: message, textField: countryTextField)
+            countryTextField.becomeFirstResponder()
+            
+            return
+        } else  {
+            customtextfield.borderForTextField(textField: countryTextField, validationFlag: false)
+            isCountrySelected = true
+        }
+        
+        /*let isValidateCountry = self.formValidation.validateName2(name2: countryName).isValidate
+        if (isValidateCountry == false) {
+
+            let message = "Card Nick Name is Required"
+            displayAlertMessage(displayMessage: message, textField: cardNickNameTextField)
+
+            return
+        } else {
+            customtextfield.borderForTextField(textField: cardNickNameTextField, validationFlag: false)
+        } */
 
         //let isValidateCardNickName = true //set to true temporarily - remove later 6/9
-       // if isValidateCardNickName == true {
+       if isCountrySelected == true && isCardInfoAdded == true {
             // Collect card details
             let cardParams = cardTextField.cardParams
             let cardIcon = cardTextField.brandImage
@@ -461,7 +608,11 @@ class SetupPaymentMethodViewController: UIViewController, STPAuthenticationConte
                 //cardImage1 = cardimage?.
                     print(" i am calling add my payment")
                     //comment this out for now 6/9
-                    addMyPayment(paymentMethodToken: (setupIntent?.paymentMethodID)!, customName: last4Digit, paymentOptionType: 1, paymentDescription: "", paymentExpiration: expireDate)
+                let currencyCode = getCountryCode(countryName: countryTextField.text!)
+                
+                print("the currency code = \(currencyCode)")
+                
+                addMyPayment(paymentMethodToken: (setupIntent?.paymentMethodID)!, customName: last4Digit, paymentOptionType: 1, paymentDescription: "", paymentExpiration: expireDate, currencyCode: currencyCode)
                   // } else {
                        print("DUPLICATE PAYMENT METHOD")
                        //giftAmountSegConrol.selectedSegmentIndex = 2
@@ -483,7 +634,7 @@ class SetupPaymentMethodViewController: UIViewController, STPAuthenticationConte
             @unknown default:
                 fatalError()
                 break
-           // }
+           }
         }
     }
     
@@ -570,10 +721,10 @@ class SetupPaymentMethodViewController: UIViewController, STPAuthenticationConte
     }
 //
     func addMyPayment(paymentMethodToken
-                        : String, customName: String, paymentOptionType: Int64, paymentDescription: String, paymentExpiration: String) {
+                        : String, customName: String, paymentOptionType: Int64, paymentDescription: String, paymentExpiration: String, currencyCode: String) {
         //if i want to add default payment method, use the paymentmethod Id from this call to setup AddPref...
         //paymentmethodtoken is from the stripe UI
-        let addPayment = AddPayment(paymentMethodToken: paymentMethodToken, isUpdate: false, customName: customName, paymentType:1, paymentDescription: paymentDescription, paymentExpiration: paymentExpiration, profileId: profileId)
+        let addPayment = AddPayment(paymentMethodToken: paymentMethodToken, isUpdate: false, customName: customName, paymentType:1, paymentDescription: paymentDescription, paymentExpiration: paymentExpiration, currency: currencyCode, profileId: profileId)
 
         print("addPayment \(addPayment)")
         let request = PostRequest(path: "/api/PaymentMethod/add", model: addPayment , token: token, apiKey: encryptedAPIKey, deviceId: "")
@@ -588,7 +739,7 @@ class SetupPaymentMethodViewController: UIViewController, STPAuthenticationConte
                     //getAvailablePaymentData() //refresh availablePaymentData object
                     //if currentAvailableCredit == 0 {
                         print("I do not have a blance")
-                        addGeneralPaymentPref(paymentMethodId: newPaymentJson.paymentMethodId!, paymentDescription: customName)
+                    addGeneralPaymentPref(paymentMethodId: newPaymentJson.paymentMethodId!, paymentDescription: customName, currencyCode: currencyCode)
                     print("new paymentMethod Id = \(newPaymentJson.paymentMethodId!)")
                         newPaymentMethodId =  newPaymentJson.paymentMethodId!
                     
@@ -620,12 +771,13 @@ class SetupPaymentMethodViewController: UIViewController, STPAuthenticationConte
         }
     }
     
-    func addGeneralPaymentPref(paymentMethodId: Int64, paymentDescription: String) {
+    func addGeneralPaymentPref(paymentMethodId: Int64, paymentDescription: String, currencyCode: String) {
         
         //self.launchSprayCandidate()
         var updatedGiftAmount: Int = 0
         if currentAvailableCredit == 0 {
-            updatedGiftAmount = 15
+            //get default available credit amount by country/currencycode i.e U.S = $15, Nigeria = N1500
+            updatedGiftAmount = countryData.getDefaultAvailableCredit(currencyCode: currencyCode)
      
         } else {
             updatedGiftAmount = currentAvailableCredit
@@ -644,8 +796,8 @@ class SetupPaymentMethodViewController: UIViewController, STPAuthenticationConte
         //let updatedGiftAmount = 15
         let updatedAutoReplenishFlag = autoReplenishFlg1
         let updatedAutoReplenishAmount: Int = autoReplenishAmt1
-        let currencyCode = "usd"
-        
+        let currencyCode = currencyCode
+        let currencySymbol =  Currency.shared.findSymbol(currencyCode: currencyCode)
         let addPaymentPref = EventPreference(eventId: 0, profileId: profileId, paymentMethod: Int(updatedPaymentMethodId), maxSprayAmount: updatedGiftAmount, replenishAmount: updatedAutoReplenishAmount, notificationAmount:  0, isAutoReplenish: updatedAutoReplenishFlag, currency: currencyCode)
             
         //set.btnSelectPayment.setTitle(paymentDescription)
@@ -677,7 +829,7 @@ class SetupPaymentMethodViewController: UIViewController, STPAuthenticationConte
                 
                 isRefreshScreen = true
                 LoadingStop()
-                self.completionAlert(message: "Payment Was Added. You Have a SprayCredit of $\(updatedGiftAmount) to Start With.", timer: 2, completionAction: "goback")
+                self.completionAlert(message: "Payment Was Added. You Have a SprayCredit of \(currencySymbol)\(updatedGiftAmount) to Start With.", timer: 2, completionAction: "goback")
                 //self.btnSelectPayment.setTitle(self.getPaymenthMethodName(paymentmethodid: eventPrefData.paymentMethodDetails.paymentMethodId), for: .normal)
                 
                 
@@ -762,3 +914,40 @@ extension SetupPaymentMethodViewController{
     ProgressDialog.alert.dismiss(animated: true, completion: nil)
   }
 }
+
+extension  SetupPaymentMethodViewController: UIPickerViewDataSource {
+      func numberOfComponents(in pickerView: UIPickerView) -> Int {
+          return 1
+      }
+    
+    func pickerView(_ pickerView: UIPickerView, numberOfRowsInComponent component: Int) -> Int {
+        if activePickerViewTextField == countryTextField {
+            return countrylist.count
+        } else {
+            return 0
+        }
+    }
+}
+
+extension  SetupPaymentMethodViewController: UIPickerViewDelegate {
+    func pickerView(_ pickerView: UIPickerView, titleForRow row: Int, forComponent component: Int) -> String? {
+       
+        if activePickerViewTextField == countryTextField {
+            return countrylist[row].countryName
+        } else {
+            return ""
+        }
+    }
+    
+
+    func pickerView(_ pickerView: UIPickerView, didSelectRow row: Int, inComponent component: Int) {
+        if activePickerViewTextField == countryTextField {
+            countryTextField.text = countrylist[row].countryName//countryData[row]
+        }
+//        else if activePickerViewTextField == textFiled {
+//            selectedCountry = countryList[row] // selected item
+//            textFiled.text = selectedCountry
+//        }
+    }
+}
+

@@ -55,11 +55,22 @@ class EventMetricsViewController: UIViewController, ChartViewDelegate, UITableVi
     var eventmetricsspraydetails2: [EventMetricsSprayDetails] = []
     var eventmetricsspraydetails3: [EventMetricsSprayDetails] = []
     var encryptedAPIKey: String = ""
+    var country: String = ""
+    var currencySymbol: String = ""
+    var eventDefaultCurrencyCode: String = ""
+    var countryData = CountryData()
     
     var isForSearch: Bool = false
     
     override func viewDidLoad() {
         super.viewDidLoad()
+        
+        eventDefaultCurrencyCode = countryData.getCurrencyCodeWithCountryName(country: country)
+        currencySymbol = Currency.shared.findSymbol(currencyCode: eventDefaultCurrencyCode)
+        
+        print("country  = \(country)")
+        print("currency Symbl  = \(currencySymbol)")
+        
         tableView.delegate = self
         tableView.dataSource = self
         thePieChart.delegate = self
@@ -123,8 +134,8 @@ class EventMetricsViewController: UIViewController, ChartViewDelegate, UITableVi
         //yourInstanceChart.legend.textColor = UIColor.white
         
         var entries: [PieChartDataEntry] = Array()
-        entries.append(PieChartDataEntry(value: 100.0, label: "$100"))
-        entries.append(PieChartDataEntry(value: 30.0, label: "$30"))
+        entries.append(PieChartDataEntry(value: 100.0, label: "\(currencySymbol)100"))
+        entries.append(PieChartDataEntry(value: 30.0, label: "\(currencySymbol)30"))
 //        entries.append(PieChartDataEntry(value: 20.0, label: "Soft Drink"))
 //        entries.append(PieChartDataEntry(value: 10.0, label: "Water"))
 //        entries.append(PieChartDataEntry(value: 40.0, label: "Home Meals"))
@@ -187,7 +198,7 @@ class EventMetricsViewController: UIViewController, ChartViewDelegate, UITableVi
         formatter.numberStyle = .currency
         formatter.maximumFractionDigits = 0
         formatter.multiplier = 1.0
-        formatter.currencySymbol = "$"
+        formatter.currencySymbol = currencySymbol
         
         amountGifted.value = gifted
         amountGifted.label = ""
@@ -210,8 +221,8 @@ class EventMetricsViewController: UIViewController, ChartViewDelegate, UITableVi
         //LegendEntry
         let formSize =  CGFloat.nan
 
-        let legendEntry1 = LegendEntry(label: "Gifted $\(gifted)", form: .default, formSize: formSize, formLineWidth: .nan, formLineDashPhase: .nan, formLineDashLengths: .none, formColor: UIColor(red: 61/256, green: 126/256, blue: 166/256, alpha: 1.0))  //set formSize, formLizeWidth, and formLineDashLengths to .nan to use default
-        let legendEntry2 = LegendEntry(label: "Received $\(received)", form: .default, formSize: formSize, formLineWidth: .nan, formLineDashPhase: .nan, formLineDashLengths: .none, formColor: UIColor(red: 138/256, green: 196/256, blue: 208/256, alpha: 1.0))
+        let legendEntry1 = LegendEntry(label: "Gifted \(currencySymbol)\(gifted)", form: .default, formSize: formSize, formLineWidth: .nan, formLineDashPhase: .nan, formLineDashLengths: .none, formColor: UIColor(red: 61/256, green: 126/256, blue: 166/256, alpha: 1.0))  //set formSize, formLizeWidth, and formLineDashLengths to .nan to use default
+        let legendEntry2 = LegendEntry(label: "Received \(currencySymbol)\(received)", form: .default, formSize: formSize, formLineWidth: .nan, formLineDashPhase: .nan, formLineDashLengths: .none, formColor: UIColor(red: 138/256, green: 196/256, blue: 208/256, alpha: 1.0))
         let customLegendEntries = [legendEntry1, legendEntry2]
         l.setCustom(entries: customLegendEntries)
         //l.orientation = .horizontal
@@ -445,13 +456,13 @@ class EventMetricsViewController: UIViewController, ChartViewDelegate, UITableVi
         let cell = UITableViewCell(style: .subtitle, reuseIdentifier: nil)
         if searching {
             cell.textLabel?.text = "\(eventmetricsspraydetails3[indexPath.row].firstName)  \(eventmetricsspraydetails3[indexPath.row].lastName)"
-            cell.detailTextLabel?.text = "$ \(String(eventmetricsspraydetails3[indexPath.row].totalAmount))"
+            cell.detailTextLabel?.text = "\(currencySymbol)\(String(eventmetricsspraydetails3[indexPath.row].totalAmount))"
             cell.detailTextLabel?.font = UIFont.systemFont(ofSize: 17.0)
             cell.detailTextLabel?.font = UIFont.boldSystemFont(ofSize: 17.0)
             
         } else {
             cell.textLabel?.text = "\(eventmetricsspraydetails[indexPath.row].firstName)  \(eventmetricsspraydetails[indexPath.row].lastName)"
-            cell.detailTextLabel?.text = "$ \(String(eventmetricsspraydetails[indexPath.row].totalAmount))"
+            cell.detailTextLabel?.text = "\(currencySymbol)\(String(eventmetricsspraydetails[indexPath.row].totalAmount))"
             cell.detailTextLabel?.font = UIFont.systemFont(ofSize: 17.0)
             cell.detailTextLabel?.font = UIFont.boldSystemFont(ofSize: 17.0)
         }

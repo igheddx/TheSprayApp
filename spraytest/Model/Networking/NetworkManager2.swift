@@ -10,7 +10,7 @@
 
 import Foundation
 struct NetworkManager2 {
-    let generalUrl = "https://projectxapiapp.azurewebsites.net/api/Profile/register"
+    let generalUrl = "https://projectxapi-dev.azurewebsites.net/api/Profile/register"
     
     func fetchEvent(eventId: Int){
         let urlString = "\(generalUrl)&eventId=\(eventId)"
@@ -20,7 +20,7 @@ struct NetworkManager2 {
     func hitAPI(_for URLString:String, dataModel: ProfileModel.Type) {
         
         
-        let url = URL(string: "https://projectxapiapp.azurewebsites.net/api/Profile/register")
+        let url = URL(string: "https://projectxapi-dev.azurewebsites.net/api/Profile/register")
         guard let requestUrl = url else { fatalError() }
         var request = URLRequest(url: requestUrl)
         request.httpMethod = "POST"

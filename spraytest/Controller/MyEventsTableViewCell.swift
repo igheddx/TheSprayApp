@@ -52,9 +52,12 @@ class MyEventsTableViewCell: UITableViewCell, UIImagePickerControllerDelegate, U
     var myEventType2: String = "" //description
     var myIsRsvprequired: Bool?
     var myIsSingleReceiver: Bool?
+    var myIsForBusiness: Bool?
+    
     var myDefaultEventPaymentMethod: Int = 0
     var myDefaultEventPaymentCustomName: String = ""
     var encryptedAPIKey: String = ""
+    
     static func nib() -> UINib {
           return UINib(nibName: "MyEventsTableViewCell", bundle: nil)
     }
@@ -80,7 +83,8 @@ class MyEventsTableViewCell: UITableViewCell, UIImagePickerControllerDelegate, U
                           country: String,
                           eventState: Int,
                           eventType: Int,
-                          eventType2: String, isRsvprequired: Bool, isSingleReceiver: Bool, defaultEventPaymentMethod: Int = 0, defaultEventPaymentCustomName: String = "") {
+                          eventType2: String, isRsvprequired: Bool, isSingleReceiver: Bool,
+                          isForBusiness: Bool, defaultEventPaymentMethod: Int = 0, defaultEventPaymentCustomName: String = "") {
           
           
         myEventName = eventName
@@ -108,6 +112,8 @@ class MyEventsTableViewCell: UITableViewCell, UIImagePickerControllerDelegate, U
         
         myIsRsvprequired = isRsvprequired
         myIsSingleReceiver = isSingleReceiver
+        myIsForBusiness = isForBusiness
+        
         myDefaultEventPaymentMethod = defaultEventPaymentMethod
         myDefaultEventPaymentCustomName = defaultEventPaymentCustomName
         
@@ -208,7 +214,8 @@ class MyEventsTableViewCell: UITableViewCell, UIImagePickerControllerDelegate, U
                country: myCountry,
                eventState: myEventState!,
                eventType: myEventType!,
-               eventType2: myEventType2, isRsvprequired: myIsRsvprequired!, isSingleReceiver: myIsSingleReceiver!, defaultEventPaymentMethod: myDefaultEventPaymentMethod, defaultEventPaymentCustomName: myDefaultEventPaymentCustomName
+               eventType2: myEventType2, isRsvprequired: myIsRsvprequired!, isSingleReceiver: myIsSingleReceiver!,
+               isForBusiness: myIsForBusiness!, defaultEventPaymentMethod: myDefaultEventPaymentMethod, defaultEventPaymentCustomName: myDefaultEventPaymentCustomName
             )
           }
       }
@@ -226,7 +233,8 @@ class MyEventsTableViewCell: UITableViewCell, UIImagePickerControllerDelegate, U
                                                                        country: myCountry,
                                                                        eventState: myEventState!,
                                                                        eventType: myEventType!,
-                                                                       eventType2: myEventType2, isRsvprequired: myIsRsvprequired!, isSingleReceiver: myIsSingleReceiver!, defaultEventPaymentMethod: myDefaultEventPaymentMethod, defaultEventPaymentCustomName: myDefaultEventPaymentCustomName)
+                                                                       eventType2: myEventType2, isRsvprequired: myIsRsvprequired!, isSingleReceiver: myIsSingleReceiver!,
+                                                                       isForBusiness: myIsForBusiness!,defaultEventPaymentMethod: myDefaultEventPaymentMethod, defaultEventPaymentCustomName: myDefaultEventPaymentCustomName)
         }
     }
 
@@ -243,7 +251,8 @@ class MyEventsTableViewCell: UITableViewCell, UIImagePickerControllerDelegate, U
                                                                        country: myCountry,
                                                                        eventState: myEventState!,
                                                                        eventType: myEventType!,
-                                                                       eventType2: myEventType2, isRsvprequired: myIsRsvprequired!, isSingleReceiver: myIsSingleReceiver!, defaultEventPaymentMethod: myDefaultEventPaymentMethod, defaultEventPaymentCustomName: myDefaultEventPaymentCustomName)
+                                                                       eventType2: myEventType2, isRsvprequired: myIsRsvprequired!, isSingleReceiver: myIsSingleReceiver!,
+                                                                       isForBusiness: myIsForBusiness!, defaultEventPaymentMethod: myDefaultEventPaymentMethod, defaultEventPaymentCustomName: myDefaultEventPaymentCustomName)
         }
     }
     

@@ -15,12 +15,14 @@ class OTPStep0ViewController: UIViewController, UITextFieldDelegate {
     
     var formValidation =   Validation()
     let customtextfield = CustomTextField()
+    var setstatusbarbgcolor = StatusBarBackgroundColor()
     
     @IBOutlet weak var emailTextField: UITextField!
     
     override func viewDidLoad() {
         super.viewDidLoad()
         
+        setstatusbarbgcolor.setBackground()
         self.emailTextField.delegate = self
         emailTextField.addTarget(self, action: #selector(OTPStep0ViewController.textFieldDidChange(_:)),
                                   for: .editingChanged)

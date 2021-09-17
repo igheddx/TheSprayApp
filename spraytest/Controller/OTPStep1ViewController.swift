@@ -40,6 +40,7 @@ class OTPStep1ViewController: UIViewController {
     var encryptedDeviceId: String = ""
     let device = Device()
     var encryptdecrypt = EncryptDecrpyt()
+    var setstatusbarbgcolor = StatusBarBackgroundColor()
     //let navBackButton = BackButtonOnNavBar()
     //var flowType: String =  ""
     
@@ -52,7 +53,7 @@ class OTPStep1ViewController: UIViewController {
         device.sendDeviceInfo(encryptedAPIKey: encryptedAPIKey, encryptedDeviceId: encryptedDeviceId)
         //navBackButton.currentVC
         
-        
+        setstatusbarbgcolor.setBackground()
 //        let backButtonImage = UIImage(named: "backicon")?.withRenderingMode(.alwaysTemplate)
 //
 //            let backButton = UIButton(type: .custom)
@@ -180,7 +181,7 @@ class OTPStep1ViewController: UIViewController {
             
         }
         if isValidatePhone == true {
-            requestOTPCode()
+            requestOTPCode2()
         }
     }
     
@@ -191,6 +192,11 @@ class OTPStep1ViewController: UIViewController {
     }
 
 
+    /*requestOTP code2 is bypass for OTP during testing*/
+    func requestOTPCode2() {
+       
+        launchOTPVerifyVC(phone: phone)
+    }
     func requestOTPCode() {
         print("get OTCode was called")
         //let phone = phoneNumberTextField.text!

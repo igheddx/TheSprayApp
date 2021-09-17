@@ -37,6 +37,7 @@ class EventMetricDetailsViewController: UIViewController, UITableViewDelegate, U
     var token: String = ""
     var encryptedAPIKey: String = ""
     var eventsstatstabledata = [EventsStatsTableData]()
+    var country: String = ""
     
     @IBOutlet weak var eventNameLabel: UILabel!
     @IBOutlet weak var eventDateTimeLabel: UILabel!
@@ -67,6 +68,7 @@ class EventMetricDetailsViewController: UIViewController, UITableViewDelegate, U
         //eventCodeLabel.text = eventCode
         eventImage.image = UIImage(named: eventTypeIcon!)
         getEventDetailMetrics()
+        
         // Do any additional setup after loading the view.
     }
     

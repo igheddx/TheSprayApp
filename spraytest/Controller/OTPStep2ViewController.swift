@@ -37,6 +37,7 @@ class OTPStep2ViewController: UIViewController {
     var encryptedDeviceId: String = ""
     let device = Device()
     let encryptdecrypt = EncryptDecrpyt()
+    var setstatusbarbgcolor = StatusBarBackgroundColor()
     //var flowType: String =  ""
     
     
@@ -72,6 +73,7 @@ class OTPStep2ViewController: UIViewController {
 //            self?.present(alert, animated: true)
         }
         
+        setstatusbarbgcolor.setBackground()
        
         setNavigationBar()
         
@@ -178,7 +180,10 @@ class OTPStep2ViewController: UIViewController {
         if action == "forgotPassword" {
             launchNextVC()
         } else {
+            launchNextVC()
             //verifyOTPCode(otpcode: otpCode)
+            
+            /*   7/30/2021 - going to diable this for now while testing - will enable before publishing to store
             let otpModel = OTPModel(phone: otpPhone, email: "", code: otpCode, message: "", profileId: 0)
             let request = PostRequest(path: "/api/otpverify/check", model: otpModel, token: "", apiKey: encryptedAPIKey, deviceId: encryptedDeviceId)
 
@@ -200,7 +205,7 @@ class OTPStep2ViewController: UIViewController {
                 //LoadingStart()
                 theAlertView(alertType: "otpcode", message: error.localizedDescription)
                 }
-            }
+            }*/
         }
        
     }
@@ -221,7 +226,9 @@ class OTPStep2ViewController: UIViewController {
         
         //let phone = convertPhoneToString(phone: phoneNumberTextField.text!)
         
-        let otpModel = OTPModel(phone: otpPhone, email: "", code: "", message: "", profileId: 0)
+        /*
+         7/30/2021 - going to diable this for now while testing - will enable before publishing to store
+         let otpModel = OTPModel(phone: otpPhone, email: "", code: "", message: "", profileId: 0)
         let request = PostRequest(path: "/api/otpverify/add", model: otpModel, token: "", apiKey: encryptedAPIKey, deviceId: encryptedDeviceId)
 
         print("request \(request)")
@@ -240,7 +247,7 @@ class OTPStep2ViewController: UIViewController {
             //LoadingStop()
             theAlertView(alertType: "otpcode", message: error.localizedDescription)
             }
-        }
+        } */
         
     }
     

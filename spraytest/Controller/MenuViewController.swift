@@ -188,10 +188,11 @@ class MenuViewController: UIViewController {
         dismiss(animated: true)
     }
     
+    /*no longer use 7/23/2021*/
     func addMyPayment(paymentMethodToken
                         : String, customName: String, paymentOptionType: Int64, paymentDescription: String, paymentExpiration: String) {
         
-        let addPayment = AddPayment(paymentMethodToken: paymentMethodToken, isUpdate: false, customName: customName, paymentType:1, paymentDescription: paymentDescription, paymentExpiration: "8/10/2030", profileId: profileId)
+        let addPayment = AddPayment(paymentMethodToken: paymentMethodToken, isUpdate: false, customName: customName, paymentType:1, paymentDescription: paymentDescription, paymentExpiration: "8/10/2030", currency: "usd", profileId: profileId)
         
         let request = PostRequest(path: "/api/PaymentMethod/add", model: addPayment , token: token!, apiKey: encryptedAPIKey, deviceId: "")
 
@@ -460,9 +461,13 @@ extension  MenuViewController: UITableViewDataSource, UITableViewDelegate  {
         
     }
     func callLoginScreen() {
+        self.navigationController!.viewControllers.removeAll()
+        
         let loginVC = self.storyboard?.instantiateViewController(withIdentifier: "LoginViewController") as? LoginViewController
         let window = UIApplication.shared.windows.first
 
+        loginVC?.logout = true
+        
         // Embed loginVC in Navigation Controller and assign the Navigation Controller as windows root
         let nav = UINavigationController(rootViewController: loginVC!)
         window?.rootViewController = nav

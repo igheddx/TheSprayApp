@@ -103,7 +103,7 @@ class ViewController: UIViewController, WeatherManagerDelegate {
             
         }
         
-        let url = URL(string: "https://projectxapiapp.azurewebsites.net/api/Profile/register")
+        let url = URL(string: "https://projectxapi-dev.azurewebsites.net/api/Profile/register")
         guard let requestUrl = url else { fatalError() }
         var request = URLRequest(url: requestUrl)
         request.httpMethod = "POST"

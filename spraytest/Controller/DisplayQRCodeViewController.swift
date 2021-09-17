@@ -27,6 +27,7 @@ class DisplayQRCodeViewController: UIViewController {
     var urlBackToApp: String = ""
     var isSingleReceiverEvent: Bool = true
     var encryptedAPIKey: String = ""
+    var country: String = ""
     
     @IBOutlet weak var eventUIView: EventUIView!
     @IBOutlet weak var QRCodeImage: UIImageView!
@@ -84,7 +85,7 @@ class DisplayQRCodeViewController: UIViewController {
        let newName = eventName.replacingOccurrences(of: "’", with: "&apos;")
         
         print("NEW eventname \( newName)")
-        let qrData = "\(newName )| \(eventDate)| \(eventCode)| \(eventTypeIcon)| \(eventId)| \(ownerId)| \(eventType)| \(isSingleReceiverEventStr)"
+        let qrData = "\(newName )| \(eventDate)| \(eventCode)| \(eventTypeIcon)| \(eventId)| \(ownerId)| \(eventType)| \(isSingleReceiverEventStr)| \(country)"
         print(qrData)
       generateCode(qrData,foregroundColor: UIColor(red:0.00, green:0.00, blue:0.00, alpha:1.00),backgroundColor: UIColor(red:1.00, green:1.00, blue:1.00, alpha:1.00))
 

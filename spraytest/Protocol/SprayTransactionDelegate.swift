@@ -48,14 +48,14 @@ protocol EventSettingBackToHomeDelegate {
 
 
 protocol MyCustomCellDelegator {
-    func callSegueFromCell(eventName: String, eventDateTime: String, eventCode: String, isActiveFlag: Bool, eventType: String, eventId: Int64, profileId: Int64, ownerId: Int64,  token: String, ApiKey: String, paymentClientToken: String, screenIdentifier: String, isAttendingEventId: Int64, eventTypeIcon: String, hasPaymentMethod:  Bool,  isRsvprequired: Bool, isSingleReceiver: Bool, defaultEventPaymentMethod: Int, defaultEventPaymentCustomName: String)
+    func callSegueFromCell(eventName: String, eventDateTime: String, eventCode: String, isActiveFlag: Bool, eventType: String, eventId: Int64, profileId: Int64, ownerId: Int64,  token: String, ApiKey: String, paymentClientToken: String, screenIdentifier: String, isAttendingEventId: Int64, eventTypeIcon: String, hasPaymentMethod:  Bool,  isRsvprequired: Bool, isSingleReceiver: Bool, isForBusiness: Bool,  defaultEventPaymentMethod: Int, defaultEventPaymentCustomName: String, country: String, currencyCode: String)
     
     func infoBoard(completionAction:String)
 }
 
 
 protocol MyInvitationCustomCellDelegate {
-    func callEventSettingFromCell(eventName: String, eventDateTime: String, eventCode: String, isActiveFlag: Bool, eventType: String, eventId: Int64, profileId: Int64, ownerId: Int64, token: String, ApiKey: String, paymentClientToken: String, screenIdentifier: String, eventTypeIcon: String, profileData: [MyProfile],  isRsvprequired: Bool, isSingleReceiver: Bool, defaultEventPaymentMethod: Int, defaultEventPaymentCustomName: String)
+    func callEventSettingFromCell(eventName: String, eventDateTime: String, eventCode: String, isActiveFlag: Bool, eventType: String, eventId: Int64, profileId: Int64, ownerId: Int64, token: String, ApiKey: String, paymentClientToken: String, screenIdentifier: String, eventTypeIcon: String, profileData: [MyProfile],  isRsvprequired: Bool, isSingleReceiver: Bool, isForBusiness: Bool, defaultEventPaymentMethod: Int, defaultEventPaymentCustomName: String, country: String)
 }
 
 protocol MyEventsCustomCellDelegate {
@@ -79,7 +79,8 @@ protocol MyEventsCustomCellDelegate {
                                    country: String,
                                    eventState: Int,
                                    eventType: Int,
-                                   eventType2: String,  isRsvprequired: Bool, isSingleReceiver: Bool, defaultEventPaymentMethod: Int, defaultEventPaymentCustomName: String
+                                   eventType2: String,  isRsvprequired: Bool, isSingleReceiver: Bool,
+                                   isForBusiness: Bool,defaultEventPaymentMethod: Int, defaultEventPaymentCustomName: String
                                    
                                    
     

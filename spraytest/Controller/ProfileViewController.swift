@@ -606,7 +606,7 @@ class ProfileViewController: UIViewController,UITextFieldDelegate, UIImagePicker
 //                    //originalAvatar // convertImageToBase64String (img: myNewAvatar.image!)
 //                }
                 
-                updateProfile(firstName: firstName, lastName: lastName, userName: userName, phone: phone, newPassword: "", oldPassword: "")
+                updateProfile(firstName: firstName, lastName: lastName, userName: userName, phone: phone)
                      print("update fields that does NOT includs password")
             }
         //}
@@ -630,12 +630,13 @@ class ProfileViewController: UIViewController,UITextFieldDelegate, UIImagePicker
         
     }
     
-    func updateProfile(firstName: String, lastName: String, userName: String,  phone: String, newPassword: String, oldPassword: String){
-        let profileData = UserUpdateModel(firstName: firstName, lastName: lastName, userName: userName, phone: phone, newPassword: newPassword, oldPassword: oldPassword)
+    func updateProfile(firstName: String, lastName: String, userName: String,  phone: String){
+        let profileData = UserUpdateModel(firstName: firstName, lastName: lastName, userName: userName, phone: phone)
      
            //print("profileData =\(profileData)")
-           let request = PostRequest(path: "/api/Profile/\(profileId)", model: profileData, token: token, apiKey: encryptedAPIKey, deviceId: "")
-           Network.shared.send(request) { (result: Result<Data, Error>) in
+           let request = PutRequest(path: "/api/profile/\(profileId)", model: profileData, token: token, apiKey: encryptedAPIKey, deviceId: "")
+        print("request = \(request)")
+        Network.shared.send(request) { (result: Result<Data, Error>) in
                switch result {
                case .success(let userdata):
                 self.LoadingStop()

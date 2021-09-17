@@ -50,11 +50,15 @@ class InfoBoardTableViewCell: UITableViewCell {
     var stripeBalancePending = [AmountCurrency]() //new data
     var encryptedAPIKey: String = ""
     var isAccountConnected: Bool = UserDefaults.standard.bool(forKey: "isAccountConnected")
+    var currencySymbol: String = ""
+    
     static func nib() -> UINib {
         return UINib(nibName: "InfoBoardTableViewCell", bundle: nil)
     }
     
     public func configure(with outstandingTransferAmt: String, pendingPayoutAmt: String, totalGiftedAmt: String, totalReceivedAmt: String, currency: String, paymentCustomerId: String, paymentConnectedActId: String) {
+        
+        currencySymbol = Currency.shared.findSymbol(currencyCode: currency)
         //self.paymentCustomerId = profileData.paymentCustomerId!
         //self.paymentConnectedActId = profileData.paymentConnectedActId
         
@@ -65,12 +69,12 @@ class InfoBoardTableViewCell: UITableViewCell {
         
 //        public func configure(with eventName: String, eventAddress: String, eventDateTime: String, eventCityStateZipCountry: String, eventCode: String, isActiveFlag: Bool, imageName: String, eventId: Int64, profileId: Int64, ownerId: Int64, token: String, paymentClientToken: String) {
         print("outstandingTransferAmt \(outstandingTransferAmt)")
-        outstandingTransferAmtLbl.text = "$\(outstandingTransferAmt)"
+        outstandingTransferAmtLbl.text = currencySymbol + outstandingTransferAmt
         
-        pendingPayountAmtLbl.text = "$\(pendingPayoutAmt)"
+        pendingPayountAmtLbl.text = currencySymbol + pendingPayoutAmt
         
-        totalGiftedAmtLbl.text = "$\(totalGiftedAmt)"
-        totalGiftReceivedAmtLbl.text = "$\(totalReceivedAmt)"
+        totalGiftedAmtLbl.text = currencySymbol + totalGiftedAmt
+        totalGiftReceivedAmtLbl.text = currencySymbol + totalReceivedAmt
         
 //        if outstandingTransferAmt != "0.0" {
 //            outstandingTransferAmtLbl.font =  UIFont(name:"HelveticaNeue-Bold", size: 20.0)

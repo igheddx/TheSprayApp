@@ -35,6 +35,9 @@ class CreateEventViewController: UIViewController {
     @IBOutlet weak var isSingleReceiverSwitch: UISwitch!
     
     @IBOutlet weak var isRSVPRequiredSwitch: UISwitch!
+    
+    @IBOutlet weak var isForBusinessSwitch: Switch1!
+    
     //    @IBOutlet weak var eventNameErrorLabel: UILabel!
 //    @IBOutlet weak var eventDateTimeErrorLabel: UILabel!
 //    @IBOutlet weak var eventTypeErrorLabel: UILabel!
@@ -73,18 +76,23 @@ class CreateEventViewController: UIViewController {
     var refreshscreendelegate: RefreshScreenDelegate?
     var isRefreshScreen: Bool = false
     var encryptedAPIKey: String = ""
+    var myProfileData: [MyProfile] = []
     
     override func viewDidLoad() {
         super.viewDidLoad()
         
+        //default swith settings
+        
+        print("My PROFILE DATA \(myProfileData)")
         print("my toke = \(token)")
         //use to keep keyboard down
-        NotificationCenter.default.addObserver(self, selector: #selector(keyboardWillShow(sender:)), name: UIResponder.keyboardWillShowNotification, object: nil);
+       /* NotificationCenter.default.addObserver(self, selector: #selector(keyboardWillShow(sender:)), name: UIResponder.keyboardWillShowNotification, object: nil);
 
-        NotificationCenter.default.addObserver(self, selector: #selector(keyboardWillHide(sender:)), name: UIResponder.keyboardWillHideNotification, object: nil);
+        NotificationCenter.default.addObserver(self, selector: #selector(keyboardWillHide(sender:)), name: UIResponder.keyboardWillHideNotification, object: nil); */
         
         isSingleReceiverSwitch.isOn = false
         isRSVPRequiredSwitch.isOn = true
+        isForBusinessSwitch.isOn = false
         
         navigationController?.navigationBar.topItem?.backBarButtonItem = UIBarButtonItem(title: "", style: .plain, target: nil, action: nil)
         
@@ -188,6 +196,45 @@ class CreateEventViewController: UIViewController {
        // createEventLabel.text = createEventTitle
         // Do any additional setup after loading the view.
         
+        
+    }
+    
+    @IBAction func sprayCelebrantSwitchSelect(_ sender: Any) {
+        if isSingleReceiverSwitch.isOn == true {
+            isForBusinessSwitch.isOn = false
+           // isForBusinessSwitch.isEnabled = false
+        } else {
+            isForBusinessSwitch.isOn = false
+            //isForBusinessSwitch.isEnabled = true
+        }
+        
+    }
+    
+    @IBAction func rsvpSwitchSelect(_ sender: Any) {
+        if isRSVPRequiredSwitch.isOn == true {
+            isForBusinessSwitch.isOn = false
+            //isForBusinessSwitch.isEnabled = false
+        } else {
+            isForBusinessSwitch.isOn = false
+            //isForBusinessSwitch.isEnabled = true
+        }
+     
+    }
+    
+    
+    @IBAction func forBusinessSwitchSelect(_ sender: Any) {
+        if isForBusinessSwitch.isOn == true {
+            isSingleReceiverSwitch.isOn = false
+            //isSingleReceiverSwitch.isEnabled = false
+            isRSVPRequiredSwitch.isOn = false
+            //isRSVPRequiredSwitch.isEnabled = false
+        } else {
+            isSingleReceiverSwitch.isOn = false
+            //isSingleReceiverSwitch.isEnabled = true
+            isRSVPRequiredSwitch.isOn = false
+            //isRSVPRequiredSwitch.isEnabled = true
+        }
+      
         
     }
     override func viewDidAppear(_ animated: Bool) {
@@ -597,7 +644,71 @@ class CreateEventViewController: UIViewController {
         return date
     }
     
-  
+    func addinvitees(myProfileId: Int64, firstName: String, lastName: String, email: String, phone: String, eventId: Int64, ownerProfileId: Int64) {
+        
+    
+        let addInvitees = AddInvitee(profileId: ownerProfileId, eventId: eventId, eventInvitees: [AddInvitee2(firstName: firstName, lastName: lastName, email: email, phone: phone, profileId: myProfileId)])
+            // JoinEvent(joinList: [JoinEventFields(profileId: profileId, email: email, phone: phone, eventCode: eventCode)])
+        
+        print("token = \(token)")
+        print("addInvitees= \(addInvitees)")
+        
+        let request = PostRequest(path: "/api/Event/addinvitees", model: addInvitees, token: token, apiKey: encryptedAPIKey, deviceId: "")
+        
+        
+        print("addinvitees request = \(request)")
+        Network.shared.send(request) { [self] (result: Result<Data, Error>)  in
+            switch result {
+            case .success( _):
+                //RSVP
+                print("CALLED RSVP")
+               
+                /*call rsvp so that owner can attend*/
+                self.rsvp(myProfileId: myProfileId, firstName: firstName, lastName: lastName, email: email, phone: phone, eventId: eventId, ownerProfileId: ownerProfileId)
+                
+                break
+            case .failure(let error):
+                print(error.localizedDescription)
+                //localizedDescriptionif error.localizedDescription
+                //self.rsvp(eventIdvar: eventId, ownerId: ownerProfileId)
+                
+                
+            }
+        }
+    }
+    func rsvp(myProfileId: Int64, firstName: String, lastName: String, email: String, phone: String, eventId: Int64, ownerProfileId: Int64) {
+        
+        /*var firstname: String = ""
+        var lastname: String = ""
+        var email: String = ""
+        var phone: String = ""
+        for profile in myProfileData {
+            firstname = profile.firstName
+            lastname = profile.lastName
+            email = profile.email
+            phone = profile.phone
+        }*/
+       
+        let addAttendee = AddAttendees(profileId: ownerProfileId, eventId: eventId, eventAttendees: [Attendees(profileId: myProfileId, firstName: firstName, lastName: lastName, email: email, phone: phone, eventId: eventId, isAttending: true)])
+        //let updateAttendee = Attendees(profileId: profileId, eventId: eventId, isAttending: true)
+        
+        print("RSVP addAttendee = \(addAttendee)")
+        //print(updateAttendee)
+        //isRefreshScreen = true
+        let request = PostRequest(path: "/api/Event/addattendees", model: addAttendee, token: token, apiKey: encryptedAPIKey, deviceId: "")
+        Network.shared.send(request) { [self] (result: Result<Empty, Error>)  in
+            switch result {
+            case .success( _):
+                let message = "Congratulations! Your event has been successfully created."
+                self.displayAlertMessage2(displayMessage: message, completionAction: "success")
+                break
+            //case .failure(let error):
+            case .failure(let error):
+                print(error.localizedDescription)
+            }
+        }
+    }
+    
     @IBAction func eventSaveButtonPressed(_ sender: Any) {
         
         guard let eventName = eventNameTextField.text,
@@ -632,22 +743,6 @@ class CreateEventViewController: UIViewController {
         let isValidateCountry = self.formValidation.validateName2(name2: eventCountry).isValidate
         print("isValidateEventName = \(isValidateEventName)")
         
-        if (isValidateCountry == false || eventCountryTextField.text == "Select Country") {
-            
-            //customtextfield.borderForTextField(textField: eventCountryTextField, validationFlag: true)
-       
-            let message = "Country is Required"
-            //eventCountryTextField.becomeFirstResponder()
-            displayAlertMessage(displayMessage: message, textField: eventCountryTextField)
-            
-            //print("Incorrect First Name")
-            //loadingLabel.text = "Incorrect First Name"
-            //countryErrorLabel.text = self.formValidation.validateName2(name2: eventCountry).errorMsg
-            return
-        } else {
-            customtextfield.borderForTextField(textField: eventCountryTextField, validationFlag: false)
-            //countryErrorLabel.text = self.formValidation.validateName2(name2: eventCountry).errorMsg
-        }
         if (isValidateEventName == false) {
             
             //customtextfield.borderForTextField(textField: eventNameTextField, validationFlag: true)
@@ -681,41 +776,25 @@ class CreateEventViewController: UIViewController {
             //eventNameErrorLabel.text = self.formValidation.validateName2(name2: eventType).errorMsg
         }
         
-        if (isValidateEventDateTime == false) {
+        if (isValidateCountry == false || eventCountryTextField.text == "Select Country") {
             
-            //customtextfield.borderForTextField(textField: eventDateTextField, validationFlag: true)
-            let message = "Event Date & Time is Required"
-            displayAlertMessage(displayMessage: message, textField: eventDateTextField)
-            //eventDateTextField.becomeFirstResponder()
-            print("isValidateEventDateTime = false")
+            //customtextfield.borderForTextField(textField: eventCountryTextField, validationFlag: true)
+       
+            let message = "Country is Required"
+            //eventCountryTextField.becomeFirstResponder()
+            displayAlertMessage(displayMessage: message, textField: eventCountryTextField)
+            
             //print("Incorrect First Name")
             //loadingLabel.text = "Incorrect First Name"
-            //eventDateTimeErrorLabel.text = self.formValidation.validateName2(name2: eventDateTime).errorMsg
+            //countryErrorLabel.text = self.formValidation.validateName2(name2: eventCountry).errorMsg
             return
         } else {
-            
-            print("isValidateEventDateTime = true")
-            customtextfield.borderForTextField(textField: eventDateTextField, validationFlag: false)
-            
-            let currentDate = getFormattedDateToDate(dateinput: Date.getCurrentDate())
-            
-            let dateFormatter = DateFormatter()
-            dateFormatter.locale = Locale(identifier: "en_US_POSIX")
-            dateFormatter.dateFormat = "E, d MMM yyyy h:mm a" //E, d MMM yyyy HH:mm a"
-            let date = dateFormatter.date(from:String(eventDateTime))!
-
-            let formatedEventDateTime  = getFormattedDate(date: date, format: "yyyy-MM-dd'T'HH:mm:ss")
-            let newEventDateTime = getFormattedDateToDate(dateinput: formatedEventDateTime)
-            
-            if newEventDateTime <= currentDate {
-                let isValidateEventDateTime = false
-                let message = "Event date & time must be greater than the current date & time"
-                displayAlertMessage(displayMessage: message, textField: eventDateTextField)
-            }
-            
-            //eventDateTimeErrorLabel.text = self.formValidation.validateName2(name2: eventDateTime).errorMsg
+            customtextfield.borderForTextField(textField: eventCountryTextField, validationFlag: false)
+            //countryErrorLabel.text = self.formValidation.validateName2(name2: eventCountry).errorMsg
         }
+       
         
+      
      
         
         if (isValidateAddress1 == false) {
@@ -790,6 +869,43 @@ class CreateEventViewController: UIViewController {
             //zipcodeErrorLabel.text = self.formValidation.validateName2(name2: eventZipCode).errorMsg
         }
         
+        if (isValidateEventDateTime == false) {
+            
+            //customtextfield.borderForTextField(textField: eventDateTextField, validationFlag: true)
+            let message = "Event Date & Time is Required"
+            displayAlertMessage(displayMessage: message, textField: eventDateTextField)
+            //eventDateTextField.becomeFirstResponder()
+            print("isValidateEventDateTime = false")
+            //print("Incorrect First Name")
+            //loadingLabel.text = "Incorrect First Name"
+            //eventDateTimeErrorLabel.text = self.formValidation.validateName2(name2: eventDateTime).errorMsg
+            return
+        } else {
+            
+            print("isValidateEventDateTime = true")
+            //customtextfield.borderForTextField(textField: eventDateTextField, validationFlag: false)
+            
+            let currentDate = getFormattedDateToDate(dateinput: Date.getCurrentDate())
+            
+            let dateFormatter = DateFormatter()
+            dateFormatter.locale = Locale(identifier: "en_US_POSIX")
+            dateFormatter.dateFormat = "E, d MMM yyyy h:mm a" //E, d MMM yyyy HH:mm a"
+            let date = dateFormatter.date(from:String(eventDateTime))!
+
+            let formatedEventDateTime  = getFormattedDate(date: date, format: "yyyy-MM-dd'T'HH:mm:ss")
+            let newEventDateTime = getFormattedDateToDate(dateinput: formatedEventDateTime)
+            
+            if newEventDateTime <= currentDate {
+               
+                let message = "Event date & time must be greater than the current date & time"
+                displayAlertMessage(displayMessage: message, textField: eventDateTextField)
+            } else {
+                customtextfield.borderForTextField(textField: eventDateTextField, validationFlag: false)
+            }
+            
+            //eventDateTimeErrorLabel.text = self.formValidation.validateName2(name2: eventDateTime).errorMsg
+        }
+        
      
         //var eventDateTime: String = "Wed, 19 Aug 2020 08:02 AM"
         //remove the AM/PM before you pass string on to be formatted to yyyy-MM-dd HH:mm
@@ -816,13 +932,13 @@ class CreateEventViewController: UIViewController {
             var eventTypeId: Int
             eventTypeId = getEventTypeId(eventTypeName: eventType)
             
-            let AddEvent = EventModel(ownerId: profileId, name: eventName, dateTime: formatedEventDateTime, address1: eventAddress1, address2: eventAddress2, city: eventCity, zipCode: eventZipCode, country: eventCountry, state: eventState, eventType: eventTypeId, isRsvprequired: isRSVPRequiredSwitch.isOn, isSingleReceiver: isSingleReceiverSwitch.isOn, eventId: 0, isActive: true, eventState: 2 )
+            let AddEvent = EventModel(ownerId: profileId, name: eventName, dateTime: formatedEventDateTime, address1: eventAddress1, address2: eventAddress2, city: eventCity, zipCode: eventZipCode, country: eventCountry, state: eventState, eventType: eventTypeId, isRsvprequired: isRSVPRequiredSwitch.isOn, isSingleReceiver: isSingleReceiverSwitch.isOn, isForBusiness: isForBusinessSwitch.isOn,  eventId: 0, isActive: true, eventState: 2 )
             print(AddEvent)
             let request = PostRequest(path: "/api/Event/add", model: AddEvent, token: token, apiKey: encryptedAPIKey, deviceId: "")
              
             
             print("create event request = \(request)")
-              Network.shared.send(request) { (result: Result<EventData, Error>)  in
+            Network.shared.send(request) { [self] (result: Result<EventData, Error>)  in
                  switch result {
                  case .success(let event):
     //                 self.token2pass = user.token!
@@ -834,8 +950,24 @@ class CreateEventViewController: UIViewController {
                     self.isRefreshScreen = true
                     self.eventCode = event.eventCode
                     self.eventId = event.eventId
-                    let message = "Congratulations! Your event has been successfully created."
-                    self.displayAlertMessage2(displayMessage: message, completionAction: "success")
+                    
+                    var firstname: String = ""
+                    var lastname: String = ""
+                    var email: String = ""
+                    var phone: String = ""
+                    for profile in self.myProfileData {
+                        firstname = profile.firstName
+                        lastname = profile.lastName
+                        email = profile.email
+                        phone = profile.phone
+                    }
+                    
+                    /*add owner as an invitee */
+                    addinvitees(myProfileId: profileId, firstName: firstname, lastName: lastname, email: email, phone: phone, eventId: event.eventId, ownerProfileId: profileId)
+                    
+                   
+                    
+                 
                     //self.createEventLabel.isHidden = false
                     //self.createEventLabel.textColor = UIColor(red: 82/256, green: 156/256, blue: 32/256, alpha: 1.0) // UIColor(red: 204/256, green: 0/256, blue: 0/256, alpha: 1.0)
                     
@@ -868,6 +1000,7 @@ class CreateEventViewController: UIViewController {
             }
         }
     
+        
     /*
     // MARK: - Navigation
 

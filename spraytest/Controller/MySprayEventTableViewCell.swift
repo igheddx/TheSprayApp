@@ -51,18 +51,23 @@ class MySprayEventTableViewCell: UITableViewCell {
     var myEventType: String = ""
     var myIsRsvprequired: Bool!
     var myIsSingleReceiver: Bool!
+    var myIsForBusiness: Bool!
+    
     var myDefaultEventPaymentMethod: Int = 0
     var myDefaultEventPaymentCustomName: String = ""
     
     
     var isPaymentMethodForEvent: Bool = false
     var encryptedAPIKey: String = ""
+    var myCountry: String = ""
+    var myCurrencyCode: String = ""
+    
     //var isPaymentMethodGeneral: Bool = false
     static func nib() -> UINib {
         return UINib(nibName: "MySprayEventTableViewCell", bundle: nil)
     }
     
-    public func configure(with eventName: String, eventAddress: String, eventDateTime: String, eventCityStateZipCountry: String, eventCode: String, isActiveFlag: Bool, eventType: String, imageName: String, eventId: Int64, profileId: Int64, ownerId: Int64, token: String, ApiKey: String, paymentClientToken: String, isAttendingEventId: Int64, hasPaymentMethod: Bool, isRsvprequired: Bool, isSingleReceiver: Bool, defaultEventPaymentMethod: Int, defaultEventPaymentCustomName: String) {
+    public func configure(with eventName: String, eventAddress: String, eventDateTime: String, eventCityStateZipCountry: String, eventCode: String, isActiveFlag: Bool, eventType: String, imageName: String, eventId: Int64, profileId: Int64, ownerId: Int64, token: String, ApiKey: String, paymentClientToken: String, isAttendingEventId: Int64, hasPaymentMethod: Bool, isRsvprequired: Bool, isSingleReceiver: Bool, isForBusiness: Bool, defaultEventPaymentMethod: Int, defaultEventPaymentCustomName: String, country: String, currencyCode: String) {
         
         
         myEventName = eventName
@@ -81,6 +86,7 @@ class MySprayEventTableViewCell: UITableViewCell {
         myEventPaymentMethod = isPaymentMethodForEvent //hasPaymentMethod
         myIsRsvprequired = isRsvprequired
         myIsSingleReceiver = isSingleReceiver
+        myIsForBusiness = isForBusiness
         myDefaultEventPaymentMethod = defaultEventPaymentMethod
         myDefaultEventPaymentCustomName = defaultEventPaymentCustomName
         
@@ -90,7 +96,8 @@ class MySprayEventTableViewCell: UITableViewCell {
         eventCityStateZipCountryLabel.text = eventCityStateZipCountry
         eventCodeLabel.text = eventCode
         eventImage.image = UIImage(named: imageName)
-        
+        myCountry = country
+        myCurrencyCode = currencyCode
        // checkIfEventPaymentMethod(eventId: myEventId!, profileId: myProfileId!)
         
        
@@ -145,9 +152,10 @@ class MySprayEventTableViewCell: UITableViewCell {
        // } else {
             
         print("myEventPaymentMethod! \(myEventPaymentMethod!)")
+        print("mySprayEvent country = - \(myCountry)")
         
         if(self.customCellDelegate != nil){ //Just to be safe.
-            self.customCellDelegate?.callSegueFromCell(eventName: myEventName!, eventDateTime: myEventDateTime!, eventCode: myEventCode!, isActiveFlag: myisActiveFlag!, eventType: myEventType, eventId: myEventId!, profileId: myProfileId!, ownerId: myOwnerId!, token: myToken!, ApiKey: myApiKey!, paymentClientToken:  myPaymentClientToken!, screenIdentifier: "ReadyToSpray", isAttendingEventId: myIsAttendingEventId!, eventTypeIcon: myEventTypeIcon, hasPaymentMethod:  isPaymentMethodForEvent,  isRsvprequired: myIsRsvprequired, isSingleReceiver: myIsSingleReceiver, defaultEventPaymentMethod: myDefaultEventPaymentMethod, defaultEventPaymentCustomName: myDefaultEventPaymentCustomName)
+            self.customCellDelegate?.callSegueFromCell(eventName: myEventName!, eventDateTime: myEventDateTime!, eventCode: myEventCode!, isActiveFlag: myisActiveFlag!, eventType: myEventType, eventId: myEventId!, profileId: myProfileId!, ownerId: myOwnerId!, token: myToken!, ApiKey: myApiKey!, paymentClientToken:  myPaymentClientToken!, screenIdentifier: "ReadyToSpray", isAttendingEventId: myIsAttendingEventId!, eventTypeIcon: myEventTypeIcon, hasPaymentMethod:  isPaymentMethodForEvent,  isRsvprequired: myIsRsvprequired, isSingleReceiver: myIsSingleReceiver, isForBusiness: myIsForBusiness,   defaultEventPaymentMethod: myDefaultEventPaymentMethod, defaultEventPaymentCustomName: myDefaultEventPaymentCustomName, country: myCountry, currencyCode: myCurrencyCode)
         }
         //remove scanner VC from the stack when going back to home VC
        
@@ -211,14 +219,14 @@ class MySprayEventTableViewCell: UITableViewCell {
     @IBAction func editEventSettingButtonPressed(_ sender: AnyObject) {
         print("my attempt to segue Edit Spray Go Events Settings")
         if(self.customCellDelegate != nil){ //Just to be safe.
-            self.customCellDelegate?.callSegueFromCell(eventName: myEventName!, eventDateTime: myEventDateTime!, eventCode: myEventCode!, isActiveFlag: myisActiveFlag!, eventType: myEventType, eventId: myEventId!, profileId: myProfileId!, ownerId: myOwnerId!, token: myToken!, ApiKey: myApiKey!, paymentClientToken:  myPaymentClientToken!, screenIdentifier: "EventSettings", isAttendingEventId: myIsAttendingEventId!, eventTypeIcon: myEventTypeIcon, hasPaymentMethod:  isPaymentMethodForEvent, isRsvprequired: myIsRsvprequired, isSingleReceiver: myIsSingleReceiver, defaultEventPaymentMethod: myDefaultEventPaymentMethod, defaultEventPaymentCustomName: myDefaultEventPaymentCustomName)
+            self.customCellDelegate?.callSegueFromCell(eventName: myEventName!, eventDateTime: myEventDateTime!, eventCode: myEventCode!, isActiveFlag: myisActiveFlag!, eventType: myEventType, eventId: myEventId!, profileId: myProfileId!, ownerId: myOwnerId!, token: myToken!, ApiKey: myApiKey!, paymentClientToken:  myPaymentClientToken!, screenIdentifier: "EventSettings", isAttendingEventId: myIsAttendingEventId!, eventTypeIcon: myEventTypeIcon, hasPaymentMethod:  isPaymentMethodForEvent, isRsvprequired: myIsRsvprequired, isSingleReceiver: myIsSingleReceiver, isForBusiness: myIsForBusiness, defaultEventPaymentMethod: myDefaultEventPaymentMethod, defaultEventPaymentCustomName: myDefaultEventPaymentCustomName, country: myCountry,  currencyCode: myCurrencyCode)
         }
     }
     
     @IBAction func eventMetricsButtonPressed(_ sender: AnyObject) {
         print("my attempt to segue -Spray  Event Metrics ")
         if(self.customCellDelegate != nil){ //Just to be safe.
-            self.customCellDelegate?.callSegueFromCell(eventName: myEventName!, eventDateTime: myEventDateTime!, eventCode: myEventCode!, isActiveFlag: myisActiveFlag!, eventType: myEventType, eventId: myEventId!, profileId: myProfileId!, ownerId: myOwnerId!, token: myToken!, ApiKey: myApiKey!, paymentClientToken:  myPaymentClientToken!, screenIdentifier: "EventMetrics", isAttendingEventId: myIsAttendingEventId!, eventTypeIcon: myEventTypeIcon, hasPaymentMethod:  isPaymentMethodForEvent, isRsvprequired: myIsRsvprequired, isSingleReceiver: myIsSingleReceiver, defaultEventPaymentMethod: myDefaultEventPaymentMethod, defaultEventPaymentCustomName: myDefaultEventPaymentCustomName)
+            self.customCellDelegate?.callSegueFromCell(eventName: myEventName!, eventDateTime: myEventDateTime!, eventCode: myEventCode!, isActiveFlag: myisActiveFlag!, eventType: myEventType, eventId: myEventId!, profileId: myProfileId!, ownerId: myOwnerId!, token: myToken!, ApiKey: myApiKey!, paymentClientToken:  myPaymentClientToken!, screenIdentifier: "EventMetrics", isAttendingEventId: myIsAttendingEventId!, eventTypeIcon: myEventTypeIcon, hasPaymentMethod:  isPaymentMethodForEvent, isRsvprequired: myIsRsvprequired, isSingleReceiver: myIsSingleReceiver, isForBusiness: myIsForBusiness,  defaultEventPaymentMethod: myDefaultEventPaymentMethod, defaultEventPaymentCustomName: myDefaultEventPaymentCustomName, country: myCountry, currencyCode: myCurrencyCode)
         }
     }
     
@@ -226,7 +234,7 @@ class MySprayEventTableViewCell: UITableViewCell {
     @IBAction func qrCodeButtonPressed(_ sender: Any) {
         print("my attempt to segue  Spray Go to QRCode")
         if(self.customCellDelegate != nil){ //Just to be safe.
-            self.customCellDelegate?.callSegueFromCell(eventName: myEventName!, eventDateTime: myEventDateTime!, eventCode: myEventCode!, isActiveFlag: myisActiveFlag!, eventType: myEventType, eventId: myEventId!, profileId: myProfileId!, ownerId: myOwnerId!, token: myToken!, ApiKey: myApiKey!, paymentClientToken:  myPaymentClientToken!, screenIdentifier: "QRCode", isAttendingEventId: myIsAttendingEventId!, eventTypeIcon: myEventTypeIcon, hasPaymentMethod:  isPaymentMethodForEvent, isRsvprequired: myIsRsvprequired, isSingleReceiver: myIsSingleReceiver, defaultEventPaymentMethod: myDefaultEventPaymentMethod, defaultEventPaymentCustomName: myDefaultEventPaymentCustomName)
+            self.customCellDelegate?.callSegueFromCell(eventName: myEventName!, eventDateTime: myEventDateTime!, eventCode: myEventCode!, isActiveFlag: myisActiveFlag!, eventType: myEventType, eventId: myEventId!, profileId: myProfileId!, ownerId: myOwnerId!, token: myToken!, ApiKey: myApiKey!, paymentClientToken:  myPaymentClientToken!, screenIdentifier: "QRCode", isAttendingEventId: myIsAttendingEventId!, eventTypeIcon: myEventTypeIcon, hasPaymentMethod:  isPaymentMethodForEvent, isRsvprequired: myIsRsvprequired, isSingleReceiver: myIsSingleReceiver, isForBusiness: myIsForBusiness, defaultEventPaymentMethod: myDefaultEventPaymentMethod, defaultEventPaymentCustomName: myDefaultEventPaymentCustomName, country: myCountry,  currencyCode: myCurrencyCode)
         }
     }
     override func setSelected(_ selected: Bool, animated: Bool) {
