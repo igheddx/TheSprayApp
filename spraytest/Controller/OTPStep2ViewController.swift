@@ -323,6 +323,7 @@ class OTPStep2ViewController: UIViewController {
             self.navigationController?.pushViewController(nextVC, animated: true)
         } else if action == "createAccount" {
             let nextVC = storyboard?.instantiateViewController(withIdentifier: "CreateAccountViewController") as! CreateAccountViewController
+            print("phoneFromOTP from CreateAccountViewController = \(otpPhone)")
             nextVC.phoneFromOTP = otpPhone
             nextVC.otpCode = otpCode
             nextVC.email = email

@@ -2294,34 +2294,26 @@
             </objects>
             <point key="canvasLocation" x="9229" y="1094"/>
         </scene>
-        <!--Scanner2 View Controller-->
+        <!--Join Event-->
         <scene sceneID="pcd-BB-SH1">
             <objects>
                 <viewController storyboardIdentifier="QRScanner2ViewController" id="6EE-T6-Hv3" customClass="QRScanner2ViewController" customModule="spraytest" customModuleProvider="target" sceneMemberID="viewController">
                     <view key="view" contentMode="scaleToFill" id="aba-XJ-YC1">
                         <rect key="frame" x="0.0" y="0.0" width="414" height="842"/>
                         <autoresizingMask key="autoresizingMask" widthSizable="YES" heightSizable="YES"/>
-                        <subviews>
-                            <label opaque="NO" userInteractionEnabled="NO" contentMode="left" horizontalHuggingPriority="251" verticalHuggingPriority="251" fixedFrame="YES" text="No QR Code Detected" textAlignment="natural" lineBreakMode="tailTruncation" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" translatesAutoresizingMaskIntoConstraints="NO" id="cKk-ax-KOd">
-                                <rect key="frame" x="0.0" y="655" width="414" height="75"/>
-                                <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMaxY="YES"/>
-                                <color key="backgroundColor" systemColor="opaqueSeparatorColor"/>
-                                <fontDescription key="fontDescription" type="system" pointSize="17"/>
-                                <nil key="textColor"/>
-                                <nil key="highlightedColor"/>
-                            </label>
-                        </subviews>
                         <viewLayoutGuide key="safeArea" id="Xys-ci-Wlv"/>
                         <color key="backgroundColor" systemColor="systemBackgroundColor"/>
                     </view>
+                    <tabBarItem key="tabBarItem" title="Join Event" image="qr-code-icon-menu2" selectedImage="qr-code-icon-menu-filled2" id="1M9-AS-fh5">
+                        <inset key="imageInsets" minX="0.0" minY="18" maxX="0.0" maxY="15"/>
+                        <inset key="largeContentSizeImageInsets" minX="0.0" minY="5" maxX="0.0" maxY="1"/>
+                    </tabBarItem>
                     <navigationItem key="navigationItem" id="XmX-33-Bzh"/>
-                    <connections>
-                        <outlet property="messageLabel" destination="cKk-ax-KOd" id="lTj-gs-g5N"/>
-                    </connections>
+                    <simulatedTabBarMetrics key="simulatedBottomBarMetrics"/>
                 </viewController>
                 <placeholder placeholderIdentifier="IBFirstResponder" id="jsb-mr-gXM" userLabel="First Responder" customClass="UIResponder" sceneMemberID="firstResponder"/>
             </objects>
-            <point key="canvasLocation" x="10232" y="1428"/>
+            <point key="canvasLocation" x="10133" y="1034"/>
         </scene>
         <!--View Controller-->
         <scene sceneID="GLj-dO-fXk">
@@ -2413,9 +2405,9 @@
                     </tabBar>
                     <connections>
                         <segue destination="NLm-MZ-rze" kind="relationship" relationship="viewControllers" id="h9y-9S-1g8"/>
+                        <segue destination="6EE-T6-Hv3" kind="relationship" relationship="viewControllers" id="XDP-MZ-UfJ"/>
                         <segue destination="twc-kv-dgf" kind="relationship" relationship="viewControllers" id="4fh-P3-YQT"/>
                         <segue destination="oAW-9B-jyW" kind="relationship" relationship="viewControllers" id="KZz-DW-Lge"/>
-                        <segue destination="H2y-Eh-BKO" kind="relationship" relationship="viewControllers" id="O1e-jj-3en"/>
                     </connections>
                 </tabBarController>
                 <placeholder placeholderIdentifier="IBFirstResponder" id="5S2-Dd-iF2" userLabel="First Responder" customClass="UIResponder" sceneMemberID="firstResponder"/>
@@ -4377,7 +4369,7 @@
                 </viewController>
                 <placeholder placeholderIdentifier="IBFirstResponder" id="T2h-5y-1tF" userLabel="First Responder" customClass="UIResponder" sceneMemberID="firstResponder"/>
             </objects>
-            <point key="canvasLocation" x="10320" y="633"/>
+            <point key="canvasLocation" x="10955" y="853"/>
         </scene>
         <!--Event Payment View Controller-->
         <scene sceneID="OsY-H9-rvH">
@@ -5344,11 +5336,11 @@
             </objects>
             <point key="canvasLocation" x="7396" y="-234"/>
         </scene>
-        <!--Join Event-->
+        <!--Join Event old-->
         <scene sceneID="qgM-PO-Yi6">
             <objects>
                 <navigationController automaticallyAdjustsScrollViewInsets="NO" id="H2y-Eh-BKO" customClass="DashboardNavigationViewController" customModule="spraytest" customModuleProvider="target" sceneMemberID="viewController">
-                    <tabBarItem key="tabBarItem" title="Join Event" image="qr-code-icon-menu2" selectedImage="qr-code-icon-menu-filled2" id="b33-j7-ERB">
+                    <tabBarItem key="tabBarItem" title="Join Event old" image="qr-code-icon-menu2" selectedImage="qr-code-icon-menu-filled2" id="b33-j7-ERB">
                         <inset key="imageInsets" minX="0.0" minY="18" maxX="0.0" maxY="15"/>
                         <inset key="largeContentSizeImageInsets" minX="0.0" minY="5" maxX="0.0" maxY="1"/>
                     </tabBarItem>
@@ -5358,17 +5350,14 @@
                     </navigationItem>
                     <simulatedTabBarMetrics key="simulatedBottomBarMetrics"/>
                     <navigationBar key="navigationBar" contentMode="scaleToFill" id="uej-Du-CNY">
-                        <rect key="frame" x="0.0" y="0.0" width="414" height="56"/>
+                        <rect key="frame" x="0.0" y="44" width="414" height="44"/>
                         <autoresizingMask key="autoresizingMask"/>
                     </navigationBar>
                     <nil name="viewControllers"/>
-                    <connections>
-                        <segue destination="6EE-T6-Hv3" kind="relationship" relationship="rootViewController" id="Dih-NY-OYB"/>
-                    </connections>
                 </navigationController>
                 <placeholder placeholderIdentifier="IBFirstResponder" id="Wzd-GV-e6C" userLabel="First Responder" customClass="UIResponder" sceneMemberID="firstResponder"/>
             </objects>
-            <point key="canvasLocation" x="9488" y="335"/>
+            <point key="canvasLocation" x="9509" y="399"/>
         </scene>
         <!--Main Navigation View Controller-->
         <scene sceneID="kuU-aX-waP">

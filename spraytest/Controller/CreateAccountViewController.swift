@@ -62,6 +62,8 @@ class CreateAccountViewController: UIViewController, UINavigationBarDelegate, UI
         scrollView.isUserInteractionEnabled = true
         scrollView.isExclusiveTouch = true
         
+        print("phone number = \(phone)")
+        print("phone number from OTP \(phoneFromOTP)")
         //toggleTorch(on: true)
         //navigationItem.hidesBackButton = false
         //navigationController?.setNavigationBarHidden(false, animated: true)

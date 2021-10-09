@@ -118,7 +118,7 @@ class HomeViewController: UIViewController, UITextFieldDelegate {
     override func viewDidLoad() {
         super.viewDidLoad()
         
-        print("BRIAN TAB ID VIEW DID LOAD = \(tabBarController!.selectedIndex )")
+        //print("BRIAN TAB ID VIEW DID LOAD = \(tabBarController!.selectedIndex )")
         print("paymentClientToken \(paymentClientToken)")
         print("HOME encryptedAPIKey \(encryptedAPIKey)")
         
@@ -129,7 +129,7 @@ class HomeViewController: UIViewController, UITextFieldDelegate {
         
         self.tabBarController?.delegate = self
         setstatusbarbgcolor.setBackground()
-        tabBarController!.selectedIndex = 0
+        //tabBarController!.selectedIndex = 0
        // UIApplication.shared.statusBarView?.backgroundColor = UIColor.red
        /* if #available(iOS 13.0, *) {
                    let statusBar = UIView(frame: UIApplication.shared.keyWindow?.windowScene?.statusBarManager?.statusBarFrame ?? CGRect.zero)
@@ -293,7 +293,10 @@ class HomeViewController: UIViewController, UITextFieldDelegate {
         
         //restore tabBar if missing
         if self.tabBarController?.tabBar.isHidden == true {
+            print("Link - tabbar should be back 1")
             self.tabBarController?.tabBar.isHidden = false
+        } else  {
+            print("Link - bad  1")
         }
     }
     
@@ -306,7 +309,10 @@ class HomeViewController: UIViewController, UITextFieldDelegate {
 //        homescreeneventdata.removeAll()
         //restore tabBar if missing
         if self.tabBarController?.tabBar.isHidden == true {
+            print("Link - tabbar should be back 2")
             self.tabBarController?.tabBar.isHidden = false
+        } else {
+            print("Link - bad  2")
         }
         print("isRefreshData = \(isRefreshData)")
         setstatusbarbgcolor.setBackground()
@@ -369,7 +375,7 @@ class HomeViewController: UIViewController, UITextFieldDelegate {
             tabBarController!.selectedIndex = 0
         }
         
-        print("BRIAN TAB ID = \(tabBarController!.selectedIndex )")
+        //print("BRIAN TAB ID = \(tabBarController!.selectedIndex )")
         
        }
 
@@ -2835,6 +2841,7 @@ extension HomeViewController:  MyCustomCellDelegator  {
             
             let nextVC = storyboard?.instantiateViewController(withIdentifier: "DisplayQRCodeViewController") as! DisplayQRCodeViewController
             
+            print("DISPLAY QR CODE COUNTRY = \(country)")
             nextVC.eventName = eventName
             nextVC.eventCode = eventCode
             nextVC.eventDate = eventDateTime
@@ -2918,6 +2925,7 @@ extension HomeViewController:  MyInvitationCustomCellDelegate  {
             nextVC.token = token
             nextVC.encryptedAPIKey = ApiKey
             nextVC.paymentClientToken  =  paymentClientToken
+            nextVC.country = country
             
             
             self.navigationController?.pushViewController(nextVC , animated: true)
@@ -2976,6 +2984,7 @@ extension HomeViewController:   MyEventsCustomCellDelegate  {
             nextVC.token = token
             nextVC.encryptedAPIKey = ApiKey
             nextVC.paymentClientToken  =  paymentClientToken
+            nextVC.country = country
             
             self.navigationController?.pushViewController(nextVC , animated: true)
         } else if  screenIdentifier == "EditEvent" {

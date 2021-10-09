@@ -101,6 +101,7 @@ class EventPayment2ViewController: UIViewController, STPAddCardViewControllerDel
     var eventDefaultCurrencyCode: String = ""
     var country: String = ""
     var isCurrencyMisalignedWithEvent: Bool = false
+    var source: String = ""
     
     override func viewDidLoad() {
         super.viewDidLoad()
@@ -215,7 +216,7 @@ class EventPayment2ViewController: UIViewController, STPAddCardViewControllerDel
     
     func closeScreen() {
         refreshscreendelegate?.refreshScreen(isRefreshScreen:isRefreshScreen)
-        setuppaymentmethoddelegate?.passData(eventId: eventId, profileId: profileId, token: token, ApiKey: encryptedAPIKey,  eventName: eventName, eventDateTime: eventName, eventTypeIcon: eventTypeIcon, paymentClientToken: paymentClientToken, isSingleReceiverEvent: isSingleReceiverEvent, eventOwnerName: eventOwnerName, eventOwnerId: eventOwnerId)
+        setuppaymentmethoddelegate?.passData(eventId: eventId, profileId: profileId, token: token, ApiKey: encryptedAPIKey,  eventName: eventName, eventDateTime: eventName, eventTypeIcon: eventTypeIcon, paymentClientToken: paymentClientToken, isSingleReceiverEvent: isSingleReceiverEvent, eventOwnerName: eventOwnerName, eventOwnerId: eventOwnerId, source: source)
         haspaymentdelegate?.hasPaymentMethod(hasPaymentMethod: true, paymentMethodId: Int(newPaymentMethodId))
         if((self.presentingViewController) != nil){
             self.dismiss(animated: false, completion: nil)
@@ -1470,7 +1471,7 @@ extension EventPayment2ViewController:  RefreshScreenDelegate {
 }
 
 extension EventPayment2ViewController:  SetupPaymentMethodDelegate {
-    func passData(eventId: Int64, profileId: Int64, token: String, ApiKey: String, eventName: String, eventDateTime: String, eventTypeIcon: String, paymentClientToken: String, isSingleReceiverEvent: Bool, eventOwnerName: String, eventOwnerId: Int64) {
+    func passData(eventId: Int64, profileId: Int64, token: String, ApiKey: String, eventName: String, eventDateTime: String, eventTypeIcon: String, paymentClientToken: String, isSingleReceiverEvent: Bool, eventOwnerName: String, eventOwnerId: Int64, source: String) {
         self.eventId = eventId
         self.profileId = profileId
         self.eventName = eventName

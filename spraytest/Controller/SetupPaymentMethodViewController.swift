@@ -49,6 +49,7 @@ class SetupPaymentMethodViewController: UIViewController, STPAuthenticationConte
     var pickerView = UIPickerView()
     var country: String = ""
     var countryData = CountryData()
+    var source: String = ""
     
     lazy var cardTextField: STPPaymentCardTextField = {
         let cardTextField = STPPaymentCardTextField()
@@ -203,14 +204,19 @@ class SetupPaymentMethodViewController: UIViewController, STPAuthenticationConte
     
     override func viewDidDisappear(_ animated: Bool) {
         if launchedFromMenu == false {
-            print("I AM CALLING EVENTPAYENT2VIEWE OR GO TO SPRAY?")
+            print("I AM CALLING EVENTPAYENT2VIEWE OR GO TO SPRAY launched from menu is false?")
             refreshscreendelegate?.refreshScreen(isRefreshScreen:isRefreshScreen)
-            setuppaymentmethoddelegate?.passData(eventId: eventId, profileId: profileId, token: token, ApiKey: encryptedAPIKey,  eventName: eventName, eventDateTime: eventName, eventTypeIcon: eventTypeIcon, paymentClientToken: paymentClientToken, isSingleReceiverEvent: isSingleReceiverEvent, eventOwnerName: eventOwnerName, eventOwnerId: eventOwnerId)
+            setuppaymentmethoddelegate?.passData(eventId: eventId, profileId: profileId, token: token, ApiKey: encryptedAPIKey,  eventName: eventName, eventDateTime: eventName, eventTypeIcon: eventTypeIcon, paymentClientToken: paymentClientToken, isSingleReceiverEvent: isSingleReceiverEvent, eventOwnerName: eventOwnerName, eventOwnerId: eventOwnerId, source: source)
+            haspaymentdelegate?.hasPaymentMethod(hasPaymentMethod: true, paymentMethodId: Int(newPaymentMethodId))
+        } else {
+            print("VidewDidDisapper luanchedfromMenu = true")
+            refreshscreendelegate?.refreshScreen(isRefreshScreen:isRefreshScreen)
+            setuppaymentmethoddelegate?.passData(eventId: eventId, profileId: profileId, token: token, ApiKey: encryptedAPIKey,  eventName: eventName, eventDateTime: eventName, eventTypeIcon: eventTypeIcon, paymentClientToken: paymentClientToken, isSingleReceiverEvent: isSingleReceiverEvent, eventOwnerName: eventOwnerName, eventOwnerId: eventOwnerId, source: source)
             haspaymentdelegate?.hasPaymentMethod(hasPaymentMethod: true, paymentMethodId: Int(newPaymentMethodId))
         }
         
         
-        print("View did disappear from setupPayment \(isRefreshScreen)")
+        print("View did asfasfdsafsafsadfsdf disappear from setupPayment \(isRefreshScreen)")
     }
     override func viewWillDisappear(_ animated: Bool) {
         //remove setupPayment VC from the stack when going back to home VC
@@ -686,6 +692,7 @@ class SetupPaymentMethodViewController: UIViewController, STPAuthenticationConte
         DispatchQueue.main.asyncAfter(deadline: .now() + delay) {
             alert.dismiss(animated: true)
             if completionAction == "goback" {
+                self.redirect()
                 self.dismiss(animated: true, completion: nil)
                 //self.launchEventPaymentScreen()
 //                if((self.presentingViewController) != nil){
@@ -693,6 +700,12 @@ class SetupPaymentMethodViewController: UIViewController, STPAuthenticationConte
 //                }
             }
         }
+    }
+    
+    func redirect() {
+        refreshscreendelegate?.refreshScreen(isRefreshScreen:isRefreshScreen)
+        setuppaymentmethoddelegate?.passData(eventId: eventId, profileId: profileId, token: token, ApiKey: encryptedAPIKey,  eventName: eventName, eventDateTime: eventName, eventTypeIcon: eventTypeIcon, paymentClientToken: paymentClientToken, isSingleReceiverEvent: isSingleReceiverEvent, eventOwnerName: eventOwnerName, eventOwnerId: eventOwnerId, source: source)
+        haspaymentdelegate?.hasPaymentMethod(hasPaymentMethod: true, paymentMethodId: Int(newPaymentMethodId))
     }
     
     func launchEventPaymentScreen() {

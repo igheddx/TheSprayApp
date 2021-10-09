@@ -1462,7 +1462,7 @@ extension EventPaymentViewController:  RefreshScreenDelegate {
 }
 
 extension EventPaymentViewController:  SetupPaymentMethodDelegate {
-    func passData(eventId: Int64, profileId: Int64, token: String, ApiKey: String, eventName: String, eventDateTime: String, eventTypeIcon: String, paymentClientToken: String, isSingleReceiverEvent: Bool, eventOwnerName: String, eventOwnerId: Int64) {
+    func passData(eventId: Int64, profileId: Int64, token: String, ApiKey: String, eventName: String, eventDateTime: String, eventTypeIcon: String, paymentClientToken: String, isSingleReceiverEvent: Bool, eventOwnerName: String, eventOwnerId: Int64, source: String) {
         self.eventId = eventId
         self.profileId = profileId
         self.eventName = eventName

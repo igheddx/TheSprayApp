@@ -13,7 +13,7 @@ class QRScanner2ViewController: UIViewController, UINavigationBarDelegate,  UITa
     var counter: Int = 0
     var completionAction: String = ""
     var completionAction2: String = ""
-    
+    var paymentClientToken: String = ""
     var token: String = ""
     var profileId: Int64 = 0
     var eventOwnerProfileId: Int64 = 0
@@ -119,7 +119,7 @@ class QRScanner2ViewController: UIViewController, UINavigationBarDelegate,  UITa
             captureSession.startRunning()
             
             // Move the message label and top bar to the front
-            view.bringSubviewToFront(messageLabel)
+            //view.bringSubviewToFront(messageLabel)
             //view.bringSubviewToFront(topBar)// comment out for now
             
             // Initialize QR Code Frame to highlight the QR Code
@@ -155,8 +155,8 @@ class QRScanner2ViewController: UIViewController, UINavigationBarDelegate,  UITa
          navbar.delegate = self as? UINavigationBarDelegate
 
          let navItem = UINavigationItem()
-         navItem.title = "Sensor Data"
-         navItem.leftBarButtonItem = UIBarButtonItem(title: "Back", style: .plain, target: self, action: #selector(dismissViewController))
+         navItem.title = "Scan QR Code. Join Event"
+         navItem.leftBarButtonItem = UIBarButtonItem(title: "", style: .plain, target: self, action: #selector(dismissViewController))
 
          navbar.items = [navItem]
 
@@ -232,6 +232,8 @@ class QRScanner2ViewController: UIViewController, UINavigationBarDelegate,  UITa
     override func viewDidAppear(_ animated: Bool) {
         setstatusbarbgcolor.setBackground()
         AppUtility.lockOrientation(.portrait)
+        
+        print("Yes, View did appear 1")
     }
     override func viewDidDisappear(_ animated: Bool) {
         AppUtility.lockOrientation(.all)
@@ -297,7 +299,7 @@ class QRScanner2ViewController: UIViewController, UINavigationBarDelegate,  UITa
         theIsSingleReceiverEvent = qrCodeData[7]
         country = qrCodeData[8]
         
-        
+        print("COUNTRY = COUNTRY = \(country)")
         
         print("theEventId \(theEventId)")
         print("theOwnerId \(theOwnerId)")
@@ -468,20 +470,24 @@ class QRScanner2ViewController: UIViewController, UINavigationBarDelegate,  UITa
         
         let nextVC = storyboard?.instantiateViewController(withIdentifier: "GoSprayViewController") as! GoSprayViewController
         //MenuTabViewController
-        
+        print("QR Scan country =\(country)")
         nextVC.profileId = profileId
+        nextVC.eventId = eventId2
         nextVC.token = token
         nextVC.encryptedAPIKey = encryptedAPIKey
         nextVC.completionAction = completionAction
         nextVC.country = country
         nextVC.isPaymentMethodAvailable = isPaymentMethodAvailable
         nextVC.completionAction = completionAction2
+        nextVC.paymentClientToken = paymentClientToken
+        nextVC.source  = "scanner"
 //        nextVC.eventType =  theEventType
 //        nextVC.eventOwnerId = theOwnerId
 //        nextVC.myProfileData = myProfileData
 //        nextVC.isRefreshData = true
 //        nextVC.QRCodeScan = "I CAME FROM QRSCANNER"
-//        
+//        print
+        print("event owner profileId = \(theOwnerId)")
         nextVC.eventOwnerProfileId = theOwnerId
         
        self.navigationController?.pushViewController(nextVC , animated: true)
@@ -531,7 +537,7 @@ class QRScanner2ViewController: UIViewController, UINavigationBarDelegate,  UITa
             // Check if the metadataObjects array is not nil and it contains at least one object
             if metadataObjects.count == 0 {
                 qrCodeFrameView?.frame = CGRect.zero
-                messageLabel.text = "No QR code is detected"
+                //messageLabel.text = "No QR code is detected"
                 return
             }
             
@@ -545,7 +551,7 @@ class QRScanner2ViewController: UIViewController, UINavigationBarDelegate,  UITa
                 
                 
                 if metadataObj.stringValue != nil {
-                    messageLabel.text = metadataObj.stringValue
+                    //messageLabel.text = metadataObj.stringValue
                     print("metadataObj.stringValue = \(metadataObj.stringValue)")
                     counter = counter + 1
                     if counter == 1 {

@@ -105,14 +105,15 @@ class MenuTabViewController: UITabBarController, UITabBarControllerDelegate {
      
         if let QR = viewController as? QRScanner2ViewController{
             
-              // print("my completion ACT  \()")
-                print("Tab Bar FFF")
-                QR.completionAction = "postloginscan"
-                QR.profileId = profileId!
-                QR.myProfileData = myProfileData
-                QR.token = token!
-                QR.encryptedAPIKey = encryptedAPIKey
-            }
+          // print("my completion ACT  \()")
+            print("Tab Bar FFF = \(paymentClientToken)")
+            QR.completionAction = "postloginscan"
+            QR.profileId = profileId!
+            QR.myProfileData = myProfileData
+            QR.token = token!
+            QR.encryptedAPIKey = encryptedAPIKey
+            QR.paymentClientToken = paymentClientToken
+        }
 
     }
         /*for viewController in viewControllers {

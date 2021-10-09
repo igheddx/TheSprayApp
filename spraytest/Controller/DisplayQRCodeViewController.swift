@@ -70,6 +70,7 @@ class DisplayQRCodeViewController: UIViewController {
         print("eventId = \(eventId)")
         
         
+        print("Country = \(country)")
         eventNameLbl.text = eventName
         eventDateTimeLbl.text = eventDate
         eventImage.image = UIImage(named: eventTypeIcon)
@@ -82,13 +83,26 @@ class DisplayQRCodeViewController: UIViewController {
         } else  {
             isSingleReceiverEventStr = "false"
         }
-       let newName = eventName.replacingOccurrences(of: "’", with: "&apos;")
-        
+        let newName = eventName.replacingOccurrences(of: "’", with: "&apos;")
+        let trimmedEventDateTime = eventDate.trimmingCharacters(in: .whitespacesAndNewlines)
         print("NEW eventname \( newName)")
-        let qrData = "\(newName )| \(eventDate)| \(eventCode)| \(eventTypeIcon)| \(eventId)| \(ownerId)| \(eventType)| \(isSingleReceiverEventStr)| \(country)"
+        let qrData = "\(newName )| \(trimmedEventDateTime)| \(eventCode)| \(eventTypeIcon)| \(eventId)| \(ownerId)| \(eventType)| \(isSingleReceiverEventStr)| \(country)"
         print(qrData)
       generateCode(qrData,foregroundColor: UIColor(red:0.00, green:0.00, blue:0.00, alpha:1.00),backgroundColor: UIColor(red:1.00, green:1.00, blue:1.00, alpha:1.00))
 
+        /*
+         
+         event name
+         event date
+         event code
+         event icon
+         event Id
+         event owner Id
+         event Type
+         isSingle receiver
+         contry
+         */
+         
         //generateQRCode()
         // Do any additional setup after loading the view.
        

@@ -92,6 +92,7 @@ class GoSprayViewController: UIViewController, UIViewControllerTransitioningDele
     var encryptedAPIKey: String = ""
     var isCurrencyMisalignedWithEvent: Bool = false
     var paymentMethodCurrencyCode: String = ""
+    var source: String = ""
     
     override var preferredStatusBarStyle: UIStatusBarStyle {
            return .lightContent
@@ -99,11 +100,17 @@ class GoSprayViewController: UIViewController, UIViewControllerTransitioningDele
     //typealias launchStripePaymentScreen = ()  -> Void
     override func viewDidLoad() {
         super.viewDidLoad()
+        print("GoSpray Evend ID = \(eventId)")
+        print("GoSpray Profile ID = \(profileId)")
+        print("GoSpray Event Owner Profile Id = \(eventOwnerProfileId)")
         print("paymentmethod = \(paymentMethod)")
         print("currencode from Event - \(currencyCode)")
         print("payment method id = \(defaultEventPaymentMethod)")
+        print("where is my country = \(country)")
         /*use event country to identify the default currency*/
         eventDefaultCurrencyCode = countryData.getCurrencyCodeWithCountryName(country: country)
+        
+        print("My Event Default Currency Code = \(eventDefaultCurrencyCode)")
         
         navigationController!.removeViewController(HomeViewController.self)
 //
@@ -238,6 +245,8 @@ class GoSprayViewController: UIViewController, UIViewControllerTransitioningDele
     }
     override func viewDidAppear(_ animated: Bool) {
        
+        print("I am inside view did appear very much")
+        print("isCurrencyMisalignedWithEvent = \(isCurrencyMisalignedWithEvent)")
         if isCurrencyMisalignedWithEvent == false {
             
        
@@ -329,8 +338,13 @@ class GoSprayViewController: UIViewController, UIViewControllerTransitioningDele
                     launchSprayCandidate()
                     circleMenu()
                 }
+            } else {
+                circleMenu()
             }
             
+        } else {
+            
+            print("isCurrencyMisalignedWithEvent is TRUE O")
         }
        
     }
@@ -445,6 +459,7 @@ class GoSprayViewController: UIViewController, UIViewControllerTransitioningDele
         nextVC.eventName = eventName
         nextVC.eventOwnerName = eventOwnerName
         nextVC.eventOwnerId = eventOwnerProfileId
+        nextVC.source = source
 //        nextVC.eventDateTime = eventDateTime
 //        nextVC.eventTypeIcon = eventTypeIcon
 //        nextVC.autoReplenishFlg = autoReplenishFlg
@@ -1417,7 +1432,7 @@ class GoSprayViewController: UIViewController, UIViewControllerTransitioningDele
                                         }
                                         break
                                     } else {
-                                        
+                                        print("paymentMethod <> eventPrefData.paymentMethodDetails.paymentMethodId")
                                     }
                                   
                                         
@@ -1639,7 +1654,11 @@ class GoSprayViewController: UIViewController, UIViewControllerTransitioningDele
         print("Home screen was called")
         let mainStoryBoard: UIStoryboard = UIStoryboard(name:
             "Main", bundle: nil)
-        let nextVC: HomeViewController =  mainStoryBoard.instantiateViewController(withIdentifier: "HomeViewController" ) as! HomeViewController
+        //let nextVC: HomeViewController =  mainStoryBoard.instantiateViewController(withIdentifier: "HomeViewController" ) as! HomeViewController
+        
+        let nextVC: MenuTabViewController =  mainStoryBoard.instantiateViewController(withIdentifier: "MenuTabViewController" ) as! MenuTabViewController
+        
+        
         //innerPage.lbldesc = "We made its"
         nextVC.profileId = profileId
         //nextVC.ownerId = ownerId
@@ -2037,6 +2056,8 @@ extension GoSprayViewController:   UpdatedGiftAmountDelegate  {
         
         //restore circle menu
         print("CircleMenu was called 1")
+        /*I think i need this when i use the qr code scan to add event - 9/28/21 - i need to watch this
+         i am uncommenting this for now*/
         //circleMenu()
     }
     
@@ -2064,6 +2085,8 @@ extension GoSprayViewController:   SprayReceiverDelegate  {
         //self.navigationItem.title = "Now Spraying, " + receivername
         
         print("CircleMenu was called 2")
+        /*I think i need this when i use the qr code scan to add event - 9/28/21 - i need to watch this
+         i am uncommenting this for now*/
         //circleMenu()
     }
 }
@@ -2080,6 +2103,8 @@ extension GoSprayViewController:  HasPaymentMethodDelegate {
         }
         
         print("CircleMenu was called 3")
+        /*I think i need this when i use the qr code scan to add event - 9/28/21 - i need to watch this
+         i am uncommenting this for now*/
         //circleMenu()
     }
 }
@@ -2137,7 +2162,7 @@ extension GoSprayViewController:  RefreshScreenDelegate {
 }
 
 extension GoSprayViewController:  SetupPaymentMethodDelegate {
-    func passData(eventId: Int64, profileId: Int64, token: String, ApiKey: String, eventName: String, eventDateTime: String, eventTypeIcon: String, paymentClientToken: String, isSingleReceiverEvent: Bool, eventOwnerName: String, eventOwnerId: Int64) {
+    func passData(eventId: Int64, profileId: Int64, token: String, ApiKey: String, eventName: String, eventDateTime: String, eventTypeIcon: String, paymentClientToken: String, isSingleReceiverEvent: Bool, eventOwnerName: String, eventOwnerId: Int64, source: String) {
         self.eventId = eventId
         self.profileId = profileId
         self.eventName = eventName
@@ -2152,7 +2177,12 @@ extension GoSprayViewController:  SetupPaymentMethodDelegate {
                 launchSprayCandidate()
             }
             
-            //circleMenu()
+            /*I think i need this when i use the qr code scan to add event - 9/28/21 - i need to watch this
+             i am uncommenting this for now*/
+            if source == "scanner" {
+                circleMenu()
+            }
+           
         } else {
             giftReceiverNameLbl.text = eventOwnerName
             

@@ -192,9 +192,9 @@ class OTPStep1ViewController: UIViewController {
     }
 
 
-    /*requestOTP code2 is bypass for OTP during testing*/
+    /*requestOTP code2 is bypass for OTP during testing 9/29/2021*/
     func requestOTPCode2() {
-       
+        let phone = convertPhoneToString(phone: phoneNumberTextField.text!)
         launchOTPVerifyVC(phone: phone)
     }
     func requestOTPCode() {
