@@ -95,6 +95,8 @@ class EventPayment2ViewController: UIViewController, STPAddCardViewControllerDel
     var setRefreshScreen: Bool = false
     var paymentMethod: Int = 0
     var isRefreshScreen: Bool = false
+    var isRefreshScreen2: Bool = false
+    
     var currencyCode: String = ""
     var currencycode: String = ""
     var currencySymbol: String = ""
@@ -494,6 +496,8 @@ class EventPayment2ViewController: UIViewController, STPAddCardViewControllerDel
     
     func getAvailablePaymentData() {
         print("I am inside getavailablePaument222")
+        self.availablePaymentData.removeAll() //clean out object
+        
         let request = Request(path: "/api/PaymentMethod/all/\(profileId)", token: token, apiKey: encryptedAPIKey)
         Network.shared.send(request) { [self] (result: Result<Data, Error>)  in
         switch result {
@@ -1011,7 +1015,9 @@ class EventPayment2ViewController: UIViewController, STPAddCardViewControllerDel
         addSprayAmountOptionsAutoReplenish.append(data55)
         loadSegmentsTitle()
     } */
-    func loadSegmentsTitle() {
+   
+    
+    /*func loadSegmentsTitle() {
         //poplulate spray amount segment control
         for i in addSprayAmountOptions {
             if i.id == 0 {
@@ -1024,6 +1030,85 @@ class EventPayment2ViewController: UIViewController, STPAddCardViewControllerDel
         }
         
         //populate auto replenish seg control
+        for i in addSprayAmountOptionsAutoReplenish {
+            if i.id == 0 {
+                autoReplenishAmountSegControl.setTitle(i.displayAmount, forSegmentAt: i.id )
+            } else if i.id == 1 {
+                autoReplenishAmountSegControl.setTitle(i.displayAmount, forSegmentAt: i.id )
+            } else {
+                autoReplenishAmountSegControl.insertSegment(withTitle: i.displayAmount, at: i.id, animated: true)
+            }
+        }
+        
+    } */
+    
+    func loadSegmentsTitle() {
+        //poplulate spray amount segment control
+        print("giftAmountSegConrol.numberOfSegments = \(giftAmountSegConrol.numberOfSegments)")
+        
+        print("selected index \(giftAmountSegConrol.selectedSegmentIndex)")
+        
+        
+        if self.isRefreshScreen2 == true {
+            print("giftAmountSegConrol.numberOfSegments after adding payment = \(giftAmountSegConrol.numberOfSegments)")
+            /*remove default segments before adding*/
+            giftAmountSegConrol.removeSegment(at:0 , animated: true)
+            giftAmountSegConrol.removeSegment(at:1, animated: true)
+            
+            /*only delete and refresh auto replenish segment if the whole thing currenctly populate*/
+            if autoReplenishAmountSegControl.numberOfSegments > 2 {
+                if addSprayAmountOptionsAutoReplenish.count > 0 {
+                    autoReplenishAmountSegControl.removeSegment(at:0 , animated: true)
+                    autoReplenishAmountSegControl.removeSegment(at:1, animated: true)
+                    
+                    /*remove all segmented controls and replenish later*/
+                    for i in addSprayAmountOptionsAutoReplenish {
+                        print("MY ID = \(i.id)")
+                        autoReplenishAmountSegControl.removeSegment(at: i.id , animated: true)
+                    }
+                }
+            }
+            for i in addSprayAmountOptions {
+                print("MY ID = \(i.id)")
+                giftAmountSegConrol.removeSegment(at: i.id , animated: true)
+            }
+        }
+        /*if giftAmountSegConrol.numberOfSegments > 0 {
+            giftAmountSegConrol.numberOfSegments  = 0
+            
+            print("I removed giftAmountSegConrol.removeAllSegments ")
+        }*/
+        
+        //giftAmountSegConrol.removeAllSegments()
+        
+        for i in addSprayAmountOptions {
+       
+            print("MY ID = \(i.id) MY DISPLAY NAME = \(i.displayAmount)")
+            if i.id == 0 {
+                giftAmountSegConrol.setTitle(i.displayAmount, forSegmentAt: i.id )
+                print("MY ID = 0 = \(i.id) MY DISPLAY NAME 0= \(i.displayAmount)")
+            } else if i.id == 1 {
+                giftAmountSegConrol.setTitle(i.displayAmount, forSegmentAt: i.id )
+                print("MY ID = 1 = \(i.id) MY DISPLAY NAME 1 = \(i.displayAmount)")
+            } else {
+                giftAmountSegConrol.insertSegment(withTitle: i.displayAmount, at: i.id, animated: true)
+            }
+        }
+        print("addSprayAmountOptions =\(addSprayAmountOptions)")
+        if self.isRefreshScreen2 == true {
+            print("New segmented # = \(giftAmountSegConrol.numberOfSegments)")
+            
+        }
+       
+        //populate auto replenish seg control
+        //autoReplenishAmountSegControl.removeAllSegments()
+        print("autoReplenishAmountSegControl.numberOfSegments = \(autoReplenishAmountSegControl.numberOfSegments)")
+        
+        /*if autoReplenishAmountSegControl.numberOfSegments > 0 {
+            autoReplenishAmountSegControl.removeAllSegments()
+            print("I removed autoReplenishAmountSegControl.removeAllSegments ")
+        }*/
+        
         for i in addSprayAmountOptionsAutoReplenish {
             if i.id == 0 {
                 autoReplenishAmountSegControl.setTitle(i.displayAmount, forSegmentAt: i.id )
@@ -1441,6 +1526,7 @@ extension EventPayment2ViewController:  RefreshScreenDelegate {
         print("DID SOMEONE CALLED 2 =\(isRefreshScreen)")
         self.setRefreshScreen = isRefreshScreen
         self.isRefreshScreen = isRefreshScreen
+        self.isRefreshScreen2 = isRefreshScreen
         print("refreshData Blabablabalba  function was called = \(self.setRefreshScreen)")
         print(self.setRefreshScreen)
         //print("refreshHomeScreenDate = \(isShowScreen)")

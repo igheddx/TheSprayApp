@@ -166,7 +166,7 @@ class LoginViewController: UIViewController, UITextFieldDelegate {
         encryptedAPIKey = encryptdecrypt.encryptDecryptAPIKey(type: "", value: "", action: "encrypt") //encryptData(value: apiKeyValue)
 
        
-       
+       print("encryptedAPIKey=\(encryptedAPIKey)")
             
         let context = LAContext()
         CheckIfBiometricEnabled()
@@ -799,8 +799,9 @@ class LoginViewController: UIViewController, UITextFieldDelegate {
         KeychainWrapper.standard.removeObject(forKey: "usernameKeyChain")
         KeychainWrapper.standard.removeObject(forKey: "passwordKeyChain")
         KeychainWrapper.standard.removeObject(forKey: "isKeyChainInUse")
+        KeychainWrapper.standard.removeObject(forKey: "registrationPasswordKeyChain")
         
-       
+        
         let isEnableBiometricNextLoginExist = isKeyPresentInUserDefaults(key: "isEnablebiometricNextLogin")
         if isEnableBiometricNextLoginExist == true {
             KeychainWrapper.standard.removeObject(forKey: "isEnablebiometricNextLogin")
@@ -1371,8 +1372,10 @@ class LoginViewController: UIViewController, UITextFieldDelegate {
   
     
     @IBAction func signUpBtnPressed(_ sender: Any) {
-        let nextVC = storyboard?.instantiateViewController(withIdentifier: "OTPStep0ViewController") as! OTPStep0ViewController
-        nextVC.action = "createAccount"
+        //let nextVC = storyboard?.instantiateViewController(withIdentifier: "OTPStep0ViewController") as! OTPStep0ViewController
+        //let nextVC = storyboard?.instantiateViewController(withIdentifier: "OTPStep0ViewController") as! OTPStep0ViewController
+        let nextVC = storyboard?.instantiateViewController(withIdentifier: "CreateAccountViewController") as! CreateAccountViewController
+        //nextVC.action = "createAccount"
         self.navigationController?.pushViewController(nextVC , animated: true)
     }
 

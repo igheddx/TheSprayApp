@@ -34,6 +34,10 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
         // Override point for customization after application launch.
         
         
+     
+        UINavigationBar.appearance().setBackgroundImage(UIImage(), for: UIBarMetrics.default)
+            UINavigationBar.appearance().shadowImage = UIImage()
+        
         AppCenter.start(withAppSecret: "ec81818c-6d8c-452d-9011-85b7ecbf8a5e", services:[
           Analytics.self,
             Crashes.self, Distribute.self

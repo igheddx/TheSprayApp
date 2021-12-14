@@ -115,24 +115,54 @@ class HomeViewController: UIViewController, UITextFieldDelegate {
    // var myProfileData: [MyProfile] = []
     //var refreshscreendelegate: RefreshScreenDelegate?
     
+    //var preferredStatusBarStyle: UIStatusBarStyle
+    
+//    var isDarkContentBackground = false // <1>
+//
+//    func statusBarEnterLightBackground() { // <2>
+//        isDarkContentBackground = false
+//        setNeedsStatusBarAppearanceUpdate()
+//    }
+//
+//    func statusBarEnterDarkBackground() { // <3>
+//        isDarkContentBackground = true
+//        setNeedsStatusBarAppearanceUpdate()
+//    }
+//
+//    override var preferredStatusBarStyle: UIStatusBarStyle {
+//        if isDarkContentBackground { // <5>
+//            return .lightContent
+//        } else {
+//            return .darkContent
+//        }
+//    }
     override func viewDidLoad() {
         super.viewDidLoad()
-        
+        //statusBarEnterLightBackground()
         //print("BRIAN TAB ID VIEW DID LOAD = \(tabBarController!.selectedIndex )")
         print("paymentClientToken \(paymentClientToken)")
         print("HOME encryptedAPIKey \(encryptedAPIKey)")
+        
+        for parent in self.navigationController!.navigationBar.subviews {
+                for childView in parent.subviews {
+                    if(childView is UIImageView) {
+                        childView.removeFromSuperview()
+                    }
+                }
+            }
         
 //        AppCenter.start(withAppSecret: "ec81818c-6d8c-452d-9011-85b7ecbf8a5e", services:[
 //          Crashes.self
 //        ])
         
-        
+       // self.navigationController?.navigationBar.barStyle = .black
         self.tabBarController?.delegate = self
+        
         setstatusbarbgcolor.setBackground()
         //tabBarController!.selectedIndex = 0
        // UIApplication.shared.statusBarView?.backgroundColor = UIColor.red
        /* if #available(iOS 13.0, *) {
-                   let statusBar = UIView(frame: UIApplication.shared.keyWindow?.windowScene?.statusBarManager?.statusBarFrame ?? CGRect.zero)
+                   let statusBar = UIView(frame: UIApplication.shared.keyWindow?.windowScene?.statviewController.extendedLayoutIncludesOpaqueBars = YESusBarManager?.statusBarFrame ?? CGRect.zero)
                     statusBar.backgroundColor = UIColor.init(red: 244/255, green: 209/255, blue: 96/255, alpha: 1.0)
                     UIApplication.shared.keyWindow?.addSubview(statusBar)
             print("NOAH")
@@ -262,10 +292,11 @@ class HomeViewController: UIViewController, UITextFieldDelegate {
         print("isPaymentMethodAvailable2 = \(isPaymentMethodAvailable2)")
         self.navigationItem.title = "My Activities"
        
+       
         
         navigationItem.largeTitleDisplayMode = .automatic
         navigationController?.navigationBar.prefersLargeTitles = true
-       
+        self.navigationController?.navigationBar.largeTitleTextAttributes = [NSAttributedString.Key.foregroundColor : UIColor.white]
         navigationController?.navigationBar.topItem?.backBarButtonItem = UIBarButtonItem(title: "", style: .plain, target: nil, action: nil)
         
         //self.tableView.layer.borderWidth = 0
@@ -364,10 +395,51 @@ class HomeViewController: UIViewController, UITextFieldDelegate {
        
          // print("isRefreshData  Did Appear 2 \(isRefreshData)")
     }
+    private var navigationBarHairLine: UIImageView?
+    var navBarLine: UIImageView?
+    func findHairlineImageViewUnderView(view: UIView?) -> UIImageView? {
+        guard let view = view else { return nil }
+        if view.isKind(of: UIImageView.classForCoder()) && view.bounds.height <= 1 {
+            print("Church2")
+            return view as? UIImageView
+        }
+        for subView in view.subviews {
+            if let imageView = findHairlineImageViewUnderView(view: subView) {
+                print("Church")
+                return imageView
+            }
+        }
+        return nil
+    }
     
+    private var shadowImageView: UIImageView?
+    private func findShadowImage(under view: UIView) -> UIImageView? {
+        if view is UIImageView && view.bounds.size.height <= 1 {
+            return (view as! UIImageView)
+        }
+
+        for subview in view.subviews {
+            if let imageView = findShadowImage(under: subview) {
+                return imageView
+            }
+        }
+        return nil
+    }
     override func viewWillAppear(_ animated: Bool) {
            super.viewWillAppear(animated)
-           navigationController?.isHiddenHairline = true
+       
+        
+        if shadowImageView == nil {
+            shadowImageView = findShadowImage(under: navigationController!.navigationBar)
+        }
+        shadowImageView?.isHidden = true
+        
+        
+        //navBarLine = findHairlineImageViewUnderView(view: self.navigationController!.navigationBar)
+             //   navBarLine?.isHidden = true
+        ///self.extendedLayoutIncludesOpaqueBars = false
+       // navigationController?.isHiddenHairline = true
+        //self.navigationController?.navigationBar.shadowImage = UIImage()
         print("View will appear was called")
         
         //only preselect home after logging into scan
@@ -381,7 +453,9 @@ class HomeViewController: UIViewController, UITextFieldDelegate {
 
        override func viewWillDisappear(_ animated: Bool) {
            super.viewWillDisappear(animated)
-           navigationController?.isHiddenHairline = false
+           //navigationController?.isHiddenHairline = false
+           shadowImageView?.isHidden = false
+           
         AppUtility.lockOrientation(.all)
        }
     
@@ -400,6 +474,33 @@ class HomeViewController: UIViewController, UITextFieldDelegate {
         print("do notheing")
     }
     
+    func hideBorder(view: UIView) -> Bool {
+        if view.isKind(of: UIImageView.classForCoder()) && view.frame.size.height <= 1 {
+            view.isHidden = true
+            return true
+        }
+
+        for sub in view.subviews {
+            if hideBorder(view: sub as! UIView) {
+                return true
+            }
+        }
+        return false
+    }
+    
+    func findHairlineImageViewUnder(_ view: UIView) -> UIImageView? {
+        if view is UIImageView && view.frame.size.height <= 1 {
+            return view as? UIImageView
+        }
+
+        for subview in view.subviews {
+            if let imageView = self.findHairlineImageViewUnder(subview) {
+                return imageView
+            }
+        }
+
+        return nil
+    }
     //get paymentmethodCurrency
     func getPaymentMethodCurrency(paymentMethodId: Int64) -> String {
         var thePaymentMethodCurrency: String = ""
@@ -605,11 +706,19 @@ class HomeViewController: UIViewController, UITextFieldDelegate {
            imageView.frame = frame
            imageView.layer.cornerRadius = imageView.frame.height * 0.5
            imageView.layer.masksToBounds = true
+        imageView.tintColor = UIColor.white
            customView.addSubview(imageView)
         if #available(iOS 14.0, *) {
-            navigationItem.rightBarButtonItems = [
-                UIBarButtonItem(customView: customView), UIBarButtonItem(title: displayName, style: UIBarButtonItem.Style.plain, target: self, action: #selector(handleClick))
-            ]
+            
+            let rbar = UIBarButtonItem(title: displayName, style: UIBarButtonItem.Style.plain, target: self, action: #selector(handleClick))
+            let item =  UIBarButtonItem(customView: customView)
+            rbar.setTitleTextAttributes([NSAttributedString.Key.foregroundColor : UIColor.white], for: .normal)
+            navigationItem.rightBarButtonItems = [item, rbar]
+            
+//            navigationItem.rightBarButtonItems = [
+//                UIBarButtonItem(customView: customView), UIBarButtonItem(title: displayName, style: UIBarButtonItem.Style.plain, target: self, action: #selector(handleClick))
+//
+//            ]
         } else {
             // Fallback on earlier versions
         }

@@ -692,7 +692,7 @@ class SetupPaymentMethodViewController: UIViewController, STPAuthenticationConte
         DispatchQueue.main.asyncAfter(deadline: .now() + delay) {
             alert.dismiss(animated: true)
             if completionAction == "goback" {
-                self.redirect()
+                //self.redirect() commented out 10/9
                 self.dismiss(animated: true, completion: nil)
                 //self.launchEventPaymentScreen()
 //                if((self.presentingViewController) != nil){

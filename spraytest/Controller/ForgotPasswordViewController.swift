@@ -75,13 +75,28 @@ class ForgotPasswordViewController: UIViewController, UITextFieldDelegate {
     
     
     func setNavigationBar() {
-        print("I was called")
+
         let screenSize: CGRect = UIScreen.main.bounds
         let navBar = UINavigationBar(frame: CGRect(x: 0, y: 35, width: screenSize.width, height: 44))
-        let navItem = UINavigationItem(title: "")
+        let navItem = UINavigationItem(title: "Change Password")
+
+        var titleStep: String = ""
+        if action == "forgotPassword" {
+            titleStep = "Step 3 of 3"
+        } else {
+            titleStep = "Step 1 of 2"
+        }
         let image = UIImage(named: "closeicon")!.withRenderingMode(.alwaysOriginal)
-        let doneItem = UIBarButtonItem(image: image, style: .plain, target: nil, action: #selector(done))
-           navItem.leftBarButtonItem = doneItem
+
+        let doneItem = UIBarButtonItem(image: UIImage(systemName: "xmark") , style: .plain, target: nil, action: #selector(done))
+
+        let rbar = UIBarButtonItem(title: titleStep, style: UIBarButtonItem.Style.plain, target: self, action: nil)
+        
+        rbar.setTitleTextAttributes([NSAttributedString.Key.foregroundColor : UIColor.white], for: .normal)
+        
+        navItem.leftBarButtonItem = doneItem
+    
+        navItem.rightBarButtonItem  = rbar
            navBar.setItems([navItem], animated: false)
            self.view.addSubview(navBar)
     }
@@ -186,7 +201,9 @@ class ForgotPasswordViewController: UIViewController, UITextFieldDelegate {
         let email = emailTextField.text else {
             return
         }
-     
+        
+        print("password =\(password)")
+        print("reset password = \(confirmPassword)")
         username = emailTextField.text!
         
         let isValidateEmail = self.formValidation.validateEmailId(emailID: email)
@@ -221,9 +238,23 @@ class ForgotPasswordViewController: UIViewController, UITextFieldDelegate {
            // passwordErrorLabel.text = ""
         }
 
+        let isValidatePassConfirm = self.formValidation.validatePassword(password: confirmPassword)
+        if (isValidatePassConfirm == false) {
+            passwordConfirmTextField.becomeFirstResponder()
+            customtextfield.borderForTextField(textField:  passwordConfirmTextField, validationFlag: true)
+            //print("Incorrect Password")
+            passwordConfirmTextField.isEnabled = true
+            presentUIAlert(alertMessage: "Incorrect Password", alertTitle: "Missing Information", errorMessage: "", alertType: "formvalidation")
+            return
+        } else {
+            customtextfield.borderForTextField(textField:  passwordConfirmTextField, validationFlag: false)
+           // passwordErrorLabel.text = ""
+        }
+        
         var passwordMatch: Bool = false
         if password != confirmPassword {
-        
+            
+            print("password != confirmPassword")
             passwordMatch = false
             passwordConfirmTextField.becomeFirstResponder()
             customtextfield.borderForTextField(textField:  passwordConfirmTextField, validationFlag: true)
@@ -231,10 +262,12 @@ class ForgotPasswordViewController: UIViewController, UITextFieldDelegate {
             presentUIAlert(alertMessage: "The password you entered does not match", alertTitle: "Missing Information", errorMessage: "", alertType: "formvalidation")
         } else {
             passwordMatch = true
+            print("passwordMatch = true")
         }
         
         
-        if isValidateEmail == true && isValidatePass == true && passwordMatch == true  {
+        if isValidateEmail == true && isValidatePass == true && passwordMatch == true && isValidatePassConfirm == true  {
+            print("my user name is email =\(self.username)")
             encryptedDeviceId = device.getDeviceId(userName: self.username!)
             
             spinerTaskStart()
@@ -277,8 +310,9 @@ class ForgotPasswordViewController: UIViewController, UITextFieldDelegate {
             }
             
         } else {
-            spinerTaskEnd()
-            theAlertView(alertType: "MissingFields", message: "")
+            //spinerTaskEnd()
+            print("spinerTaskEnd()")
+           // theAlertView(alertType: "MissingFields", message: "")
         }
   
     

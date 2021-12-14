@@ -256,7 +256,7 @@ class CircleActionBtn : UIButton{
         
         layer.cornerRadius = 0.5 * self.bounds.size.width
         //self.frame.height / 2
-        backgroundColor = UIColor(red: 7/256, green: 104/256, blue: 159/256, alpha: 1.0) //UIColor(red: 251/256, green: 238/256, blue: 172/256, alpha: 1.0)
+        backgroundColor = UIColor(red: 99/256, green: 61/256, blue: 189/256, alpha: 1.0) //UIColor(red: 251/256, green: 238/256, blue: 172/256, alpha: 1.0)
         //251, 238, 172
         clipsToBounds = true
         //tintColor = UIColor.white
@@ -354,7 +354,8 @@ class MyCustomButton : UIButton{
         
         //61, 126, 166 – Hcolor
         //backgroundColor = UIColor(red: 138/256, green: 196/256, blue: 208/256, alpha: 1.0) //light blu
-        backgroundColor = UIColor(red: 7/256, green: 104/256, blue: 159/256, alpha: 1.0)
+        //backgroundColor = UIColor(red: 7/256, green: 104/256, blue: 159/256, alpha: 1.0)
+        backgroundColor = UIColor(red: 99/256, green: 61/256, blue: 189/256, alpha: 1.0)
             //UIColor(red: 61/256, green: 126/256, blue: 166/256, alpha: 1.0)
         //rgb(7, 104, 159)
         

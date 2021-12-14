@@ -17,7 +17,10 @@ class StatusBarBackgroundColor {
     func setBackground() {
         if #available(iOS 13.0, *) {
                    let statusBar = UIView(frame: UIApplication.shared.keyWindow?.windowScene?.statusBarManager?.statusBarFrame ?? CGRect.zero)
-                    statusBar.backgroundColor = UIColor.init(red: 244/255, green: 209/255, blue: 96/255, alpha: 1.0)
+            // old statusBar.backgroundColor = UIColor.init(red: 244/255, green: 209/255, blue: 96/255, alpha: 1.0)
+            statusBar.backgroundColor = UIColor(red: 35/256, green: 9/256, blue: 98/256, alpha: 1.0)
+            
+            
                     UIApplication.shared.keyWindow?.addSubview(statusBar)
             print("NOAH I")
            
@@ -28,7 +31,11 @@ class StatusBarBackgroundColor {
 //            var statusBarManager: UIView? {
 //                  return  value(forKey: "statusBarManager") as? UIView
 //            }
-                UIApplication.shared.statusBarManager?.backgroundColor = UIColor.init(red: 237/255, green: 85/255, blue: 61/255, alpha: 1.0)
+            //old UIApplication.shared.statusBarManager?.backgroundColor = UIColor.init(red: 237/255, green: 85/255, blue: 61/255, alpha: 1.0)
+            
+            //UIApplication.shared.statusBarManager?.backgroundColor = UIColor.init(red: 237/255, green: 85/255, blue: 61/255, alpha: 1.0)
+            UIApplication.shared.statusBarManager?.backgroundColor = UIColor(red: 35/256, green: 9/256, blue: 98/256, alpha: 1.0)
+            
         }
     }
 

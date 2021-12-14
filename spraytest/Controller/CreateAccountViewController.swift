@@ -17,8 +17,12 @@ class CreateAccountViewController: UIViewController, UINavigationBarDelegate, UI
     @IBOutlet weak var signUpBtn: MyCustomButton!
     @IBOutlet weak var signInBtn: NoNActiveActionButton!
     
+    @IBOutlet weak var phoneNumberTextField: CustomTextField2!
     @IBOutlet weak var scrollView: UIScrollView!
     @IBOutlet weak var termsConditionSwitch: Switch1!
+    
+    @IBOutlet weak var termsConditionLbl: UILabel!
+    
     //declare register form variables
     var firstName: String?
     var lastName: String?
@@ -45,6 +49,7 @@ class CreateAccountViewController: UIViewController, UINavigationBarDelegate, UI
     var encryptedDeviceId: String = ""
     let device = Device()
     var encryptdecrypt = EncryptDecrpyt()
+    var setstatusbarbgcolor = StatusBarBackgroundColor()
     var encryptedAPIKeyUserName: String = ""
     //let decrypt = EncryptDecrpyt()
     
@@ -53,9 +58,15 @@ class CreateAccountViewController: UIViewController, UINavigationBarDelegate, UI
 
     override func viewDidLoad() {
         super.viewDidLoad()
+        
+        
+
         setNavigationBar()
     
         navigationController?.navigationBar.topItem?.backBarButtonItem = UIBarButtonItem(title: "", style: .plain, target: nil, action: nil)
+        navigationController?.navigationBar.topItem?.rightBarButtonItem = UIBarButtonItem(title: "Step 1 of 3", style: .plain, target: nil, action: nil)
+        
+       
         
         encryptedAPIKey = encryptdecrypt.encryptDecryptAPIKey(type: "", value: "", action: "encrypt") //encryptData(value: apiKeyValue)
         
@@ -69,11 +80,16 @@ class CreateAccountViewController: UIViewController, UINavigationBarDelegate, UI
         //navigationController?.setNavigationBarHidden(false, animated: true)
         // Do any additional setup after loading the view.
         
+        
+        
+        
         initializationTasks()
 
         
     }
     override func viewDidAppear(_ animated: Bool) {
+        setstatusbarbgcolor.setBackground()
+       
         AppUtility.lockOrientation(.portrait)
     }
     override func viewDidDisappear(_ animated: Bool) {
@@ -82,7 +98,7 @@ class CreateAccountViewController: UIViewController, UINavigationBarDelegate, UI
     @IBAction func termConditionBtnPressed(_ sender: Any) {
     }
     func initializationTasks() {
-        
+        phoneNumberTextField.delegate = self
         nameTextField.delegate = self
         emailTextField.delegate = self
         passwordTextField.delegate = self
@@ -92,15 +108,19 @@ class CreateAccountViewController: UIViewController, UINavigationBarDelegate, UI
         
         termsConditionSwitch.isOn = false
         
-        nameTextField.addTarget(self, action: #selector(RegistrationViewController.textFieldDidChange(_:)),
+        nameTextField.addTarget(self, action: #selector(CreateEventViewController.textFieldDidChange(_:)),
                                   for: .editingChanged)
-        emailTextField.addTarget(self, action: #selector(RegistrationViewController.textFieldDidChange(_:)),
+        emailTextField.addTarget(self, action: #selector(CreateEventViewController.textFieldDidChange(_:)),
                                  for: .editingChanged)
 
-        passwordTextField.addTarget(self, action: #selector(RegistrationViewController.textFieldDidChange(_:)),
+        passwordTextField.addTarget(self, action: #selector(CreateEventViewController.textFieldDidChange(_:)),
                                     for: .editingChanged)
-        passwordConfirmTextField.addTarget(self, action: #selector(RegistrationViewController.textFieldDidChange(_:)),
+        passwordConfirmTextField.addTarget(self, action: #selector(CreateEventViewController.textFieldDidChange(_:)),
                                            for: .editingChanged)
+        
+        phoneNumberTextField.addTarget(self, action: #selector(CreateEventViewController.textFieldDidChange(_:)),
+                                  for: .editingChanged)
+        customtextfield.borderForTextField(textField: phoneNumberTextField, validationFlag: false)
         
         customtextfield.borderForTextField(textField: nameTextField, validationFlag: false)
         customtextfield.borderForTextField(textField: emailTextField, validationFlag: false)
@@ -108,17 +128,53 @@ class CreateAccountViewController: UIViewController, UINavigationBarDelegate, UI
         customtextfield.borderForTextField(textField: passwordConfirmTextField, validationFlag: false)
     }
     
+//    @objc func textFieldDidChange(_ textField: UITextField) {
+//        let text = textField.text
+//
+//
+//    }
+    
+    func convertPhoneToString(phone: String) -> String {
+        let phonestr1 = phone.replacingOccurrences(of: "[\\(\\)^^+-]", with: "", options: .regularExpression, range: nil)
+        let phonestr2 = "+1\(phonestr1.replacingOccurrences(of: " ", with: ""))"
+        return phonestr2
+    }
+    
+    
     func setNavigationBar() {
         print("I was called")
         let screenSize: CGRect = UIScreen.main.bounds
         let navBar = UINavigationBar(frame: CGRect(x: 0, y: 35, width: screenSize.width, height: 44))
         let navItem = UINavigationItem(title: "Registration")
+        //let navItem2 = UINavigationItem(title: "Step 1 of 3")
+        
+       
+        //let item =  UIBarButtonItem(customView: customView)
+//        rbar.setTitleTextAttributes([NSAttributedString.Key.foregroundColor : UIColor.white], for: .normal)
+        //navigationItem.rightBarButtonItems = [rbar]
+        
         let image = UIImage(named: "closeicon")!.withRenderingMode(.alwaysOriginal)
-        let doneItem = UIBarButtonItem(image: image, style: .plain, target: nil, action: #selector(done))
-           navItem.leftBarButtonItem = doneItem
+        //let doneItem2 = UIBarButtonItem(barButtonSystemItem: , style: .plain, target: nil, action: #selector(done))
+        let doneItem = UIBarButtonItem(image: UIImage(systemName: "xmark") , style: .plain, target: nil, action: #selector(done))
+       // let doneItem2 = UIBarButtonItem(systemItem: .close, primaryAction: closeAction, menu: nil)
+        //navItem.rightBarButtonItem  = doneItem2
+        
+        let rbar = UIBarButtonItem(title: "Step 1 of 2", style: UIBarButtonItem.Style.plain, target: self, action: nil)
+        
+        rbar.setTitleTextAttributes([NSAttributedString.Key.foregroundColor : UIColor.white], for: .normal)
+        
+        //navItem.setTitleTextAttributes([NSAttributedString.Key.foregroundColor : UIColor.white], for: .normal)
+        
+        navItem.leftBarButtonItem = doneItem
+    
+        navItem.rightBarButtonItem  = rbar
            navBar.setItems([navItem], animated: false)
            self.view.addSubview(navBar)
     }
+    
+//    let closeAction = UIAction(handler: { [weak self] _ in
+//               //perform action here
+//            })
     
     //returns user to login when back button is pressed
     @objc func done() {
@@ -183,6 +239,10 @@ class CreateAccountViewController: UIViewController, UINavigationBarDelegate, UI
                     //passwordConfirmLabel.textColor = UIColor(red: 0/256, green: 128/256, blue: 128/256, alpha: 1.0)
                     customtextfield.borderForTextField(textField: passwordConfirmTextField, validationFlag: false)
                    // passwordConfirmErrorLabel.text = ""
+                 
+                case phoneNumberTextField:
+                    customtextfield.borderForTextField(textField: phoneNumberTextField, validationFlag: false)
+                  
                 default:
                     break
                 }
@@ -320,6 +380,7 @@ class CreateAccountViewController: UIViewController, UINavigationBarDelegate, UI
         guard let name = nameTextField.text,
         let password = passwordTextField.text,
         let confirmPassword = passwordConfirmTextField.text,
+        let phone2 = phoneNumberTextField.text,
         let email = emailTextField.text else {
             return
         }
@@ -341,6 +402,9 @@ class CreateAccountViewController: UIViewController, UINavigationBarDelegate, UI
         }
 
        
+
+        
+        
         let isValidateEmail = self.formValidation.validateEmailId(emailID: email)
         if (isValidateEmail == false) {
             emailTextField.becomeFirstResponder()
@@ -353,6 +417,7 @@ class CreateAccountViewController: UIViewController, UINavigationBarDelegate, UI
         }else {
             customtextfield.borderForTextField(textField: emailTextField, validationFlag: false)
             //emailErrorLabel.text = ""
+            print("USER NAME FOR DEVICE = \(self.username!)")
             encryptedDeviceId = device.getDeviceId(userName: self.username!)
           
             print("I CALLED DEVICE")
@@ -360,6 +425,28 @@ class CreateAccountViewController: UIViewController, UINavigationBarDelegate, UI
             
         }
 
+        let isValidatePhone = self.formValidation.validatePhoneNumber(phoneNumber: phone2).isValidate
+        let validationMessage = self.formValidation.validatePhoneNumber(phoneNumber: phone2).errorMsg
+        
+        print("isValidatePhone \(isValidatePhone)")
+        if (isValidatePhone == false) {
+            //LoadingStop()
+            phoneNumberTextField.becomeFirstResponder()
+           //phoneNumberTextField.borderForTextField(textField: nameTextField, validationFlag: true)
+            //print("Incorrect First Name")
+            //call UI Alert
+            phoneNumberTextField.isEnabled = true
+            customtextfield.borderForTextField(textField:  phoneNumberTextField, validationFlag: true)
+            
+            self.presentUIAlert(alertMessage: "Incorrect Phone Number", alertTitle: "Missing Information", errorMessage: validationMessage, alertType: "formvalidation")
+            
+        
+            return
+        } else {
+            customtextfield.borderForTextField(textField: phoneNumberTextField, validationFlag: false)
+            
+        }
+        
         let isValidatePass = self.formValidation.validatePassword(password: password)
         if (isValidatePass == false) {
             passwordTextField.becomeFirstResponder()
@@ -418,233 +505,75 @@ class CreateAccountViewController: UIViewController, UINavigationBarDelegate, UI
             
             //default phone number - to be changed later
             phone = ""
-            
-            let userData = UserModel(firstName: firstname, lastName: lastname, username: username!, password: password, email: email, phone: phoneFromOTP)
-
-            print(userData)
-            let request = PostRequest(path: "/api/profile/register", model: userData, token: "", apiKey: encryptedAPIKey, deviceId: encryptedDeviceId)
-            Network.shared.send(request) { [self] (result: Result<UserData, Error>) in
-                switch result {
-                case .success(let userdata):
-                    self.userdata = userdata
-                    CheckIfBiometricEnabled()
-                    
-                    if isBiometricEnabled  == true {
-                        //presentUIAlert(alertMessage: "Would like to enable Face Id or this profile?", alertTitle: "Biometric", errorMessage: "", alertType: "biometric")
-                        var biometricType: String = ""
-                        
-                        //check if phone has touch of face Id
-                        let context = LAContext()
-                        if ( context.biometryType == .touchID ) {
-                             print("touch Id enabled")
-                            biometricType = "Touch Id"
-
-                        }
-                        if ( context.biometryType == .faceID) {
-                            biometricType = "Face ID"
-                            print("face Id is enabled")
-                        } else {
-                            print("stone age")
-                        }
-                        let password = passwordTextField.text
-                        
-                        let alert = UIAlertController(title: "Biometric Authentication", message: "Would you like to enable \(biometricType) for the Spray App?", preferredStyle: .actionSheet)
-
-                        alert.addAction(UIAlertAction(title: "Yes", style: .default, handler: { [self] (action) in removeCredentialFromKeyChain(userName: self.username!, password: password!)}))
-                        alert.addAction(UIAlertAction(title: "No", style: .default, handler: { [self] (action) in self.authenticateUser(userName: self.username!, password: password!)}))
-                        //alert.addAction(UIAlertAction(title: "No", style: .cancel, handler: nil))
-
-                        self.present(alert, animated: true)
-                        
-                    } else {
-                        self.authenticateUser(userName: self.username!, password: password)
-                    }
-                    print(userdata)
-                    //call authentication func
-                   
-
-                case .failure(let error):
-                    self.presentUIAlert(alertMessage: "", alertTitle: "", errorMessage: error.localizedDescription, alertType: "systemError")
-                    self.loadingIndicatorAction(actionType: "error")
-                }
-            }
+            let phone = convertPhoneToString(phone: phoneNumberTextField.text!)
+            KeychainWrapper.standard.set(password, forKey: "registrationPasswordKeyChain")
+           
+            launchOTPVerifyVC(firstName: firstname, lastName: lastname, username: username!, phone: phone)
         }
     }
-    func storeCredentialInKeyChain(userName: String, password: String) {
-        print("storeCredentialInKeyChain was called")
-        KeychainWrapper.standard.set(userName, forKey: "usernameKeyChain")
-        KeychainWrapper.standard.set(password, forKey: "passwordKeyChain")
-        KeychainWrapper.standard.set(true, forKey: "isKeyChainInUse")
-        //(true, forKey: "isKeyChainInUse")
-        processEnableBiometric(userName: userName, password: password)
-    }
-    func removeCredentialFromKeyChain(userName: String, password: String){
-        print("removeCredentialFromKeyChainwas called")
-        KeychainWrapper.standard.removeObject(forKey: "usernameKeyChain")
-        KeychainWrapper.standard.removeObject(forKey: "passwordKeyChain")
-        KeychainWrapper.standard.removeObject(forKey: "isKeyChainInUse")
-        
+    
+    
+    func launchOTPVerifyVC(firstName: String, lastName: String, username: String, phone: String) {
        
-        let isEnableBiometricNextLoginExist = isKeyPresentInUserDefaults(key: "isEnablebiometricNextLogin")
-        if isEnableBiometricNextLoginExist == true {
-            KeychainWrapper.standard.removeObject(forKey: "isEnablebiometricNextLogin")
-        }
-    
-        
-        isKeyChainInUse = false
-        storeCredentialInKeyChain(userName: userName, password: password)
-    }
-    func  isKeyPresentInUserDefaults(key: String) -> Bool {
-        guard let _ = KeychainWrapper.standard.object(forKey: key) else {
-         return false;
-        }
-
-       return true;
-    }
-    func CheckIfBiometricEnabled() {
-        let context = LAContext()
-        var error: NSError?
-        if context.canEvaluatePolicy(.deviceOwnerAuthenticationWithBiometrics, error: &error) {
-            self.isBiometricEnabled = true
-            print("isBiometricEnabled = true")
-        } else {
-            //no biometric
-            self.isBiometricEnabled = false
-            print("isBiometricEnabled = false")
-        }
-    }
-    func processEnableBiometric(userName: String, password: String) {
-        let context = LAContext()
-        var error: NSError?
-        if context.canEvaluatePolicy(.deviceOwnerAuthenticationWithBiometrics, error: &error) {
-            let reason = "Identify yourself!"
+       
+   
             
-            context.evaluatePolicy(.deviceOwnerAuthenticationWithBiometrics, localizedReason: reason) {[weak self] success, authenticationError in
-                DispatchQueue.main.async { [self] in
-                    if success {
-                        self?.authenticateUser(userName: userName, password: password)
-                        print("i called authenticationUser")
-                        print("II--")
-                        //self?.loginButton.loadIndicator(true)
-//                        self?.loginButton.loadIndicator(true)
-//                        self?.loginButton.setTitle("Securely Logging In...", for: .normal)
-//                        self?.loginButton.isEnabled = false
-//
-//                        self?.authenticateUser()
-                    } else {
-                        //error
-                        let ac = UIAlertController(title: "Authentication Failed", message: "You could not be verified, please try again.", preferredStyle: .alert)
-                        
-                        ac.addAction(UIAlertAction(title: "Ok", style: .default))
-                        self?.present(ac, animated: true)                    }
+        print("launchOTPVerifyVC was called")
+        let nextVC = storyboard?.instantiateViewController(withIdentifier: "OTPStep2ViewController") as! OTPStep2ViewController
+        //nextVC.otpCode = otpCode
+        nextVC.firstName = firstName
+        nextVC.lastName = lastName
+        nextVC.username = username
+        nextVC.email = username
+        nextVC.otpPhone = phone
+        //nextVC.eventName = eventName
+        //nextVC.eventDateTime = eventDateTime
+        //nextVC.eventTypeIcon = eventTypeIcon
+        nextVC.eventCode = eventCode
+        //nextVC.eventType = eventType
+        nextVC.action = ""
+        //nextVC.email = email
+        nextVC.encryptedAPIKey = encryptedAPIKey
+        nextVC.encryptedDeviceId = encryptedDeviceId
+        //nextVC.flowType = flowType
+        self.navigationController?.pushViewController(nextVC, animated: true)
+    }
+
+    func textField(_ textField: UITextField, shouldChangeCharactersIn range: NSRange, replacementString string: String) -> Bool {
+        
+        
+        let text = textField.text
+        //if text?.utf16.count==1{
+            switch textField{
+            case phoneNumberTextField:
+                let currentCharacterCount = textField.text?.count ?? 0
+                if range.length + range.location > currentCharacterCount {
+                    return false
+                } else {
+                    guard let text = textField.text else { return false }
+                    textField.text = text.applyPatternOnNumbers(pattern: "(###) ###-####", replacmentCharacter: "#")
+
                 }
+                
+                let newLength = currentCharacterCount + string.count - range.length
+                return newLength <= 14
+                
+                
+            default:
+
+                break
             }
-             
-        } else {
-            //no biometric
-            let ac = UIAlertController(title: "Biometric unavailalbe", message: "Your device is not configured for biometric authentication", preferredStyle: .alert)
-            
-            ac.addAction(UIAlertAction(title: "OK", style: .default))
-            present(ac, animated: true)
-        }
-    }
-    func authenticateUser(userName:String,password: String) {
-        //******************** After creating account; authenticating to get Token *****************************
-        let authenticatedUserProfile = AuthenticateUser(username: userName, password: password)
-        let request = PostRequest(path: "/api/profile/authenticate", model: authenticatedUserProfile, token: "", apiKey: encryptedAPIKey, deviceId: encryptedDeviceId)
-
-        Network.shared.send(request) { [self] (result: Result<UserData, Error>)  in
-            switch result {
-            case .success(let user):
-                self.token2pass = user.token!
-                self.userdata = user
-                self.profileId = String(user.profileId!)
-                
-                var encryptdecrypt = EncryptDecrpyt()
-                encryptedAPIKeyUserName = encryptdecrypt.encryptDecryptAPIKey(type: "username", value: userName, action: "encrypt")
-                encryptedAPIKey = encryptedAPIKeyUserName
-                
-                print(" this is dominic \(user)")
-                
-                //capture profile data
-                self.getProfileData(profileId1: user.profileId!, token1: user.token!)
-                
-                //add user to event
-//                if self.eventCode != "" {
-//                    self.addToEvent(profileId: user.profileId!, email: self.email, phone: "", eventCode: eventCode, token: self.token2pass!)
-//                }
-
-                //self.labelMessage.text = "Got an empty, successful result"
-
-            case .failure(let error):
-                self.presentUIAlert(alertMessage: "", alertTitle: "", errorMessage: error.localizedDescription, alertType: "systemError")
-                self.loadingIndicatorAction(actionType: "error")
-            }
-        }
+        //}else{
+           // returnFlag = false
+        //}
+        print(string)
+        return true
+        //phoneNumberTextField.text = textField.text?.applyPatternOnNumbers(pattern: "+# (###) ###-####", replacmentCharacter: "#")
+       
+       
+       
     }
     
-    func getProfileData(profileId1: Int64, token1: String) {
-        let request = Request(path: "/api/profile/\(profileId1)", token: token1, apiKey: encryptedAPIKey)
-        
-        print("getProfileData was called")
-        print("request=\(request)")
-        Network.shared.send(request) { [self] (result: Result<ProfileData2, Error>)  in
-        switch result {
-        case .success(let profileData):
-            
-            var defaultEventPaymentCustomName: String = ""
-            if let custName = profileData.defaultPaymentMethodCustomName  {
-                defaultEventPaymentCustomName = custName
-            } else {
-                defaultEventPaymentCustomName = ""
-            }
-            
-            //add profile record into object to be used later
-            let data1 = MyProfile(token: "", profileId: profileId1, firstName: profileData.firstName, lastName: profileData.lastName, userName: profileData.userName, email: profileData.email, phone: profileData.phone, avatar: profileData.avatar, paymentCustomerId: profileData.paymentCustomerId, paymentConnectedActId: profileData.paymentConnectedActId, success: true, returnUrl: "", refreshUrl: "",  hasValidPaymentMethod: profileData.hasValidPaymentMethod, defaultPaymentMethod: profileData.defaultPaymentMethod, defaultPaymentMethodCustomName: defaultEventPaymentCustomName)
-            self.myprofiledata.append(data1)
-            
-            self.initializePayment(token: self.token2pass!, profileId: profileData.profileId, firstName: profileData.firstName, lastName: profileData.lastName, userName: profileData.email, email: profileData.email, phone: profileData.phone)
-            
-            print("my profile data = \(data1)")
-            break
-        case .failure(let error):
-           //self.textLabel.text = error.localizedDescription
-        print(" DOMINIC B IGHEDOSA ERROR \(error.localizedDescription)")
-                    
-            }
-                  
-        }
-    }
-    
-    //Initialize payment
-    func initializePayment(token: String, profileId: Int64, firstName: String, lastName: String, userName: String, email: String, phone: String) {
-        let initPayment = InitializePaymentModel(token: token, profileId: profileId, firstName: firstName, lastName: lastName, userName: userName, email: email, phone: phone)
-        print("InitializePaymentModel \(initPayment)")
-         let request = PostRequest(path: "/api/profile/initialize", model: initPayment, token: token, apiKey: encryptedAPIKey, deviceId: "")
-         
-        
-        
-          Network.shared.send(request) { (result: Result<InitializePaymentData, Error>)  in
-             switch result {
-             case .success(let paymentInit):
-                self.paymentClientToken = paymentInit.clientToken!
-                
-                print("paymentClientToken = \(self.paymentClientToken)")
-                self.loadingIndicatorAction(actionType: "done")
-                self.performSegue(withIdentifier: "Reg2MenuTab", sender: nil)
-                
-                
-             case .failure(let error):
-                 //self.labelMessage.text = error.localizedDescription
-                self.theAlertView(alertType: "InitializeError", message: error.localizedDescription)
-             }
-             
-            
-         }
-        
-        //closing loading
-        self.dismiss(animated: false, completion: nil)
-    }
     override func prepare(for segue: UIStoryboardSegue, sender: Any?) {
         if(segue.identifier == "Reg2MenuTab"){
             let NextVC = segue.destination as! MenuTabViewController
@@ -671,3 +600,6 @@ class CreateAccountViewController: UIViewController, UINavigationBarDelegate, UI
     
 
 }
+
+
+

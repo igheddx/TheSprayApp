@@ -12,35 +12,15 @@ class EventSettingUINavigationController: UINavigationController {
 
     override func viewDidLoad() {
         super.viewDidLoad()
-//        UINavigationBar.appearance().barTintColor = UIColor(red: 40/256, green: 82/256, blue: 122/256, alpha: 1.0)
-//        UINavigationBar.appearance().tintColor = .white
-//        UINavigationBar.appearance().titleTextAttributes = [NSAttributedString.Key.foregroundColor: UIColor.white]
-//        UINavigationBar.appearance().isTranslucent = false
-//        
-//        UINavigationBar.appearance().setBackgroundImage(UIImage(), for: .default)
-//        UINavigationBar.appearance().shadowImage = UIImage()
-//        // Do any additional setup after loading the view.
-        
-        /* comment out for now 7/12
-         UINavigationBar.appearance().barTintColor = .white
-        //previous colore
-        //UIColor(red: 40/256, green: 82/256, blue: 122/256, alpha: 1.0)
-        UINavigationBar.appearance().backgroundColor = .white
-        UINavigationBar.appearance().tintColor = .black
-        UINavigationBar.appearance().titleTextAttributes = [NSAttributedString.Key.foregroundColor: UIColor(red: 0/256, green: 0/256, blue: 0/256, alpha: 1.0)]
         UINavigationBar.appearance().isTranslucent = false
-        
-        UINavigationBar.appearance().setBackgroundImage(UIImage(named: ""), for: .default)
-        UINavigationBar.appearance().shadowImage = UIImage(named: "") */
-        
-        
-        UINavigationBar.appearance().barTintColor = UIColor(red: 244/256, green: 209/256, blue: 96/256, alpha: 1.0)
-            //UIColor(red: 138/256, green: 196/256, blue: 208/256, alpha: 1.0)
-        UINavigationBar.appearance().tintColor = .black //UIColor(red: 244/256, green: 209/256, blue: 96/256, alpha: 1.0)
-            //UIColor(red: 138/256, green: 196/256, blue: 208/256, alpha: 1.0) //.black
-        UINavigationBar.appearance().backgroundColor = UIColor(red: 244/256, green: 209/256, blue: 96/256, alpha: 1.0)
-        UINavigationBar.appearance().titleTextAttributes = [NSAttributedString.Key.foregroundColor: UIColor.black]
+        UINavigationBar.appearance().barTintColor = UIColor(red: 35/256, green: 9/256, blue: 98/256, alpha: 1.0)
+        UINavigationBar.appearance().tintColor = .white
+        UINavigationBar.appearance().backgroundColor = UIColor(red: 35/256, green: 9/256, blue: 98/256, alpha: 1.0)
+        UINavigationBar.appearance().titleTextAttributes = [NSAttributedString.Key.foregroundColor: UIColor.white]
         UINavigationBar.appearance().isTranslucent = false
+        UINavigationBar.appearance().barStyle = .black
+        UINavigationBar.appearance().setBackgroundImage(UIImage(named: "hairlinebackground"), for: .any, barMetrics: .default)
+        UINavigationBar.appearance().shadowImage = UIImage()
         
         
     }

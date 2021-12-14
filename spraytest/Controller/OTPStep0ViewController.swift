@@ -16,11 +16,18 @@ class OTPStep0ViewController: UIViewController, UITextFieldDelegate {
     var formValidation =   Validation()
     let customtextfield = CustomTextField()
     var setstatusbarbgcolor = StatusBarBackgroundColor()
+    var encryptedAPIKey: String = ""
+    var encryptedDeviceId: String = ""
+    let device = Device()
+    let encryptdecrypt = EncryptDecrpyt()
     
     @IBOutlet weak var emailTextField: UITextField!
     
     override func viewDidLoad() {
         super.viewDidLoad()
+        print("launchOTPVerifyVC was called = \(action)")
+        
+        encryptedAPIKey = encryptdecrypt.encryptDecryptAPIKey(type: "", value: "", action: "encrypt")
         
         setstatusbarbgcolor.setBackground()
         self.emailTextField.delegate = self
@@ -59,10 +66,30 @@ class OTPStep0ViewController: UIViewController, UITextFieldDelegate {
         
         
     }
+    
+
+    func verifyEmail(email: String) {
+        let request = Request(path: "/api/Profile/phonecheck/\(email)", token: "", apiKey: encryptedAPIKey)
+        
+        print("request=\(request)")
+        Network.shared.send(request) { [self] (result: Result<Data, Error>)  in
+        switch result {
+        case .success(let emailVerify):
+            
+            
+            break
+        case .failure(let error):
+           //self.textLabel.text = error.localizedDescription
+        print(" DOMINIC B IGHEDOSA ERROR \(error.localizedDescription)")
+                    
+            }
+                  
+        }
+    }
     func launchOTPGetCodeVC(email: String) {
         
-        print("launchOTPVerifyVC was called")
-        let nextVC = storyboard?.instantiateViewController(withIdentifier: "OTPStep1ViewController") as! OTPStep1ViewController
+        print("launchOTPVerifyVC was called = \(action)")
+        let nextVC = storyboard?.instantiateViewController(withIdentifier: "OTPStep2ViewController") as! OTPStep2ViewController
         //nextVC.otpCode = otpCode
         nextVC.email = email
         nextVC.action = action
@@ -85,13 +112,54 @@ class OTPStep0ViewController: UIViewController, UITextFieldDelegate {
         }
     }
     func setNavigationBar() {
+//        print("I was called")
+//        let screenSize: CGRect = UIScreen.main.bounds
+//        let navBar = UINavigationBar(frame: CGRect(x: 0, y: 35, width: screenSize.width, height: 44))
+//        let navItem = UINavigationItem(title: "")
+//        let image = UIImage(named: "closeicon")!.withRenderingMode(.alwaysOriginal)
+//        let doneItem = UIBarButtonItem(image: image, style: .plain, target: nil, action: #selector(done))
+//           navItem.leftBarButtonItem = doneItem
+//           navBar.setItems([navItem], animated: false)
+//           self.view.addSubview(navBar)
+        
+        
+        print("I was called")
+//        let screenSize: CGRect = UIScreen.main.bounds
+//        let navBar = UINavigationBar(frame: CGRect(x: 0, y: 35, width: screenSize.width, height: 44))
+//        let navItem = UINavigationItem(title: "")
+//        let image = UIImage(named: "closeicon")!.withRenderingMode(.alwaysOriginal)
+//        let doneItem = UIBarButtonItem(image: image, style: .plain, target: nil, action: #selector(done))
+//           navItem.leftBarButtonItem = doneItem
+//           navBar.setItems([navItem], animated: false)
+//           self.view.addSubview(navBar)
+        
+        
         print("I was called")
         let screenSize: CGRect = UIScreen.main.bounds
         let navBar = UINavigationBar(frame: CGRect(x: 0, y: 35, width: screenSize.width, height: 44))
-        let navItem = UINavigationItem(title: "")
+        let navItem = UINavigationItem(title: "Password Reset")
+        //let navItem2 = UINavigationItem(title: "Step 1 of 3")
+        
+       
+        //let item =  UIBarButtonItem(customView: customView)
+//        rbar.setTitleTextAttributes([NSAttributedString.Key.foregroundColor : UIColor.white], for: .normal)
+        //navigationItem.rightBarButtonItems = [rbar]
+        
         let image = UIImage(named: "closeicon")!.withRenderingMode(.alwaysOriginal)
-        let doneItem = UIBarButtonItem(image: image, style: .plain, target: nil, action: #selector(done))
-           navItem.leftBarButtonItem = doneItem
+        //let doneItem2 = UIBarButtonItem(barButtonSystemItem: , style: .plain, target: nil, action: #selector(done))
+        let doneItem = UIBarButtonItem(image: UIImage(systemName: "xmark") , style: .plain, target: nil, action: #selector(done))
+       // let doneItem2 = UIBarButtonItem(systemItem: .close, primaryAction: closeAction, menu: nil)
+        //navItem.rightBarButtonItem  = doneItem2
+        
+        let rbar = UIBarButtonItem(title: "Step 1 of 3", style: UIBarButtonItem.Style.plain, target: self, action: nil)
+        
+        rbar.setTitleTextAttributes([NSAttributedString.Key.foregroundColor : UIColor.white], for: .normal)
+        
+        //navItem.setTitleTextAttributes([NSAttributedString.Key.foregroundColor : UIColor.white], for: .normal)
+        
+        navItem.leftBarButtonItem = doneItem
+    
+        navItem.rightBarButtonItem  = rbar
            navBar.setItems([navItem], animated: false)
            self.view.addSubview(navBar)
     }
