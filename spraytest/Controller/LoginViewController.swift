@@ -3,7 +3,7 @@
 //  spraytest
 //
 //  Created by Ighedosa, Dominic on 5/11/20.
-//  Copyright © 2020 Ighedosa, Dominic. All rights reserved.
+//  Copyright © 2020 Ighedosa, Dominic. All rights reserved.ƒ
 //
 
 import UIKit
@@ -1213,6 +1213,7 @@ class LoginViewController: UIViewController, UITextFieldDelegate {
              case .success(let paymentInit):
                 self.paymentClientToken = paymentInit.clientToken!
                 
+                 print("payment client token = \(self.paymentClientToken)")
                 //capture profile data
                 self.getProfileData(profileId1: profileId, token1: token)
 

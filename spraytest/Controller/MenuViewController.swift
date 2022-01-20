@@ -50,6 +50,8 @@ class MenuViewController: UIViewController {
     var biometricCellDesc: String = ""
     var biometricCellIcon: String = ""
     var setstatusbarbgcolor = StatusBarBackgroundColor()
+    var myprofiledata: [MyProfile] = []
+    
     override func viewDidLoad() {
         super.viewDidLoad()
         
@@ -126,7 +128,7 @@ class MenuViewController: UIViewController {
         print("profileId \(profileId!)")
         print("DOMINIC OZIE IGHEDOAS")
         print("token \(token!)")
-        menudata.removeAll()
+        
         MenuListData()
         displayData()
        // menudata.append(MenuData(sectionName: "More Actions...", sectionDetails: [MenuSections(name: "Create Event", image: "createEventIon")])!)
@@ -153,9 +155,19 @@ class MenuViewController: UIViewController {
     
     override func viewDidAppear(_ animated: Bool) {
         //menulists = MenuListData()
-        
+        //MenuListData()
         setstatusbarbgcolor.setBackground()
-        deSelectReloadData()
+        //deSelectReloadData()
+        for cell in tableView.visibleCells {
+            cell.setSelected(false, animated: true)
+        }
+      
+        /*unhide tabbar when coming from Create Event*/
+        if self.tabBarController?.tabBar.isHidden == true {
+            self.tabBarController?.tabBar.isHidden = false
+        }
+
+        //tableView.reloadData()
         AppUtility.lockOrientation(.portrait)
         
     }
@@ -235,7 +247,7 @@ class MenuViewController: UIViewController {
     
     func MenuListData ()  {
         
-       
+        menudata.removeAll()
         var userProfileImage: String = ""
         //UserDefaults.standard.set("userprofile", forKey: "userProfileImage")
         
@@ -297,6 +309,7 @@ class MenuViewController: UIViewController {
 
        
         print(menudata)
+        tableView.reloadData()
       }
     
     func displayData() {
@@ -359,6 +372,8 @@ extension  MenuViewController: UITableViewDataSource, UITableViewDelegate  {
         }
         
         if menudata[indexPath.section].sectionDetails[indexPath.row].id == "biometric" {
+            
+            print("SWITCH - \(menudata[indexPath.section].sectionDetails[indexPath.row].id)")
             let switchView = UISwitch(frame: .zero)
            switchView.setOn(false, animated: true)
            switchView.tag = indexPath.row // for detect which row switch Changed
@@ -381,9 +396,9 @@ extension  MenuViewController: UITableViewDataSource, UITableViewDelegate  {
     }
     func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath) {
         if menudata[indexPath.section].sectionDetails[indexPath.row].id == "logout" {
-            let alert = UIAlertController(title: "Log Out", message: "Are you sure you want to Log Out?", preferredStyle: .actionSheet)
+            let alert = UIAlertController(title: "Sign Out", message: "Do you want to sign out?", preferredStyle: .actionSheet)
 
-            alert.addAction(UIAlertAction(title: "Log Out", style: .default, handler: { (action) in self.callLoginScreen()}))
+            alert.addAction(UIAlertAction(title: "Sign Out", style: .default, handler: { (action) in self.callLoginScreen()}))
             //alert.addAction(UIAlertAction(title: "Log Out", style: .default, handler:  { action in self.performSegue(withIdentifier: "backToHome", sender: self) }))
             alert.addAction(UIAlertAction(title: "Cancel", style: .cancel, handler: {(action) in self.deSelectReloadData()}))
             self.present(alert, animated: true)
@@ -430,22 +445,27 @@ extension  MenuViewController: UITableViewDataSource, UITableViewDelegate  {
     
     
     func launchSetUpPaymentMethod() {
-      
+ 
         let storyboard: UIStoryboard = UIStoryboard(name: "Main", bundle: Bundle.main)
-            let nextVC = storyboard.instantiateViewController(withIdentifier: "SetupPaymentMethodViewController") as! SetupPaymentMethodViewController
-
-       
-
-        nextVC.modalPresentationStyle = UIModalPresentationStyle.formSheet
-        nextVC.navigationController?.modalPresentationStyle = UIModalPresentationStyle.currentContext
-    
-
+        let nextVC = storyboard.instantiateViewController(withIdentifier: "SetupPaymentMethodViewController") as! SetupPaymentMethodViewController
+        
+        if #available(iOS 15.0, *) {
+            if let presentationController = nextVC.presentationController as? UISheetPresentationController {
+                presentationController.detents = [.medium()] /// set here!
+            }
+        } else {
+            // Fallback on earlier versions
+            nextVC.modalPresentationStyle = UIModalPresentationStyle.formSheet
+            nextVC.navigationController?.modalPresentationStyle = UIModalPresentationStyle.currentContext
+        }
+        
         //nextVC.eventId = self.eventId
         nextVC.profileId = profileId!
         nextVC.token = token!
         nextVC.paymentClientToken = paymentClientToken!
         nextVC.launchedFromMenu = true
         nextVC.encryptedAPIKey = encryptedAPIKey
+        nextVC.myProfileData = myprofiledata
 //        nextVC.eventName = eventName
 //        nextVC.eventDateTime = eventDateTime
 //        nextVC.eventTypeIcon = eventTypeIcon
@@ -457,7 +477,8 @@ extension  MenuViewController: UITableViewDataSource, UITableViewDelegate  {
 //        nextVC.setuppaymentmethoddelegate = self
 //        nextVC.paymentClientToken = paymentClientToken
 //        nextVC.currentAvailableCredit =  availableBalance
-        self.present(nextVC, animated: true, completion: nil)
+        //self.present(nextVC, animated: true, completion: nil)
+        self.present(nextVC, animated: true)
         
     }
     func callLoginScreen() {

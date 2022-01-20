@@ -19,12 +19,15 @@ class EventPaymentViewController: UIViewController, STPAddCardViewControllerDele
             return cardTextField
         }()
     @IBOutlet weak var fullScreenPaymentUIView: UIView!
-    @IBOutlet weak var btnSelectPayment: UIButton!
+    //@IBOutlet weak var btnSelectPayment: UIButton!
     @IBOutlet weak var initialSprayAmountTextField: UITextField!
     @IBOutlet weak var autoReplenishAmountTextField: UITextField!
     @IBOutlet weak var alertAmountTextField: UITextField!
     @IBOutlet weak var autoReplenishSwitch: UISwitch!
     @IBOutlet weak var eventNameLabel: UILabel!
+    
+    @IBOutlet weak var paymentSelectionTextField: UITextField!
+    var activePickerViewTextField = UITextField()
     
     @IBOutlet weak var paymentMethodIcon: UIImageView!
     //    @IBOutlet weak var paymentMethodIcon: UIButton!
@@ -51,6 +54,9 @@ class EventPaymentViewController: UIViewController, STPAddCardViewControllerDele
 
     var addSprayAmountOptions = [AddSprayAmountOptions]()
     var addSprayAmountOptionsAutoReplenish = [AddSprayAmountOptions]()
+    var availablepaymentmethodlist: [AvailablePaymentMethod] = []
+    var myProfileData: [MyProfile] = []
+    
     
     var profileId: Int64 = 0
     var eventId: Int64 = 0
@@ -85,10 +91,28 @@ class EventPaymentViewController: UIViewController, STPAddCardViewControllerDele
     var eventDefaultCurrencyCode: String = ""
     var country: String = ""
     var isPaymentMethodAvailable2: Bool = false /*used to set the the payment method button default value Select Payment or Add Payment*/
-    
+    var pickerView = UIPickerView()
     
     override func viewDidLoad() {
         super.viewDidLoad()
+        
+        print("MY PROFILE DATA = \(myProfileData)")
+        pickerView.delegate = self
+        pickerView.dataSource = self
+        //pickerView.backgroundColor =
+        pickerView.backgroundColor = .white
+        pickerView.setValue(UIColor.black, forKey:"textColor")
+        
+        paymentSelectionTextField.delegate = self
+        
+        //countrylist.removeAll()
+       
+        
+        //loadCountryList()
+        
+        dismissPickerView()
+        //paymentSelectionTextField.addTarget(self, action: #selector(EventPaymentViewController.textFieldDidChange(_:)),
+                                  //for: .editingChanged)
         
         DispatchQueue.global().async {
                let lock = DispatchSemaphore(value: 0)
@@ -123,9 +147,9 @@ class EventPaymentViewController: UIViewController, STPAddCardViewControllerDele
         
         print("Event Payment my completion \(completionAction)")
         //use to keep keyboard down
-        NotificationCenter.default.addObserver(self, selector: #selector(keyboardWillShow(sender:)), name: UIResponder.keyboardWillShowNotification, object: nil);
+        //NotificationCenter.default.addObserver(self, selector: #selector(keyboardWillShow(sender:)), name: UIResponder.keyboardWillShowNotification, object: nil);
 
-        NotificationCenter.default.addObserver(self, selector: #selector(keyboardWillHide(sender:)), name: UIResponder.keyboardWillHideNotification, object: nil);
+        //NotificationCenter.default.addObserver(self, selector: #selector(keyboardWillHide(sender:)), name: UIResponder.keyboardWillHideNotification, object: nil);
         
         self.navigationItem.title = "Update Payment Method..."
         
@@ -143,6 +167,85 @@ class EventPaymentViewController: UIViewController, STPAddCardViewControllerDele
         }
         self.updateEventInfo()
         print("view did load isRefreshScreen = \(isRefreshScreen)")
+        
+        customtextfield.borderForTextField(textField: paymentSelectionTextField, validationFlag: false)
+    }
+    
+    @objc func textFieldDidChange(_ textField: UITextField) {
+        let text = textField.text
+        self.tabBarController?.tabBar.isHidden = true
+            if text?.utf16.count==0{
+                switch textField{
+                case paymentSelectionTextField:
+                    customtextfield.borderForTextField(textField: paymentSelectionTextField, validationFlag: true)
+                    //countryErrorLabel.isHidden = false
+                    //self.formValidation.validateName2(name2: eventCountryTextField.text!).errorMsg
+                    paymentSelectionTextField.becomeFirstResponder()
+                default:
+                    break
+                }
+            }else{
+                switch textField{
+                case paymentSelectionTextField:
+                    //countryErrorLabel.isHidden = true
+                    //countryErrorLabel.text = ""
+                    customtextfield.borderForTextField(textField: paymentSelectionTextField, validationFlag: false)
+                default:
+                    break
+                    
+                }
+            }
+    }
+    
+    func textFieldShouldReturn(_ textField: UITextField) -> Bool {
+        switch textField {
+            case paymentSelectionTextField :
+                paymentSelectionTextField.resignFirstResponder()
+//            case eventDateTextField:
+//                eventDateTextField.resignFirstResponder()
+//            case eventTypeTextField:
+//                eventTypeTextField.resignFirstResponder()
+//            case eventAddress1TextField:
+//                eventAddress1TextField.resignFirstResponder()
+//            case eventAddress2TextField:
+//                eventAddress2TextField.resignFirstResponder()
+//            case eventCityTextField:
+//                eventCityTextField.resignFirstResponder()
+//            case eventStateTextField:
+//                eventStateTextField.resignFirstResponder()
+//            case eventZipCodeTextField:
+//                eventZipCodeTextField.resignFirstResponder()
+//            case eventCountryTextField:
+//                eventCountryTextField.resignFirstResponder()
+            default:
+                break
+        }
+        return true
+    }
+    
+    func createPickerView() {
+           let pickerView = UIPickerView()
+           pickerView.delegate = self
+           //textFiled.inputView = pickerView
+    }
+    func dismissPickerView() {
+//       let toolBar = UIToolbar()
+//       toolBar.sizeToFit()
+//       let button = UIBarButtonItem(title: "Done", style: .plain, target: self, action: #selector(self.action))
+//       toolBar.setItems([button], animated: true)
+        let toolBar = UIToolbar()
+        toolBar.sizeToFit()
+        let doneBtn = UIBarButtonItem(barButtonSystemItem: .done, target: self, action: #selector(self.action))
+        toolBar.isUserInteractionEnabled = true
+        toolBar.setItems([doneBtn], animated: true)
+        //textFiled.inputAccessoryView = toolBar
+//        eventTypeTextField.inputAccessoryView = toolBar
+//        eventStateTextField.inputAccessoryView = toolBar
+        paymentSelectionTextField.inputAccessoryView = toolBar
+    }
+    @objc func action() {
+          view.endEditing(true)
+        self.tabBarController?.tabBar.isHidden = false
     }
     
     override func viewWillDisappear(_ animated : Bool) {
@@ -178,24 +281,40 @@ class EventPaymentViewController: UIViewController, STPAddCardViewControllerDele
     override func viewWillAppear(_ animated: Bool) {
         let somespace: CGFloat = 40
 
-        self.btnSelectPayment.setImage(UIImage(systemName: "chevron.down"), for: UIControl.State.normal)
-
-        self.btnSelectPayment.imageEdgeInsets = UIEdgeInsets(top: 0, left: self.btnSelectPayment.frame.size.width - somespace , bottom: 0, right: 0)
-
-        //print(self.btnSelectPayment.imageView?.frame)
-
-        self.btnSelectPayment.titleEdgeInsets = UIEdgeInsets(top: 0, left: 1, bottom: 0, right: 1 )
+//        self.btnSelectPayment.setImage(UIImage(systemName: "chevron.down"), for: UIControl.State.normal)
+//
+//        self.btnSelectPayment.imageEdgeInsets = UIEdgeInsets(top: 0, left: self.btnSelectPayment.frame.size.width - somespace , bottom: 0, right: 0)
+//
+//        //print(self.btnSelectPayment.imageView?.frame)
+//
+//        self.btnSelectPayment.titleEdgeInsets = UIEdgeInsets(top: 0, left: 1, bottom: 0, right: 1 )
     }
     override func viewDidDisappear(_ animated: Bool) {
         AppUtility.lockOrientation(.all)
     }
     @objc func keyboardWillShow(sender: NSNotification) {
-         self.view.frame.origin.y = -150 // Move view 150 points upward
+         //self.view.frame.origin.y = -150 // Move view 150 points upward
     }
 
     @objc func keyboardWillHide(sender: NSNotification) {
-         self.view.frame.origin.y = 0 // Move view to original position
+         //self.view.frame.origin.y = 0 // Move view to original position
     }
+    
+    var countrylist: [CountryList] = []
+    func loadCountryList() {
+        let data0 = CountryList(countryCode: "OO", countryName: "Select Country")
+        countrylist.append(data0)
+        let data1 = CountryList(countryCode: "US", countryName: "*** *** *** 4958")
+        countrylist.append(data1)
+        let data2 = CountryList(countryCode: "NG", countryName: "*** *** *** 1158")
+        countrylist.append(data2)
+        let data3 = CountryList(countryCode: "UK", countryName: "*** *** *** 0018")
+        countrylist.append(data3)
+        let data4 = CountryList(countryCode: "IN", countryName: "*** *** *** 1018")
+        countrylist.append(data4)
+    }
+    
+    
     func updateEventInfo(){
         eventNameLbl.text = eventName
         eventDateTimeLbl.text = eventDateTime
@@ -244,11 +363,11 @@ class EventPaymentViewController: UIViewController, STPAddCardViewControllerDele
             
             print(getSprayAmountInt(amountId: autoReplenishAmountSegControl.selectedSegmentIndex, category: "addreplenishamount"))
             print(autoReplenishSwitch.isOn)
-            print(btnSelectPayment.currentTitle!)
+           // print(btnSelectPayment.currentTitle!)
             
-            print("paymentmethodId = \(getPaymenthMethodId(customName: btnSelectPayment.currentTitle!))")
+            //print("paymentmethodId = \(getPaymenthMethodId(customName: btnSelectPayment.currentTitle!))")
             print("seg val \(autoReplenishAmountSegControl.selectedSegmentIndex)")
-        if btnSelectPayment.currentTitle! == "Select Payment" || btnSelectPayment.currentTitle! == "" {
+        if paymentSelectionTextField.text!  == "Select Payment" || paymentSelectionTextField.text! == "" {
             let alert = UIAlertController(title: "Missing Information", message: "Please select a Payment Method from the list or Add A New Payment Method", preferredStyle: UIAlertController.Style.alert)
 
             // add an action (button)
@@ -277,7 +396,7 @@ class EventPaymentViewController: UIViewController, STPAddCardViewControllerDele
                 
             } else {
                 
-                let updatedPaymentMethodId = getPaymenthMethodId(customName: btnSelectPayment.currentTitle!)
+                let updatedPaymentMethodId = getPaymenthMethodId(customName: paymentSelectionTextField.text!)
                 
                 print("SEG CONTROL AMOUNT = \(getSprayAmountInt(amountId: giftAmountSegConrol.selectedSegmentIndex, category: "addgiftamount"))")
                 //do this if ser saves w/ out add additional amount
@@ -385,6 +504,14 @@ class EventPaymentViewController: UIViewController, STPAddCardViewControllerDele
         }
     }
     
+    //get a list of payment method onfile for user this to get payment description/name
+    func loadPaymenthMethodNameList()  {
+        availablepaymentmethodlist.removeAll() //cleanup
+        for i in availablePaymentData {
+            availablepaymentmethodlist.append(AvailablePaymentMethod(paymentMethodCustomName: i.customName!, PaymentMethodId: i.paymentMethodId!))
+        }
+    }
+    
     //get paymentMethodId for payment description selected
     func getPaymenthMethodId(customName: String) -> Int64 {
         var thePaymentMethodId: Int64 = 0
@@ -462,14 +589,57 @@ class EventPaymentViewController: UIViewController, STPAddCardViewControllerDele
     
     func launchSetUpPaymentMethod() {
       
-        let storyboard: UIStoryboard = UIStoryboard(name: "Main", bundle: Bundle.main)
-            let nextVC = storyboard.instantiateViewController(withIdentifier: "SetupPaymentMethodViewController") as! SetupPaymentMethodViewController
+//        let storyboard: UIStoryboard = UIStoryboard(name: "Main", bundle: Bundle.main)
+//            let nextVC = storyboard.instantiateViewController(withIdentifier: "SetupPaymentMethodViewController") as! SetupPaymentMethodViewController
+//
+//
+//
+//        nextVC.modalPresentationStyle = UIModalPresentationStyle.formSheet
+//        nextVC.navigationController?.modalPresentationStyle = UIModalPresentationStyle.currentContext
+//
 
+//        nextVC.eventId = self.eventId
+//        nextVC.profileId = self.profileId
+//        nextVC.token = token
+//        nextVC.encryptedAPIKey = encryptedAPIKey
+//        nextVC.eventName = eventName
+//        nextVC.eventDateTime = eventDateTime
+//        nextVC.eventTypeIcon = eventTypeIcon
+//        nextVC.autoReplenishFlg = autoReplenishFlg
+//        nextVC.autoReplenishAmt = autoReplenishAmt
+//
+//
+//        nextVC.refreshscreendelegate = self
+//        nextVC.setuppaymentmethoddelegate = self
+//        nextVC.paymentClientToken = paymentClientToken
+//        nextVC.currentAvailableCredit =  availableBalance
+//        self.present(nextVC, animated: true, completion: nil)
+        
+        //let nextVC = storyboard?.instantiateViewController(withIdentifier: "SetupPaymentMethodViewController") as! SetupPaymentMethodViewController
+      
+            
+       // self.navigationController?.pushViewController(nextVC , animated: true)
+        //}
+        
        
-
-        nextVC.modalPresentationStyle = UIModalPresentationStyle.formSheet
-        nextVC.navigationController?.modalPresentationStyle = UIModalPresentationStyle.currentContext
-    
+        //let storyboard = UIStoryboard(name: "Main", bundle: nil)
+        //let nextVC = storyboard.instantiateViewController(withIdentifier: "SetupPaymentMethodViewController")
+        let storyboard: UIStoryboard = UIStoryboard(name: "Main", bundle: Bundle.main)
+        let nextVC = storyboard.instantiateViewController(withIdentifier: "SetupPaymentMethodViewController") as! SetupPaymentMethodViewController
+        
+        if #available(iOS 15.0, *) {
+            if let presentationController = nextVC.presentationController as? UISheetPresentationController {
+                presentationController.detents = [.medium()] /// set here!
+            }
+        } else {
+            // Fallback on earlier versions
+            nextVC.modalPresentationStyle = UIModalPresentationStyle.formSheet
+            nextVC.navigationController?.modalPresentationStyle = UIModalPresentationStyle.currentContext
+        }
+//
+//        nextVC.modalPresentationStyle = UIModalPresentationStyle.formSheet
+//        nextVC.navigationController?.modalPresentationStyle = UIModalPresentationStyle.c
+//
 
         nextVC.eventId = self.eventId
         nextVC.profileId = self.profileId
@@ -486,13 +656,11 @@ class EventPaymentViewController: UIViewController, STPAddCardViewControllerDele
         nextVC.setuppaymentmethoddelegate = self
         nextVC.paymentClientToken = paymentClientToken
         nextVC.currentAvailableCredit =  availableBalance
-        self.present(nextVC, animated: true, completion: nil)
+        nextVC.myProfileData = myProfileData
         
-        //let nextVC = storyboard?.instantiateViewController(withIdentifier: "SetupPaymentMethodViewController") as! SetupPaymentMethodViewController
-      
-            
-       // self.navigationController?.pushViewController(nextVC , animated: true)
-        //}
+        self.present(nextVC, animated: true)
+ 
+         
     }
     func loadSprayAmountOptions(currencyCode: String) {
         print("NAYLA NOAH IGHEDOA - \(currencyCode)")
@@ -741,8 +909,8 @@ class EventPaymentViewController: UIViewController, STPAddCardViewControllerDele
                            //getCurrencyData2(currencyCode: currencyCode)
                            loadSprayAmountOptions(currencyCode: currencyCode)
                            
-                           self.btnSelectPayment.setTitle("Add Payment Method", for: .normal)
-                           
+                          // self.btnSelectPayment.setTitle("Add Payment Method", for: .normal)
+                           paymentSelectionTextField.text = "Add Payment Method"
                        } else {
                            
                            print("EVENT CURRENCY CODE 1 = \(eventDefaultCurrencyCode)")
@@ -868,6 +1036,9 @@ class EventPaymentViewController: UIViewController, STPAddCardViewControllerDele
                    print(error)
                 }
                 
+                //call this method after available payment method object is loaded at the top
+                loadPaymenthMethodNameList()
+                
                 self.tableView.reloadData()
                 getEventPref()
             }
@@ -944,9 +1115,11 @@ class EventPaymentViewController: UIViewController, STPAddCardViewControllerDele
                                 
                                 print("I didn't land 1 \( isPaymentMethodAvailable2)")
                                 if isPaymentMethodAvailable2 == false  {
-                                    self.btnSelectPayment.setTitle("Add Payment Method", for: .normal)
+                                   // self.btnSelectPayment.setTitle("Add Payment Method", for: .normal)
+                                    paymentSelectionTextField.text = "Add Payment Method"
                                 } else {
-                                    self.btnSelectPayment.setTitle("Select Payment", for: .normal)
+                                   // self.btnSelectPayment.setTitle("Select Payment", for: .normal)
+                                    paymentSelectionTextField.text = "Select Payment"
                                 }
                             } else {
                                 for eventPrefData in eventPreferenceJson {
@@ -987,8 +1160,10 @@ class EventPaymentViewController: UIViewController, STPAddCardViewControllerDele
                                         
                                             if eventDefaultCurrencyCode == currencycode {
                                                 print("I landed 1 \(eventPrefData.paymentMethodDetails.paymentMethodId)")
-                                                self.btnSelectPayment.setTitle(self.getPaymenthMethodName(paymentmethodid: eventPrefData.paymentMethodDetails.paymentMethodId), for: .normal)
+                                                //self.btnSelectPayment.setTitle(self.getPaymenthMethodName(paymentmethodid: eventPrefData.paymentMethodDetails.paymentMethodId), for: .normal)
                                                 
+                                                //set the value of the current Payment Method
+                                                paymentSelectionTextField.text = self.getPaymenthMethodName(paymentmethodid: eventPrefData.paymentMethodDetails.paymentMethodId)
                                                 //\(eventPrefData.paymentMethodDetails.paymentMethodId)")
                                                 
                                                 self.autoReplenishSwitch.isOn = eventPrefData.isAutoReplenish
@@ -1019,9 +1194,11 @@ class EventPaymentViewController: UIViewController, STPAddCardViewControllerDele
                                                 print(" SUPER BIG PAYMENT METHOD ID \(eventPrefData.paymentMethodDetails.paymentMethodId)")
                                                 print("I didn't land 1 \( isPaymentMethodAvailable2)")
                                                 if isPaymentMethodAvailable2 == false  {
-                                                    self.btnSelectPayment.setTitle("Add Payment Method", for: .normal)
+                                                    //self.btnSelectPayment.setTitle("Add Payment Method", for: .normal)
+                                                    paymentSelectionTextField.text = "Add Payment Method"
                                                 } else {
-                                                    self.btnSelectPayment.setTitle("Select Payment", for: .normal)
+                                                    //self.btnSelectPayment.setTitle("Select Payment", for: .normal)
+                                                    paymentSelectionTextField.text = "Select Payment"
                                                 }
                                                
                                                 
@@ -1118,6 +1295,9 @@ class EventPaymentViewController: UIViewController, STPAddCardViewControllerDele
         }, completion: nil)
     }
     
+    
+    
+    
     func getPaymentMethodIcon(name: String) -> String {
         let paymentMethodDesc = name
         let index = paymentMethodDesc.firstIndex(of: " ") ?? paymentMethodDesc.endIndex
@@ -1139,8 +1319,11 @@ class EventPaymentViewController: UIViewController, STPAddCardViewControllerDele
 
     @IBAction func selectPaymentBtnPressed(_ sender: Any) {
         dataSource = ["Visa ..1234", "Mastcard...1234", "Amex...9987"]
-        selectedButton = btnSelectPayment
-        addTransparentView(frames: btnSelectPayment.frame)
+        
+        //selectedButton = btnSelectPayment
+        
+       // print("btnSelectPayment = \(btnSelectPayment)")
+        //addTransparentView(frames: btnSelectPayment.frame)
        // self.paymentMethodIcon.setImage(UIImage(systemName: getPaymentMethodIcon(name: "master 4444")), for: UIControl.State.normal)
         
       
@@ -1218,7 +1401,7 @@ class EventPaymentViewController: UIViewController, STPAddCardViewControllerDele
                 currentBalance.text = currencySymbol  + String(self.availableBalance)
                 
                 //currentBalance.text = "$" + String(updatedBalance)
-                btnSelectPayment.setTitle(paymentDescription, for: .normal)
+                //btnSelectPayment.setTitle(paymentDescription, for: .normal)
                 //paymentMethodIcon.image = UIImage(named: paymentDescription)
                 paymentMethodIcon.image = UIImage(named: "paymentInfoIcon")
                 
@@ -1480,6 +1663,7 @@ extension EventPaymentViewController:  SetupPaymentMethodDelegate {
             print("I REFERESHED THE SCREEN")
             //customeFieldStyling()
             getAvailablePaymentData()
+            loadPaymenthMethodNameList() //update paymentmethod picker
             //eventNameLabel.text = eventName + "\n \(eventDateTime)"
             //loadSprayAmountOptions()
             // Do any additional setup after loading the view.
@@ -1490,3 +1674,81 @@ extension EventPaymentViewController:  SetupPaymentMethodDelegate {
     
 
 }
+
+extension EventPaymentViewController: UIPickerViewDataSource {
+      func numberOfComponents(in pickerView: UIPickerView) -> Int {
+          return 1
+      }
+    
+    func pickerView(_ pickerView: UIPickerView, numberOfRowsInComponent component: Int) -> Int {
+        if activePickerViewTextField == paymentSelectionTextField {
+            return availablepaymentmethodlist.count
+//        } else if activePickerViewTextField == eventCountryTextField {
+//            return countrylist.count
+//        } else if activePickerViewTextField == eventTypeTextField {
+//            return eventtypeData.count
+////        } else if activePickerViewTextField == textFiled {
+////            return countryList.count // number of dropdown items
+//
+        } else {
+            return 0
+        }
+    }
+}
+
+extension EventPaymentViewController: UIPickerViewDelegate {
+    func pickerView(_ pickerView: UIPickerView, titleForRow row: Int, forComponent component: Int) -> String? {
+       
+        if activePickerViewTextField == paymentSelectionTextField {
+//            return statelist[row].stateName
+//        } else if activePickerViewTextField == eventCountryTextField {
+            return availablepaymentmethodlist[row].paymentMethodCustomName
+//        } else if activePickerViewTextField == eventTypeTextField {
+//            return eventtypeData[row].eventTypeName
+//        } else if activePickerViewTextField == textFiled {
+//            return countryList[row] // dropdown item
+//
+        } else {
+            return ""
+        }
+    }
+
+    
+
+    func pickerView(_ pickerView: UIPickerView, didSelectRow row: Int, inComponent component: Int) {
+        if activePickerViewTextField == paymentSelectionTextField {
+//            eventStateTextField.text = statelist[row].stateName
+//            //self.view.endEditing(true)
+//        } else if activePickerViewTextField == eventCountryTextField {
+            paymentSelectionTextField.text = availablepaymentmethodlist[row].paymentMethodCustomName//countryData[row]
+//            loadStateList(countryCode: countrylist[row].countryCode)
+//            eventStateTextField.text = "" //clear state textfield when country is selected
+            //self.view.endEditing(true)
+//        } else if activePickerViewTextField == eventTypeTextField {
+//            eventTypeTextField.text = eventtypeData[row].eventTypeName
+            //self.view.endEditing(true)
+        //}
+//        else if activePickerViewTextField == textFiled {
+//            selectedCountry = countryList[row] // selected item
+//            textFiled.text = selectedCountry
+        
+        }
+    }
+}
+
+extension EventPaymentViewController: UITextFieldDelegate {
+    func textFieldDidBeginEditing(_ textField: UITextField) {
+        self.pickerView.delegate = self
+        self.pickerView.dataSource = self
+        activePickerViewTextField = textField
+        if activePickerViewTextField == paymentSelectionTextField {
+            activePickerViewTextField.inputView = pickerView
+//        } else if activePickerViewTextField == eventCountryTextField {
+//            activePickerViewTextField.inputView = pickerView
+//        } else if activePickerViewTextField == eventTypeTextField {
+//            activePickerViewTextField.inputView = pickerView
+        }
+        
+    }
+}
+

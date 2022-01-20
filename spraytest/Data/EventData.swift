@@ -8,6 +8,11 @@
 
 import Foundation
 
+struct AvailablePaymentMethod {
+    let paymentMethodCustomName: String
+    let PaymentMethodId: Int64
+}
+
 struct CountryList {
     let countryCode: String
     let countryName: String

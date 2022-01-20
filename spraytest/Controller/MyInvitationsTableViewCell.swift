@@ -84,11 +84,14 @@ class MyInvitationsTableViewCell: UITableViewCell {
         eventCodeLabel.text = eventCode
         eventImage.image = UIImage(named: imageName)
         
-        myInviteCardView.layer.borderColor  = UIColor.lightGray.cgColor
+        myInviteCardView.layer.borderColor  = UIColor.gray.cgColor
         myInviteCardView.layer.shadowOffset = CGSize(width: 1, height: 1.0)
-        myInviteCardView.layer.shadowOpacity  = 1.0
+        myInviteCardView.layer.shadowOpacity  = 0.25
         myInviteCardView.layer.masksToBounds = false
         myInviteCardView.layer.cornerRadius = 8.0
+        
+        
+        
     }
     override func awakeFromNib() {
         super.awakeFromNib()

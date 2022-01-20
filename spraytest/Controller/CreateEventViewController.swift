@@ -81,6 +81,13 @@ class CreateEventViewController: UIViewController {
     override func viewDidLoad() {
         super.viewDidLoad()
         
+        self.tabBarController?.tabBar.isHidden = true
+        // Let it size itself to its preferred size
+        datePicker.sizeToFit()
+        // Set the frame without changing the size
+        datePicker.frame = .init(x: 20, y: 100, width: datePicker.bounds.size.width, height: datePicker.bounds.size.height)
+
+        //view.addSubview(datePicker)
         //default swith settings
         
         print("My PROFILE DATA \(myProfileData)")
@@ -250,19 +257,19 @@ class CreateEventViewController: UIViewController {
         // Don't forget to reset when view is being removed
         AppUtility.lockOrientation(.all)
     }
-    override func didMove(toParent parent: UIViewController?) {
-        super.didMove(toParent: parent)
-        if parent == nil {
-            debugPrint("Back Button pressed Home.")
-            
-            //print("isRefreshData from container screen \(isRefreshData)")
-            //selectionDelegate.didTapChoice(name: "Dominic")
-            refreshscreendelegate?.refreshScreen(isRefreshScreen: isRefreshScreen)
-            //refreshscreendelegate?.refreshScreen(isRefreshScreen: isRefreshData)
-            //sprayDelegate?.sprayEventSettingRefresh(isEventSettingRefresh: true)
-
-        }
-    }
+//    override func didMove(toParent parent: UIViewController?) {
+//        super.didMove(toParent: parent)
+//        if parent == nil {
+//            print("Back Button pressed Home.")
+//            
+//            //print("isRefreshData from container screen \(isRefreshData)")
+//            //selectionDelegate.didTapChoice(name: "Dominic")
+//           // refreshscreendelegate?.refreshScreen(isRefreshScreen: isRefreshScreen)
+//            //refreshscreendelegate?.refreshScreen(isRefreshScreen: isRefreshData)
+//            //sprayDelegate?.sprayEventSettingRefresh(isEventSettingRefresh: true)
+//
+//        }
+//    }
     @objc func keyboardWillShow(sender: NSNotification) {
          self.view.frame.origin.y = -150 // Move view 150 points upward
     }
@@ -349,7 +356,8 @@ class CreateEventViewController: UIViewController {
     
     @objc func textFieldDidChange(_ textField: UITextField) {
         let text = textField.text
-
+        self.tabBarController?.tabBar.isHidden = true
+        
             if text?.utf16.count==0{
                 switch textField{
                 case eventNameTextField :
@@ -358,6 +366,7 @@ class CreateEventViewController: UIViewController {
                    // eventNameErrorLabel.text = self.formValidation.validateName2(name2: eventNameTextField.text!).errorMsg//"Missing Event Name."
                     eventNameTextField.becomeFirstResponder()
                 case eventDateTextField:
+                    print("I was sELECTED - DOMINIC 1")
                     customtextfield.borderForTextField(textField: eventDateTextField, validationFlag: true)
                     //eventDateTimeErrorLabel.isHidden = false
                     //eventDateTimeErrorLabel.text = self.formValidation.validateName2(name2: eventDateTextField.text!).errorMsg
@@ -407,6 +416,7 @@ class CreateEventViewController: UIViewController {
                     //eventNameErrorLabel.text = ""
                     customtextfield.borderForTextField(textField: eventNameTextField, validationFlag: false)
                 case eventDateTextField:
+                    print("I was sELECTED - DOMINIC 2")
                     //eventDateTimeErrorLabel.isHidden = true
                     //eventDateTimeErrorLabel.text = ""
                     customtextfield.borderForTextField(textField: eventDateTextField, validationFlag: false)
@@ -499,6 +509,11 @@ class CreateEventViewController: UIViewController {
         let doneBtn = UIBarButtonItem(barButtonSystemItem: .done, target: nil, action: #selector(donePressed))
         
         toolbar.setItems([doneBtn], animated: true)
+        
+        //datePicker.transform = CGAffineTransformMake(0.5, 0, 0, 0.5, -80, 0);
+        
+ 
+        
         //assign toolbar
         eventDateTextField.inputAccessoryView = toolbar
         
@@ -508,6 +523,7 @@ class CreateEventViewController: UIViewController {
     }
     
     @objc func donePressed() {
+        self.tabBarController?.tabBar.isHidden = false
         let dateFormatter = DateFormatter()
         dateFormatter.dateFormat = "E, d MMM yyyy h:mm a" //E, d MMM yyyy hh:mm a" //yyyy-MM-dd'T'HH:mm"
         eventDateTextField.text   = dateFormatter.string(from: datePicker.date)
@@ -539,7 +555,8 @@ class CreateEventViewController: UIViewController {
         eventCountryTextField.inputAccessoryView = toolBar
     }
     @objc func action() {
-          view.endEditing(true)
+        view.endEditing(true)
+        self.tabBarController?.tabBar.isHidden = false
     }
     
 //    private func addBottomLineToTextField(textField: UITextField) {
@@ -579,6 +596,19 @@ class CreateEventViewController: UIViewController {
     func textFieldFocus(textField: UITextField) {
         textField.becomeFirstResponder()
         customtextfield.borderForTextField(textField: textField, validationFlag: true)
+        
+        print("textFieldFocu")
+        let text = textField.text
+        //self.tabBarController?.tabBar.isHidden = true
+            //if text?.utf16.count==0{
+                switch textField{
+               
+                case eventDateTextField:
+                    print("NOah ighedosa")
+                    self.tabBarController?.tabBar.isHidden = true
+                default:
+                    break
+                }
     }
     func displayAlertMessage(displayMessage: String, textField: UITextField) {
         let alert2 = UIAlertController(title: "Missing Information", message: displayMessage, preferredStyle: .alert)
@@ -896,7 +926,7 @@ class CreateEventViewController: UIViewController {
             let newEventDateTime = getFormattedDateToDate(dateinput: formatedEventDateTime)
             
             if newEventDateTime <= currentDate {
-               
+                let isValidateEventDateTime = false
                 let message = "Event date & time must be greater than the current date & time"
                 displayAlertMessage(displayMessage: message, textField: eventDateTextField)
             } else {

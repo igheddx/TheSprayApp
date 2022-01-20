@@ -32,7 +32,9 @@ class StripeAccountOnboardingViewController: UIViewController, WKUIDelegate {
        
         webView?.navigationDelegate = self
         //webView.addObserver(self, forKeyPath: #keyPath(WKWebView.estimatedProgress), options: .new, context: nil)
-        self.navigationItem.title = "Setup Payout"
+        /* comment this out for now 1/17*/
+         
+         self.navigationItem.title = "Verify Self"
        
         navigationItem.hidesBackButton = false
         navigationItem.largeTitleDisplayMode = .automatic
@@ -125,6 +127,9 @@ class StripeAccountOnboardingViewController: UIViewController, WKUIDelegate {
         super.viewWillDisappear(animated)
         webViewObserver?.invalidate()
     }
+    override func viewWillAppear(_ animated: Bool) {
+        //navigationController?.setNavigationBarHidden(true, animated: animated)
+    }
     override func viewDidDisappear(_ animated: Bool) {
         refreshscreendelegate?.refreshScreen(isRefreshScreen: setRefreshScreen)
     }
@@ -208,6 +213,8 @@ class StripeAccountOnboardingViewController: UIViewController, WKUIDelegate {
         //myDataTask?.cancel()
     }
     
+  
+
     func launchHomeVC(onboardingStatus: String, profileId: String) {
         //setRefreshScreen = true
         setRefreshScreen = true

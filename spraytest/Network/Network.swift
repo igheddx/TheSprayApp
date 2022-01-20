@@ -140,7 +140,7 @@ class Network {
         }
 
         let statusCode = response.statusCode
-        if statusCode >= 200 && statusCode <= 400 { //299
+        if statusCode >= 200 && statusCode <= 299 { //299
             return nil
         } else {
             Log.error("Invalid status code from \(response.url?.absoluteString ?? "unknown"): \(statusCode)")

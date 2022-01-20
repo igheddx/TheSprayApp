@@ -52,8 +52,9 @@ class EventUIView: UIButton {
         
         //UIColor(red: 40/256, green: 82/256, blue: 122/256, alpha: 1.0)
         let sprayBlue = UIColor(red: 7/256, green: 104/256, blue: 159/256, alpha: 1.0)
+        let bdColor = UIColor(red: 99/256, green: 61/256, blue: 189/256, alpha: 1.0)
         layer.borderWidth = 0.5
-        layer.borderColor  = sprayBlue.cgColor
+        layer.borderColor  = bdColor.cgColor
         layer.shadowOffset = CGSize(width: 0.5, height: 0.5)
         layer.shadowOpacity  = 0.2
         layer.masksToBounds = false
@@ -196,7 +197,8 @@ class MainActionBtn : UIButton{
 class Switch1 : UISwitch{
     override func awakeFromNib() {
         super.awakeFromNib()
-            self.onTintColor = UIColor(red: 61/256, green: 126/256, blue: 166/256, alpha: 1.0)
+            //self.onTintColor = UIColor(red: 61/256, green: 126/256, blue: 166/256, alpha: 1.0)
+        self.onTintColor = UIColor(red: 99/256, green: 61/256, blue: 189/256, alpha: 1.0)
         self.tintColor = .lightGray
         
     }
@@ -429,34 +431,25 @@ class MyCustomButton : UIButton{
 class GoSpray : UIButton{
     override func awakeFromNib() {
         super.awakeFromNib()
-//        setTitleColor(UIColor.white, for: .normal)
-//        //layer.cornerRadius = 6
-//        //backgroundColor = UIColor.red
-//        layer.borderWidth = 0.5
-//        //borderColor = UIColor.black
-//        
-//        //layer.cornerRadius = 10
-//        //layer.masksToBounds = true
-//        
-//        //61, 126, 166 – Hcolor
-//        backgroundColor = UIColor(red: 141/256, green: 181/256, blue: 150/256, alpha: 1.0)
-//        layer.cornerRadius = 4
-//        layer.shadowColor = UIColor.white.cgColor
-//        layer.shadowOffset = CGSize(width: 2, height: 2)
-//        layer.shadowRadius = 5
-//        layer.shadowOpacity = 0.5
-//        layer.masksToBounds = true
         
-        layer.cornerRadius = self.frame.height / 2
-        //backgroundColor = UIColor(red: 235/256, green: 94/256, blue: 11/256, alpha: 1.0) //red
+        /*layer.cornerRadius = self.frame.height / 2
         backgroundColor = UIColor(red: 74/256, green: 169/256, blue: 108/256, alpha: 1.0) //red
-        
-        
-        
         clipsToBounds = true
         tintColor = UIColor.white
         setTitleColor(UIColor.white, for: .normal)
-        titleLabel?.font = UIFont.systemFont(ofSize: 14.0, weight: .regular)
+        titleLabel?.font = UIFont.systemFont(ofSize: 14.0, weight: .regular)*/
+        
+        setTitleColor(UIColor.white, for: .normal)
+
+        layer.borderWidth = 0.5
+        //backgroundColor = UIColor(red: 99/256, green: 61/256, blue: 189/256, alpha: 1.0)
+        backgroundColor = UIColor(red: 74/256, green: 169/256, blue: 108/256, alpha: 1.0)
+        layer.cornerRadius = 4
+        layer.shadowColor = UIColor.white.cgColor
+        layer.shadowOffset = CGSize(width: 2, height: 2)
+        layer.shadowRadius = 5
+        layer.shadowOpacity = 0.5
+        layer.masksToBounds = true
     }
 }
 class GoSpraySecondary : UIButton{

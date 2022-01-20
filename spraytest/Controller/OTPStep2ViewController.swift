@@ -26,7 +26,8 @@ class OTPStep2ViewController: UIViewController {
     var userdata: UserData?
     var token2pass: String?
     var profileId: String?
-    var eventCode: String?
+    var eventCode: String = ""
+
     var message: String?
     var paymentClientToken: String = ""
     
@@ -217,7 +218,9 @@ class OTPStep2ViewController: UIViewController {
         } else {
             print("Master String = \(firstName) \(lastName) \(username) \(password) \(email)\(otpPhone)")
             
-            registerUser ()
+            //registerUser ()
+            
+            launchNextVC()
             
         }
        
@@ -380,6 +383,21 @@ class OTPStep2ViewController: UIViewController {
             self.navigationController?.pushViewController(nextVC, animated: true)
         }
     }
+    
+    func callErrMessage() {
+        if action == "forgotpassword" {
+            
+        } else  {
+
+            let nextVC = storyboard?.instantiateViewController(withIdentifier: "ErrorMessageViewController") as! ErrorMessageViewController
+//            nextVC.profileId = Int64(profileId!)
+//            nextVC.token = token2pass
+//            nextVC.encryptedAPIKey = encryptedAPIKey
+//            nextVC.myProfileData = myprofiledata
+//            nextVC.paymentClientToken = paymentClientToken
+            self.navigationController?.pushViewController(nextVC, animated: true)
+        }
+    }
     func callNextVCForgotPassword() {
         if action == "forgotpassword" {
             
@@ -387,7 +405,7 @@ class OTPStep2ViewController: UIViewController {
             
         }
     }
-    func registerUser () {
+    func registerUser() {
         //default phone number - to be changed later
         phone = ""
         regPassword = KeychainWrapper.standard.string(forKey: "registrationPasswordKeyChain")!
@@ -433,13 +451,19 @@ class OTPStep2ViewController: UIViewController {
                 } else {
                     self.authenticateUser(userName: self.username, password: password)
                 }
-                print(userdata)
+                print("SHINJA = \(userdata)")
                 //call authentication func
                
 
             case .failure(let error):
+                
+                callErrMessage()
+                
+                /* comment this out while i test
+                 out handling duplicate account...
+                 i will return 1/17/2022
                 self.presentUIAlert(alertMessage: "", alertTitle: "", errorMessage: error.localizedDescription, alertType: "systemError")
-                self.loadingIndicatorAction(actionType: "error")
+                self.loadingIndicatorAction(actionType: "error") */
             }
         }
     }
@@ -556,6 +580,10 @@ class OTPStep2ViewController: UIViewController {
                 
                 /*remove password from reg*/
                 KeychainWrapper.standard.removeObject(forKey: "registrationPasswordKeyChain")
+                
+               
+
+                
                 //add user to event
 //                if self.eventCode != "" {
 //                    self.addToEvent(profileId: user.profileId!, email: self.email, phone: "", eventCode: eventCode, token: self.token2pass!)
@@ -569,6 +597,29 @@ class OTPStep2ViewController: UIViewController {
                 /* not needed self.loadingIndicatorAction(actionType: "error") */
             }
         }
+    }
+    
+    func addToEvent(profileId: Int64, email: String, phone: String, eventCode: String, token: String) {
+
+        let Invite =  JoinEvent(joinList: [JoinEventFields(profileId: profileId, email: email, phone: phone, eventCode: eventCode)])
+
+        let request = PostRequest(path: "/api/Event/joinevent", model: Invite, token: token, apiKey: encryptedAPIKey, deviceId: "")
+
+
+        Network.shared.send(request) { [self] (result: Result<Data, Error>)  in
+            switch result {
+            case .success(let addtoEvent):
+                //if self.eventCode != "" {
+                    self.initializePayment(token: self.token2pass!, profileId: profileId, firstName: firstName, lastName: lastName, userName: email, email: email, phone: phone)
+                    //self.performSegue(withIdentifier: "Reg2MenuTab", sender: nil)
+                //}
+                //break
+            case .failure(let error):
+                //print(error.localizedDescription)
+                self.theAlertView(alertType: "AddEventError", message: error.localizedDescription)
+            }
+        }
+
     }
     
     func presentUIAlert(alertMessage: String, alertTitle: String, errorMessage: String, alertType: String) {
@@ -674,7 +725,16 @@ class OTPStep2ViewController: UIViewController {
             let data1 = MyProfile(token: "", profileId: profileId1, firstName: profileData.firstName, lastName: profileData.lastName, userName: profileData.userName, email: profileData.email, phone: profileData.phone, avatar: profileData.avatar, paymentCustomerId: profileData.paymentCustomerId, paymentConnectedActId: profileData.paymentConnectedActId, success: true, returnUrl: "", refreshUrl: "",  hasValidPaymentMethod: profileData.hasValidPaymentMethod, defaultPaymentMethod: profileData.defaultPaymentMethod, defaultPaymentMethodCustomName: defaultEventPaymentCustomName)
             self.myprofiledata.append(data1)
             
-            self.initializePayment(token: self.token2pass!, profileId: profileData.profileId, firstName: profileData.firstName, lastName: profileData.lastName, userName: profileData.email, email: profileData.email, phone: profileData.phone)
+            /*chk if eventcode is available*/
+            if self.eventCode != "" {
+                self.addToEvent(profileId: profileData.profileId, email: profileData.email, phone:  profileData.phone, eventCode: eventCode, token: self.token2pass!)
+            } else  {
+                self.initializePayment(token: self.token2pass!, profileId: profileData.profileId, firstName: profileData.firstName, lastName: profileData.lastName, userName: profileData.email, email: profileData.email, phone: profileData.phone)
+                //self.loadingIndicatorAction(actionType: "done")
+                //self.performSegue(withIdentifier: "Reg2MenuTab", sender: nil)
+            }
+            
+            //self.initializePayment(token: self.token2pass!, profileId: profileData.profileId, firstName: profileData.firstName, lastName: profileData.lastName, userName: profileData.email, email: profileData.email, phone: profileData.phone)
             
             print("my profile data = \(data1)")
             break
@@ -776,29 +836,32 @@ class OTPStep2ViewController: UIViewController {
 //        nextVC.action = "createAccount"
 //        self.navigationController?.pushViewController(nextVC , animated: true)
         
-        if action == "createAccountQRScan" {
-        
-            print("launchCreateAccountVC was called")
-            let nextVC = storyboard?.instantiateViewController(withIdentifier: "CreateAccountQRScanViewController") as! CreateAccountQRScanViewController
-            nextVC.eventName = eventName
-            nextVC.eventDateTime = eventDateTime
-            nextVC.eventTypeIcon = eventTypeIcon
-            nextVC.eventCode = eventCode
-            nextVC.eventType = eventType
-            nextVC.otpCode = otpCode
-            nextVC.email = email
-            nextVC.encryptedAPIKey = encryptedAPIKey
-            nextVC.encryptedDeviceId = encryptedDeviceId
-            self.navigationController?.pushViewController(nextVC, animated: true)
-        } else if action == "createAccount" {
-            let nextVC = storyboard?.instantiateViewController(withIdentifier: "CreateAccountViewController") as! CreateAccountViewController
-            print("phoneFromOTP from CreateAccountViewController = \(otpPhone)")
-            nextVC.phoneFromOTP = otpPhone
-            nextVC.otpCode = otpCode
-            nextVC.email = email
-            nextVC.encryptedAPIKey = encryptedAPIKey
-            nextVC.encryptedDeviceId = encryptedDeviceId
-            self.navigationController?.pushViewController(nextVC , animated: true)
+        if action == "createAccountQRScan" ||  action == "createAccount"{
+            
+            registerUser()
+//            print("launchCreateAccountVC was called")
+//            let nextVC = storyboard?.instantiateViewController(withIdentifier: "CreateAccountQRScanViewController") as! CreateAccountQRScanViewController
+//            nextVC.eventName = eventName
+//            nextVC.eventDateTime = eventDateTime
+//            nextVC.eventTypeIcon = eventTypeIcon
+//            nextVC.eventCode = eventCode
+//            nextVC.eventType = eventType
+//            nextVC.otpCode = otpCode
+//            nextVC.email = email
+//            nextVC.encryptedAPIKey = encryptedAPIKey
+//            nextVC.encryptedDeviceId = encryptedDeviceId
+//            self.navigationController?.pushViewController(nextVC, animated: true)
+        //} else if action == "createAccount" {
+            
+          //  registerUser()
+//            let nextVC = storyboard?.instantiateViewController(withIdentifier: "CreateAccountViewController") as! CreateAccountViewController
+//            print("phoneFromOTP from CreateAccountViewController = \(otpPhone)")
+//            nextVC.phoneFromOTP = otpPhone
+//            nextVC.otpCode = otpCode
+//            nextVC.email = email
+//            nextVC.encryptedAPIKey = encryptedAPIKey
+//            nextVC.encryptedDeviceId = encryptedDeviceId
+//            self.navigationController?.pushViewController(nextVC , animated: true)
         } else if action == "forgotPassword" {
             let nextVC = storyboard?.instantiateViewController(withIdentifier: "ForgotPasswordViewController") as! ForgotPasswordViewController
             nextVC.phoneFromOTP = otpPhone
@@ -809,7 +872,12 @@ class OTPStep2ViewController: UIViewController {
             nextVC.encryptedDeviceId = encryptedDeviceId
             self.navigationController?.pushViewController(nextVC , animated: true)
         }
+        
+        print("no value for action")
     }
+    
+    
+    
 }
 //
 //extension OTPStep2ViewController: UITextFieldDelegate {

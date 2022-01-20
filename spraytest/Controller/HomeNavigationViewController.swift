@@ -20,6 +20,12 @@ class HomeNavigationViewController: UINavigationController {
         UINavigationBar.appearance().titleTextAttributes = [NSAttributedString.Key.foregroundColor: UIColor.white]
         UINavigationBar.appearance().isTranslucent = false
         UINavigationBar.appearance().barStyle = .black
+        
+        
+        
+        
+        
+        
         //UINavigationBar.appearance().setBackgroundImage(UIImage(named: "hairlinebackground"), for: .any, barMetrics: .default)
         //UINavigationBar.appearance().shadowImage = UIImage()
         

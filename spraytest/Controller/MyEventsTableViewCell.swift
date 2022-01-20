@@ -124,9 +124,9 @@ class MyEventsTableViewCell: UITableViewCell, UIImagePickerControllerDelegate, U
         eventCodeLabel.text = eventCode
         eventImage.image = UIImage(named: imageName)
         
-        myEventCardView.layer.borderColor  = UIColor.lightGray.cgColor
+        myEventCardView.layer.borderColor   = UIColor.gray.cgColor
         myEventCardView.layer.shadowOffset = CGSize(width: 1, height: 1.0)
-        myEventCardView.layer.shadowOpacity  = 1.0
+        myEventCardView.layer.shadowOpacity  = 0.25
         myEventCardView.layer.masksToBounds = false
         myEventCardView.layer.cornerRadius = 8.0
     }

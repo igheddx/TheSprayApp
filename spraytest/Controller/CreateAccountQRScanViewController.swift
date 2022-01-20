@@ -9,16 +9,19 @@
 
 
 import UIKit
-
-class CreateAccountQRScanViewController: UIViewController {
+import LocalAuthentication
+import SwiftKeychainWrapper
+class CreateAccountQRScanViewController:  UIViewController, UINavigationBarDelegate, UITextFieldDelegate {
     @IBOutlet weak var nameTextField: UITextField!
     @IBOutlet weak var emailTextField: UITextField!
     
     @IBOutlet weak var passwordTextField: UITextField!
     
+    @IBOutlet weak var phoneNumberTextField: CustomTextField2!
     @IBOutlet weak var passwordConfirmTextField: UITextField!
     
-    @IBOutlet weak var signInBtn: NoNActiveActionButton!
+    @IBOutlet weak var signInBtn: UIButton!
+    //@IBOutlet weak var signInBtn: NoNActiveActionButton!
     
     @IBOutlet weak var signUpBtn: MyCustomButton!
     @IBOutlet weak var termsConditionSwitch: UISwitch!
@@ -54,8 +57,8 @@ class CreateAccountQRScanViewController: UIViewController {
     var token2pass: String?
     var profileId: String = ""
     var profileId2: Int64 = 0
-    
-    var eventCode: String?
+    var action: String = ""
+    var eventCode: String = ""
     var message: String?
     var paymentClientToken: String = ""
     
@@ -79,6 +82,8 @@ class CreateAccountQRScanViewController: UIViewController {
     
     override func viewDidLoad() {
         super.viewDidLoad()
+        
+        print("MY EVENT CODE = \(eventCode )")
         setNavigationBar()
         //encryptedAPIKey = encryptdecrypt.encryptDecryptAPIKey(type: "", value: "", action: "encrypt") //encryptData(value: apiKeyValue)
         //let devicedata = DeviceData()
@@ -127,7 +132,46 @@ class CreateAccountQRScanViewController: UIViewController {
          self.view.frame.origin.y = 0 // Move view to original position
     }
     
+    func convertPhoneToString(phone: String) -> String {
+        let phonestr1 = phone.replacingOccurrences(of: "[\\(\\)^^+-]", with: "", options: .regularExpression, range: nil)
+        let phonestr2 = "+1\(phonestr1.replacingOccurrences(of: " ", with: ""))"
+        return phonestr2
+    }
+    
+    
     func setNavigationBar() {
+        print("I was called")
+        let screenSize: CGRect = UIScreen.main.bounds
+        let navBar = UINavigationBar(frame: CGRect(x: 0, y: 35, width: screenSize.width, height: 44))
+        let navItem = UINavigationItem(title: "Registration")
+        //let navItem2 = UINavigationItem(title: "Step 1 of 3")
+        
+       
+        //let item =  UIBarButtonItem(customView: customView)
+//        rbar.setTitleTextAttributes([NSAttributedString.Key.foregroundColor : UIColor.white], for: .normal)
+        //navigationItem.rightBarButtonItems = [rbar]
+        
+        let image = UIImage(named: "closeicon")!.withRenderingMode(.alwaysOriginal)
+        //let doneItem2 = UIBarButtonItem(barButtonSystemItem: , style: .plain, target: nil, action: #selector(done))
+        let doneItem = UIBarButtonItem(image: UIImage(systemName: "xmark") , style: .plain, target: nil, action: #selector(done))
+       // let doneItem2 = UIBarButtonItem(systemItem: .close, primaryAction: closeAction, menu: nil)
+        //navItem.rightBarButtonItem  = doneItem2
+        
+        let rbar = UIBarButtonItem(title: "Step 1 of 2", style: UIBarButtonItem.Style.plain, target: self, action: nil)
+        
+        rbar.setTitleTextAttributes([NSAttributedString.Key.foregroundColor : UIColor.white], for: .normal)
+        
+        //navItem.setTitleTextAttributes([NSAttributedString.Key.foregroundColor : UIColor.white], for: .normal)
+        
+        navItem.leftBarButtonItem = doneItem
+    
+        navItem.rightBarButtonItem  = rbar
+           navBar.setItems([navItem], animated: false)
+           self.view.addSubview(navBar)
+    }
+    
+    
+    /*func setNavigationBar() {
         print("I was called")
         let screenSize: CGRect = UIScreen.main.bounds
         let navBar = UINavigationBar(frame: CGRect(x: 0, y: 35, width: screenSize.width, height: 44))
@@ -137,7 +181,7 @@ class CreateAccountQRScanViewController: UIViewController {
            navItem.leftBarButtonItem = doneItem
            navBar.setItems([navItem], animated: false)
            self.view.addSubview(navBar)
-    }
+    }*/
     
     //returns user to login when back button is pressed
     @objc func done() {
@@ -152,21 +196,35 @@ class CreateAccountQRScanViewController: UIViewController {
     }
     
     func initializationTasks() {
-        termsConditionSwitch.isOn = false
+        phoneNumberTextField.delegate = self
+        nameTextField.delegate = self
+        emailTextField.delegate = self
+        passwordTextField.delegate = self
+        passwordConfirmTextField.delegate = self
+        
         emailTextField.text = email
         
-        nameTextField.addTarget(self, action: #selector(RegistrationViewController.textFieldDidChange(_:)),
+        termsConditionSwitch.isOn = false
+        
+//        termsConditionSwitch.isOn = false
+//        emailTextField.text = email
+        
+        nameTextField.addTarget(self, action: #selector(CreateAccountQRScanViewController.textFieldDidChange(_:)),
                                   for: .editingChanged)
-        emailTextField.addTarget(self, action: #selector(RegistrationViewController.textFieldDidChange(_:)),
+        emailTextField.addTarget(self, action: #selector(CreateAccountQRScanViewController.textFieldDidChange(_:)),
                                  for: .editingChanged)
 
-        passwordTextField.addTarget(self, action: #selector(RegistrationViewController.textFieldDidChange(_:)),
+        phoneNumberTextField.addTarget(self, action: #selector(CreateAccountQRScanViewController.textFieldDidChange(_:)),
+                                 for: .editingChanged)
+        
+        passwordTextField.addTarget(self, action: #selector(CreateAccountQRScanViewController.textFieldDidChange(_:)),
                                     for: .editingChanged)
-        passwordConfirmTextField.addTarget(self, action: #selector(RegistrationViewController.textFieldDidChange(_:)),
+        passwordConfirmTextField.addTarget(self, action: #selector(CreateAccountQRScanViewController.textFieldDidChange(_:)),
                                            for: .editingChanged)
         
         customtextfield.borderForTextField(textField: nameTextField, validationFlag: false)
         customtextfield.borderForTextField(textField: emailTextField, validationFlag: false)
+        customtextfield.borderForTextField(textField: phoneNumberTextField, validationFlag: false)
         customtextfield.borderForTextField(textField: passwordTextField, validationFlag: false)
         customtextfield.borderForTextField(textField: passwordConfirmTextField, validationFlag: false)
     }
@@ -177,6 +235,8 @@ class CreateAccountQRScanViewController: UIViewController {
                 nameTextField.resignFirstResponder()
             case emailTextField:
                 emailTextField.resignFirstResponder()
+            case phoneNumberTextField:
+                phoneNumberTextField.resignFirstResponder()
             case passwordTextField:
                 passwordTextField.resignFirstResponder()
             case passwordConfirmTextField:   //passwordConfirmLabel.isHidden = false
@@ -213,6 +273,10 @@ class CreateAccountQRScanViewController: UIViewController {
 //                   // phoneLabel.textColor = UIColor(red: 0/256, green: 128/256, blue: 128/256, alpha: 1.0)
 //                    customtextfield.borderForTextField(textField: phoneTextField, validationFlag: false)
 //                    phoneErrorLabel.text = ""
+                case phoneNumberTextField:
+                    //emailLabel.isHidden = false
+                    //emailLabel.textColor = UIColor(red: 0/256, green: 128/256, blue: 128/256, alpha: 1.0)
+                    customtextfield.borderForTextField(textField: phoneNumberTextField, validationFlag: false)
                 case passwordTextField:
                     //passwordLabel.isHidden = false
                     //passwordLabel.textColor = UIColor(red: 0/256, green: 128/256, blue: 128/256, alpha: 1.0)
@@ -228,6 +292,39 @@ class CreateAccountQRScanViewController: UIViewController {
             }else{
 
             }
+    }
+    func textField(_ textField: UITextField, shouldChangeCharactersIn range: NSRange, replacementString string: String) -> Bool {
+        
+        
+        let text = textField.text
+        //if text?.utf16.count==1{
+            switch textField{
+            case phoneNumberTextField:
+                let currentCharacterCount = textField.text?.count ?? 0
+                if range.length + range.location > currentCharacterCount {
+                    return false
+                } else {
+                    guard let text = textField.text else { return false }
+                    textField.text = text.applyPatternOnNumbers(pattern: "(###) ###-####", replacmentCharacter: "#")
+
+                }
+                
+                let newLength = currentCharacterCount + string.count - range.length
+                return newLength <= 14
+                
+                
+            default:
+
+                break
+            }
+        //}else{
+           // returnFlag = false
+        //}
+        print(string)
+        return true
+        //phoneNumberTextField.text = textField.text?.applyPatternOnNumbers(pattern: "+# (###) ###-####", replacmentCharacter: "#")
+       
+       
     }
     func presentUIAlert(alertMessage: String, alertTitle: String, errorMessage: String, alertType: String) {
         
@@ -266,6 +363,7 @@ class CreateAccountQRScanViewController: UIViewController {
         if actionType == "displayloadingmsg" {
             nameTextField.isEnabled = false
             emailTextField.isEnabled = false
+            phoneNumberTextField.isEnabled = false
             passwordTextField.isEnabled = false
             passwordConfirmTextField.isEnabled = false
             signInBtn.isEnabled = false
@@ -280,6 +378,7 @@ class CreateAccountQRScanViewController: UIViewController {
             signUpBtn.setTitle("Sign Up", for: .normal)
             termsConditionSwitch.isEnabled  = true
             nameTextField.isEnabled = true
+            phoneNumberTextField.isEnabled = true
             emailTextField.isEnabled = true
             passwordTextField.isEnabled = true
             passwordConfirmTextField.isEnabled = true
@@ -291,6 +390,7 @@ class CreateAccountQRScanViewController: UIViewController {
             signInBtn.isEnabled = true
             signUpBtn.setTitle("Sign Up", for: .normal)
             nameTextField.isEnabled = true
+            phoneNumberTextField.isEnabled = true
             emailTextField.isEnabled = true
             termsConditionSwitch.isEnabled  = true
             passwordTextField.isEnabled = true
@@ -311,7 +411,7 @@ class CreateAccountQRScanViewController: UIViewController {
         nextVC.eventName = eventName
         nextVC.eventDateTime = eventDateTime
         nextVC.eventTypeIcon = eventTypeIcon
-        nextVC.eventCode = eventCode!
+        nextVC.eventCode = eventCode
                    
         self.navigationController?.pushViewController(nextVC , animated: true)
 
@@ -328,12 +428,14 @@ class CreateAccountQRScanViewController: UIViewController {
     
         nameTextField.isEnabled = false
         emailTextField.isEnabled = false
+        phoneNumberTextField.isEnabled = false
         passwordConfirmTextField.isEnabled = false
         passwordTextField.isEnabled = false
         termsConditionSwitch.isEnabled = false
         
         guard let name = nameTextField.text,
         let password = passwordTextField.text,
+        let phone2 = phoneNumberTextField.text,
         let confirmPassword = passwordConfirmTextField.text,
         let email = emailTextField.text else {
             return
@@ -377,6 +479,23 @@ class CreateAccountQRScanViewController: UIViewController {
             
         }
 
+        let isValidatePhone = self.formValidation.validatePhoneNumber(phoneNumber: phone2).isValidate
+        let validationMessage = self.formValidation.validatePhoneNumber(phoneNumber: phone2).errorMsg
+        
+        print("isValidatePhone \(isValidatePhone)")
+        if (isValidatePhone == false) {
+            //LoadingStop()
+            phoneNumberTextField.becomeFirstResponder()
+            phoneNumberTextField.isEnabled = true
+            customtextfield.borderForTextField(textField:  phoneNumberTextField, validationFlag: true)
+            
+            self.presentUIAlert(alertMessage: "Incorrect Phone Number", alertTitle: "Missing Information", errorMessage: validationMessage, alertType: "formvalidation")
+            return
+        } else {
+            customtextfield.borderForTextField(textField: phoneNumberTextField, validationFlag: false)
+            
+        }
+        
         let isValidatePass = self.formValidation.validatePassword(password: password)
         if (isValidatePass == false) {
             passwordTextField.becomeFirstResponder()
@@ -419,7 +538,7 @@ class CreateAccountQRScanViewController: UIViewController {
             self.loadingIndicatorAction(actionType: "displayloadingmsg")
             
             
-            let str = name
+           /* let str = name
             let trimmedStr = str.trimmingCharacters(in: .whitespacesAndNewlines)
             //var firstname: String = ""
             //var lastname: String = ""
@@ -432,9 +551,34 @@ class CreateAccountQRScanViewController: UIViewController {
                     firstName = nameComponents[0] + " " + nameComponents[1]
                     lastName = nameComponents[2]
                 }
+            } */
+            
+            //estract first/lastname from name feidl
+            let str = name
+            let trimmedStr = str.trimmingCharacters(in: .whitespacesAndNewlines)
+            var firstname: String = ""
+            var lastname: String = ""
+            let nameComponents = trimmedStr.components(separatedBy: " ")
+            if nameComponents.count > 1 {
+                if nameComponents.count == 2 {
+                    firstname = nameComponents[0]
+                    lastname = nameComponents[1]
+                } else {
+                    firstname = nameComponents[0] + " " + nameComponents[1]
+                    lastname = nameComponents[2]
+                }
             }
             
-            //randomly generated phone number - to be changed later
+            //default phone number - to be changed later
+            phone = ""
+            let phone = convertPhoneToString(phone: phoneNumberTextField.text!)
+            
+            KeychainWrapper.standard.set(password, forKey: "registrationPasswordKeyChain")
+           
+            launchOTPVerifyVC(firstName: firstname, lastName: lastname, username: username!, phone: phone)
+            
+            
+           /* //randomly generated phone number - to be changed later
             phone = ""//generatePhoneNumber()
             
             let userData = UserModel(firstName: firstName, lastName: lastName, username: username!, password: password, email: email, phone: phoneFromOTP)
@@ -454,9 +598,37 @@ class CreateAccountQRScanViewController: UIViewController {
                     self.presentUIAlert(alertMessage: "", alertTitle: "", errorMessage: error.localizedDescription, alertType: "systemError")
                     self.loadingIndicatorAction(actionType: "error")
                 }
-            }
+            }*/
         }
     }
+    
+    func launchOTPVerifyVC(firstName: String, lastName: String, username: String, phone: String) {
+       
+       
+   
+            
+        print("launchOTPVerifyVC was called")
+        let nextVC = storyboard?.instantiateViewController(withIdentifier: "OTPStep2ViewController") as! OTPStep2ViewController
+        //nextVC.otpCode = otpCode
+        nextVC.firstName = firstName
+        nextVC.lastName = lastName
+        nextVC.username = username
+        nextVC.email = username
+        nextVC.otpPhone = phone
+        //nextVC.eventName = eventName
+        //nextVC.eventDateTime = eventDateTime
+        //nextVC.eventTypeIcon = eventTypeIcon
+        nextVC.eventCode = eventCode
+        //nextVC.eventType = eventType
+        nextVC.action = "createAccountQRScan" 
+        //nextVC.email = email
+        nextVC.encryptedAPIKey = encryptedAPIKey
+        nextVC.encryptedDeviceId = encryptedDeviceId
+        //nextVC.flowType = flowType
+        self.navigationController?.pushViewController(nextVC, animated: true)
+    }
+    
+    /*hold this for now....*/
     func authenticateUser(userName:String,password: String, phone: String, email: String,  eventCode: String) {
         //******************** After creating account; authenticating to get Token *****************************
         let authenticatedUserProfile = AuthenticateUser(username: userName, password: password)
@@ -536,7 +708,7 @@ class CreateAccountQRScanViewController: UIViewController {
             print("my profile data = \(data1)")
             
             if self.eventCode != "" {
-                self.addToEvent(profileId: profileData.profileId, email: profileData.email, phone:  profileData.phone, eventCode: eventCode!, token: self.token2pass!)
+                self.addToEvent(profileId: profileData.profileId, email: profileData.email, phone:  profileData.phone, eventCode: eventCode, token: self.token2pass!)
             } else  {
                 self.initializePayment(token: self.token2pass!, profileId: profileData.profileId, firstName: profileData.firstName, lastName: profileData.lastName, userName: profileData.email, email: profileData.email, phone: profileData.phone)
                 //self.loadingIndicatorAction(actionType: "done")

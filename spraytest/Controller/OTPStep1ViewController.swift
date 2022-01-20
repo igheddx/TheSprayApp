@@ -66,14 +66,17 @@ class OTPStep1ViewController: UIViewController {
 //
 //            self.navigationItem.leftBarButtonItem = UIBarButtonItem(customView: backButton)
 
-        if action == "forgotPassword" {
-            screenTitle.text = "Reset Password - Let's Do Verification"
-        } else {
-            screenTitle.text = "Let's Do Verification"
-        }
-        NotificationCenter.default.addObserver(self, selector: #selector(keyboardWillShow(sender:)), name: UIResponder.keyboardWillShowNotification, object: nil);
+//        if action == "forgotPassword" {
+//            //screenTitle.text! = "Reset Password - Let's Do Verification"
+//            self.navigationItem.title = "Reset Password - Let's Do Verification"
+//        } else {
+//            //screenTitle.text! = "Let's Do Verification"
+//            self.navigationItem.title = "Let's Do Verification"
+//        }
+        
+        //NotificationCenter.default.addObserver(self, selector: #selector(keyboardWillShow(sender:)), name: UIResponder.keyboardWillShowNotification, object: nil);
 
-        NotificationCenter.default.addObserver(self, selector: #selector(keyboardWillHide(sender:)), name: UIResponder.keyboardWillHideNotification, object: nil);
+        //NotificationCenter.default.addObserver(self, selector: #selector(keyboardWillHide(sender:)), name: UIResponder.keyboardWillHideNotification, object: nil);
         
         self.phoneNumberTextField.delegate = self
        
@@ -89,10 +92,19 @@ class OTPStep1ViewController: UIViewController {
     }
  
     func setNavigationBar() {
+        var title: String = ""
+        if action == "forgotPassword" {
+            //screenTitle.text! = "Reset Password - Let's Do Verification"
+            title = "Reset Password - Let's Do Verification"
+        } else {
+            //screenTitle.text! = "Let's Do Verification"
+            title = "Let's Do Verification"
+        }
+        
         print("I was called")
         let screenSize: CGRect = UIScreen.main.bounds
         let navBar = UINavigationBar(frame: CGRect(x: 0, y: 35, width: screenSize.width, height: 44))
-        let navItem = UINavigationItem(title: "")
+        let navItem = UINavigationItem(title: title)
         let image = UIImage(named: "closeicon")!.withRenderingMode(.alwaysOriginal)
         let doneItem = UIBarButtonItem(image: image, style: .plain, target: nil, action: #selector(done))
            navItem.leftBarButtonItem = doneItem
@@ -301,7 +313,7 @@ class OTPStep1ViewController: UIViewController {
         nextVC.eventName = eventName
         nextVC.eventDateTime = eventDateTime
         nextVC.eventTypeIcon = eventTypeIcon
-        nextVC.eventCode = eventCode
+        nextVC.eventCode = eventCode!
         nextVC.eventType = eventType
         nextVC.action = action
         nextVC.email = email

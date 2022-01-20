@@ -1,14 +1,14 @@
 //
-//  InfoBoardTableViewCell.swift
+//  InfoBoard2TableViewCell.swift
 //  spraytest
 //
-//  Created by Dominic O. Ighedosa on 2/8/21.
-//  Copyright © 2021 Ighedosa, Dominic. All rights reserved.
+//  Created by Dominic O. Ighedosa on 1/1/22.
+//  Copyright © 2022 Ighedosa, Dominic. All rights reserved.
 //
 
 import UIKit
 
-class InfoBoardTableViewCell: UITableViewCell {
+class InfoBoard2TableViewCell: UITableViewCell {
 
     let defaults = UserDefaults.standard
     
@@ -17,7 +17,8 @@ class InfoBoardTableViewCell: UITableViewCell {
     @IBOutlet weak var oustandingTransferUIView: UIView!
     @IBOutlet weak var pendingPayoutUIView: UIView!
     
-    @IBOutlet weak var customerOnboardingBtn: PayoutBtn!
+    @IBOutlet weak var customerOnboardingBtn: MyCustomButton!
+    //@IBOutlet weak var customerOnboardingBtn: PayoutBtn!
     @IBOutlet weak var totalGiftedUIView: UIView!
     @IBOutlet weak var totalReceivedUIView: UIView!
     
@@ -31,7 +32,7 @@ class InfoBoardTableViewCell: UITableViewCell {
     @IBOutlet weak var onboardingMessageLbl: UILabel!
     //var myInvitationCustomCellDelegate: MyInvitationCustomCellDelegate?
     var customCellDelegate: MyCustomCellDelegator?
-    static let identifier = "InfoBoardTableViewCell"
+    static let identifier = "InfoBoard2TableViewCell"
     
     var myEventName: String?
     
@@ -53,12 +54,12 @@ class InfoBoardTableViewCell: UITableViewCell {
     var currencySymbol: String = ""
     
     static func nib() -> UINib {
-        return UINib(nibName: "InfoBoardTableViewCell", bundle: nil)
+        return UINib(nibName: "InfoBoard2TableViewCell", bundle: nil)
     }
     
     public func configure(with outstandingTransferAmt: String, pendingPayoutAmt: String, totalGiftedAmt: String, totalReceivedAmt: String, currency: String, paymentCustomerId: String, paymentConnectedActId: String) {
         
-        currencySymbol = Currency.shared.findSymbol(currencyCode: currency)
+        /*currencySymbol = Currency.shared.findSymbol(currencyCode: currency)
         //self.paymentCustomerId = profileData.paymentCustomerId!
         //self.paymentConnectedActId = profileData.paymentConnectedActId
         
@@ -106,9 +107,9 @@ class InfoBoardTableViewCell: UITableViewCell {
 //
 //        } else {
 //            pendingPayountAmtLbl.font =  UIFont(name:"HelveticaNeue", size: 20.0)
-//        }
+//        } */
         
-        if totalGiftedAmt != "0" {
+        /*if totalGiftedAmt != "0" {
             totalGiftedAmtLbl.font =  UIFont(name:"HelveticaNeue-Bold", size: 20.0)
         } else {
             totalGiftedAmtLbl.font =  UIFont(name:"HelveticaNeue", size: 20.0)
@@ -118,7 +119,7 @@ class InfoBoardTableViewCell: UITableViewCell {
             totalGiftReceivedAmtLbl.font =  UIFont(name:"HelveticaNeue-Bold", size: 20.0)
         } else {
             totalGiftReceivedAmtLbl.font =  UIFont(name:"HelveticaNeue", size: 20.0)
-        }
+        }*/
         
         
     
@@ -155,7 +156,7 @@ class InfoBoardTableViewCell: UITableViewCell {
 //        sprayCardView.layer.shadowRadius = 4.0
         infoUICardView.layer.borderColor  = UIColor.gray.cgColor
         infoUICardView.layer.shadowOffset = CGSize(width: 1, height: 1.0)
-        infoUICardView.layer.shadowOpacity  = 0.0
+        infoUICardView.layer.shadowOpacity  = 0.1
         infoUICardView.layer.masksToBounds = false
         infoUICardView.layer.cornerRadius = 8.0
         
@@ -194,7 +195,7 @@ class InfoBoardTableViewCell: UITableViewCell {
 //       // clearData()
 //
 //        let request = Request(path: "/api/Profile/balance/\(myProfileId)", token: myToken!)
-//        
+//
 //        Network.shared.send(request) { [self] (result: Result<Data, Error>)  in
 //            switch result {
 //            case .success(let balance):
@@ -234,7 +235,7 @@ class InfoBoardTableViewCell: UITableViewCell {
     @IBAction func createEventBtnPressed(_ sender: Any) {
         
         if(self.customCellDelegate != nil){ //Just to be safe.
-            self.customCellDelegate?.infoBoard(completionAction: "createevent") 
+            self.customCellDelegate?.infoBoard(completionAction: "createevent")
         }
     }
     

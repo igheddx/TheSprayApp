@@ -2,7 +2,7 @@
 //  GoSprayViewController.swift
 //  spraytest
 //
-//  Created by Dominic O. Ighedosa on 1/29/21.
+//  Created by Dominicƒg O. Ighedosa on 1/29/21.
 //  Copyright © 2021 Ighedosa, Dominic. All rights reserved.
 //
 
@@ -17,16 +17,16 @@ struct CurrencyDenom {
     let value: String
     let currencyImage: String
 }
-class GoSprayViewController: UIViewController, UIViewControllerTransitioningDelegate, STPAddCardViewControllerDelegate {
+class GoSprayViewController: UIViewController,  STPAddCardViewControllerDelegate {
     
     var window: UIWindow?
     let sprayCandidateBtn = JJFloatingActionButton()
     let mainMenuBtn = JJFloatingActionButton()
     
     @IBOutlet weak var currencyImage: UIImageView!
-    @IBOutlet weak var giftAmountReceivedLbl: UILabel!
-    @IBOutlet weak var giftBalanceLbl: UILabel!
-    @IBOutlet weak var giftReceiverNameLbl: UILabel!
+    //@IBOutlet weak var giftAmountReceivedLbl: UILabel!
+    //@IBOutlet weak var giftBalanceLbl: UILabel!
+    //@IBOutlet weak var giftReceiverNameLbl: UILabel!
     
     
     @IBOutlet weak var receiverNameLbl: UILabel!
@@ -112,17 +112,29 @@ class GoSprayViewController: UIViewController, UIViewControllerTransitioningDele
     var paymentMethodCurrencyCode: String = ""
     var source: String = ""
     
+    var myProfileData: [MyProfile] = []
+    
     /*this is what changes the status bar icon to white*/
     override var preferredStatusBarStyle: UIStatusBarStyle {
         return .lightContent
     }
+    
+    var hideStatusBar: Bool = false {
+           didSet {
+               setNeedsStatusBarAppearanceUpdate()
+           }
+       }
+
+       override var prefersStatusBarHidden: Bool {
+              return hideStatusBar
+       }
     //typealias launchStripePaymentScreen = ()  -> Void
     override func viewDidLoad() {
         super.viewDidLoad()
         
-        displaySprayAmtAndBalance(receiverName: "Dominic", sprayAmt: 1, calculatedGiftAmtReceived: 0, gifterBalance: 0)
+        displaySprayAmtAndBalance(receiverName: "", sprayAmt: 1, calculatedGiftAmtReceived: 0, gifterBalance: 0)
         //displayGifterAmt(gifterText: "Me", sprayAmt:0, gifterBalance: gifterInitialCrediBalance)
-        displayGifterAmt(gifterText: "Me", sprayAmt: 0, gifterBalance: gifterBalance)
+        displayGifterAmt(gifterText: "My Credit", sprayAmt: 0, gifterBalance: gifterBalance)
 
         
         print("GoSpray Evend ID = \(eventId)")
@@ -181,7 +193,7 @@ class GoSprayViewController: UIViewController, UIViewControllerTransitioningDele
 
         
        //circleMenu2()
-        if #available(iOS 13.2, *) {
+        /*if #available(iOS 13.2, *) {
             print("i am here statusBarManager")
             let statusBar = UIView(frame: UIApplication.shared.keyWindow?.windowScene?.statusBarManager?.statusBarFrame ?? CGRect.zero)
              statusBar.backgroundColor = UIColor.init(red: 155/250, green: 166/250, blue: 149/250, alpha: 1)
@@ -192,12 +204,12 @@ class GoSprayViewController: UIViewController, UIViewControllerTransitioningDele
             //      return value(forKey: "statusBarManager") as? UIView
             //    }
              UIApplication.shared.statusBarManager?.backgroundColor = UIColor.init(red: 155/250, green: 166/250, blue: 149/250, alpha: 1)
-        }
+        }*/
 
         
         print("paymentClientToken aasfdsdf =  \(paymentClientToken)")
         
-        navigationController?.navigationBar.topItem?.backBarButtonItem = UIBarButtonItem(title: "", style: .plain, target: nil, action: nil)
+        //navigationController?.navigationBar.topItem?.backBarButtonItem = UIBarButtonItem(title: "", style: .plain, target: nil, action: nil)
 //        self.navigationController?.navigationBar.barTintColor = UIColor.orange
 //                self.navigationController?.navigationBar.tintColor = UIColor.orange
 //
@@ -216,7 +228,7 @@ class GoSprayViewController: UIViewController, UIViewControllerTransitioningDele
         receiverNameLbl.text = receiverName
         
         print("spray amount on view did load \(sprayAmount)")
-        print("gift balance lbl on view did load \(giftBalanceLbl.text)")
+        //print("gift balance lbl on view did load \(giftBalanceLbl.text)")
         currencyImage.isUserInteractionEnabled = true
         let swiftRight = UISwipeGestureRecognizer(target: self, action: #selector(self.swipeGesture))
         swiftRight.direction = UISwipeGestureRecognizer.Direction.right
@@ -235,12 +247,27 @@ class GoSprayViewController: UIViewController, UIViewControllerTransitioningDele
         currencyImage.addGestureRecognizer(swiftDown)
         // Do any additional setup after loading the view.
     }
+    
     override func viewWillAppear(_ animated: Bool) {
         super.viewWillAppear(animated)
-        navigationController?.setNavigationBarHidden(true, animated: animated)
+        //navigationController?.setNavigationBarHidden(true, animated: animated)
         
+        //self.hideStatusBar = false // for status bar hide
+        
+//        self.navigationController?.navigationBar.setBackgroundImage(UIImage(), for: .default)
+//        self.navigationController?.navigationBar.shadowImage = UIImage()
+//        self.navigationController?.navigationBar.isTranslucent = true
+//        self.navigationController?.view.backgroundColor = .clear
+         
         AppUtility.lockOrientation(.portrait)
     }
+
+    override func viewWillDisappear(_ animated: Bool) {
+        super.viewWillDisappear(animated)
+        //navigationController?.setNavigationBarHidden(false, animated: animated)
+    }
+    
+   
     override func viewDidDisappear(_ animated: Bool) {
         print("paymentmethod ID = \(paymentMethod)")
         
@@ -254,7 +281,7 @@ class GoSprayViewController: UIViewController, UIViewControllerTransitioningDele
         }
        
         AppUtility.lockOrientation(.all)
-        if #available(iOS 13.2, *) {
+        /*if #available(iOS 13.2, *) {
             print("i am here statusBarManager")
             let statusBar = UIView(frame: UIApplication.shared.keyWindow?.windowScene?.statusBarManager?.statusBarFrame ?? CGRect.zero)
              statusBar.backgroundColor = UIColor.init(red: 255/250, green: 255/250, blue: 255/250, alpha: 1)
@@ -266,7 +293,7 @@ class GoSprayViewController: UIViewController, UIViewControllerTransitioningDele
             //    }
              UIApplication.shared.statusBarManager?.backgroundColor = UIColor.init(red: 255/250, green: 255/250, blue: 255/250, alpha: 1)
             
-        }
+        }*/
     }
     override func viewDidAppear(_ animated: Bool) {
        
@@ -394,7 +421,7 @@ class GoSprayViewController: UIViewController, UIViewControllerTransitioningDele
         let receiverMoneyLbl = UILabel(frame: frame2)
         receiverNameLbl.text = receiverName
         
-        receiverNameLbl.font = UIFont.systemFont(ofSize: 16, weight: .bold)
+        receiverNameLbl.font = UIFont.systemFont(ofSize: 20, weight: .bold)
         receiverNameLbl.textColor = UIColor.black
         
         receiverNameLbl.frame = CGRect(x: 0, y: 0, width: 100, height: 25)
@@ -421,8 +448,8 @@ class GoSprayViewController: UIViewController, UIViewControllerTransitioningDele
         let frame2 = CGRect(x: 0, y: 0, width: 50, height: 50)
         let receiverMoneyLbl = UILabel(frame: frame2)
         
-        gifterNameLbl.text = "Me"
-        gifterNameLbl.font = UIFont.systemFont(ofSize: 16, weight: .bold)
+        gifterNameLbl.text = "My Credit"
+        gifterNameLbl.font = UIFont.systemFont(ofSize: 20, weight: .bold)
         gifterNameLbl.textColor = UIColor.black
         
         
@@ -463,8 +490,9 @@ class GoSprayViewController: UIViewController, UIViewControllerTransitioningDele
         case "gifter":
 
             gifterNewCreditBalance = gifterBalance //- sprayAmt
-            
-            nameLabel.backgroundColor = UIColor(red: 185/256, green: 22/256, blue: 70/256, alpha: 1.0)
+            nameLabel.textColor = UIColor.white
+            nameLabel.backgroundColor = UIColor(red: 28/256, green: 109/256, blue: 208/256, alpha: 1.0)
+            //nextViewController
             nameLabel.text = currencySymbol + String(gifterNewCreditBalance) //initials
         default:
             break
@@ -561,12 +589,20 @@ class GoSprayViewController: UIViewController, UIViewControllerTransitioningDele
 //          present(navigationController, animated: true)
         
         let storyboard: UIStoryboard = UIStoryboard(name: "Main", bundle: Bundle.main)
-            let nextVC = storyboard.instantiateViewController(withIdentifier: "SetupPaymentMethodViewController") as! SetupPaymentMethodViewController
+        let nextVC = storyboard.instantiateViewController(withIdentifier: "SetupPaymentMethodViewController") as! SetupPaymentMethodViewController
 
        
+        if #available(iOS 15.0, *) {
+            if let presentationController = nextVC.presentationController as? UISheetPresentationController {
+                presentationController.detents = [.medium()] /// set here!
+            }
+        } else {
+            // Fallback on earlier versions
+            nextVC.modalPresentationStyle = UIModalPresentationStyle.formSheet
+            nextVC.navigationController?.modalPresentationStyle = UIModalPresentationStyle.currentContext
+        }
 
-        nextVC.modalPresentationStyle = UIModalPresentationStyle.formSheet
-        nextVC.navigationController?.modalPresentationStyle = UIModalPresentationStyle.currentContext
+      
     
         print("MY COUNTRY FROM GOTOSPRAY = \(country) INSIDE LAUNCH")
         nextVC.eventId = self.eventId
@@ -589,6 +625,7 @@ class GoSprayViewController: UIViewController, UIViewControllerTransitioningDele
         nextVC.paymentClientToken = paymentClientToken
         nextVC.isSingleReceiverEvent = isSingleReceiverEvent
         nextVC.country = country
+        nextVC.myProfileData = myProfileData
         
        // nextVC.currentAvailableCredit =  availableBalance
         self.present(nextVC, animated: true, completion: nil)
@@ -762,7 +799,7 @@ class GoSprayViewController: UIViewController, UIViewControllerTransitioningDele
                 gifterBalance = availableSprayAmount
                 if self.isSingleReceiverEvent == false {
                     print("IS SINGELE RECEIVER EVENT = FALSE")
-                    self.giftBalanceLbl.text = currencySymbol + String(availableSprayAmount) //String(updatedGiftAmount)
+                    //self.giftBalanceLbl.text = currencySymbol + String(availableSprayAmount) //String(updatedGiftAmount)
                     self.sprayAmount = availableSprayAmount  //updatedGiftAmount
                     self.receiverName = ""
                     self.launchSprayCandidate()
@@ -772,7 +809,7 @@ class GoSprayViewController: UIViewController, UIViewControllerTransitioningDele
                     receiverNameLbl.text = self.eventOwnerName
                     
                     print("updatedGiftAmount \(availableSprayAmount)")
-                    self.giftBalanceLbl.text = currencySymbol + String(availableSprayAmount)
+                    //self.giftBalanceLbl.text = currencySymbol + String(availableSprayAmount)
                     self.sprayAmount = availableSprayAmount
                     self.receiverName = self.eventOwnerName
                     //self.launchSprayCandidate()
@@ -844,7 +881,7 @@ class GoSprayViewController: UIViewController, UIViewControllerTransitioningDele
                 //only launch if not street performer, waiter, or band
                 if self.completionAction == "allreceiver" {
                     
-                    self.giftBalanceLbl.text = currencySymbol + String(updatedGiftAmount)
+                    //self.giftBalanceLbl.text = currencySymbol + String(updatedGiftAmount)
                     self.sprayAmount = updatedGiftAmount
                     self.receiverName = ""
                     self.launchSprayCandidate()
@@ -854,7 +891,7 @@ class GoSprayViewController: UIViewController, UIViewControllerTransitioningDele
                     self.receiverNameLbl.text = self.eventOwnerName
                     
                     print("updatedGiftAmount \(updatedGiftAmount)")
-                    self.giftBalanceLbl.text = currencySymbol + String(updatedGiftAmount)
+                    //self.giftBalanceLbl.text = currencySymbol + String(updatedGiftAmount)
                     self.sprayAmount = updatedGiftAmount
                     self.receiverName = self.eventOwnerName
                     //self.launchSprayCandidate()
@@ -1313,7 +1350,7 @@ class GoSprayViewController: UIViewController, UIViewControllerTransitioningDele
         giftAmountReceivedLbl.text = currencySymbol + "0"*/
         
         
-        displaySprayAmtAndBalance(receiverName: "Dominic", sprayAmt: sprayAmount, calculatedGiftAmtReceived: 0, gifterBalance: gifterBalance)
+        displaySprayAmtAndBalance(receiverName: "", sprayAmt: sprayAmount, calculatedGiftAmtReceived: 0, gifterBalance: gifterBalance)
         
         //displayGifterAmt(gifterText: "Me", sprayAmt:sprayAmount, gifterBalance: gifterBalance)
         
@@ -1327,7 +1364,7 @@ class GoSprayViewController: UIViewController, UIViewControllerTransitioningDele
         } else {
             print("self.balance = \(self.gifterBalance)  before balance value is set")
             self.gifterBalance =  0
-            self.giftBalanceLbl.text = self.currencySymbol + String(self.gifterBalance)
+            //self.giftBalanceLbl.text = self.currencySymbol + String(self.gifterBalance)
             print("2 Balance is from self.balance = eventPrefData.maxSprayAmount = \(self.gifterBalance)")
 
             self.withdrawAmount = 0
@@ -1403,7 +1440,7 @@ class GoSprayViewController: UIViewController, UIViewControllerTransitioningDele
                             
                             print("self.balance = \(self.gifterBalance)  before balance value is set")
                             self.gifterBalance =  eventPrefData.maxSprayAmount
-                            self.giftBalanceLbl.text = self.currencySymbol + String(self.gifterBalance)
+                            //self.giftBalanceLbl.text = self.currencySymbol + String(self.gifterBalance)
                             print("3 Balance is from self.balance = eventPrefData.maxSprayAmount = \(self.gifterBalance)")
                                 
 
@@ -1450,7 +1487,7 @@ class GoSprayViewController: UIViewController, UIViewControllerTransitioningDele
                             
                             print("self.balance = \(self.gifterBalance)  before balance value is set")
                             self.gifterBalance =  eventPrefData.maxSprayAmount
-                            self.giftBalanceLbl.text = self.currencySymbol + String(self.gifterBalance)
+                            //self.giftBalanceLbl.text = self.currencySymbol + String(self.gifterBalance)
                             print("3 Balance is from self.balance = eventPrefData.maxSprayAmount = \(self.gifterBalance)")
                                 
 
@@ -1515,9 +1552,12 @@ class GoSprayViewController: UIViewController, UIViewControllerTransitioningDele
                                              eventpayment2view 8/15*/
                                             
                                             self.gifterBalance =  newGiftBalance //eventPrefData.maxSprayAmount
-                                            self.giftBalanceLbl.text = self.currencySymbol + String(self.gifterBalance)
+                                            //self.giftBalanceLbl.text = self.currencySymbol + String(self.gifterBalance)
                                             print("4B Balance is from self.balance = eventPrefData.maxSprayAmount = \(self.gifterBalance)")
-
+                                            
+                                            /*set the value of the gifter balance*/
+                                            displayGifterAmt(gifterText: "My Credit", sprayAmt: 0, gifterBalance: gifterBalance)
+                                            
                                             self.withdrawAmount = eventPrefData.maxSprayAmount
                                             self.isAutoReplenishFlag = eventPrefData.isAutoReplenish
                                             self.autoReplenishAmount = eventPrefData.replenishAmount
@@ -1541,7 +1581,7 @@ class GoSprayViewController: UIViewController, UIViewControllerTransitioningDele
                                             }
                                             print("@ self.balance = \(self.gifterBalance)  before balance value is set")
                                             self.gifterBalance =  newGiftBalance
-                                            self.giftBalanceLbl.text = self.currencySymbol + String(self.gifterBalance)
+                                            //self.giftBalanceLbl.text = self.currencySymbol + String(self.gifterBalance)
                                             print("2 Balance is from self.balance = eventPrefData.maxSprayAmount = \(self.gifterBalance)")
 
                                             self.withdrawAmount = 0
@@ -1581,8 +1621,45 @@ class GoSprayViewController: UIViewController, UIViewControllerTransitioningDele
         }
     
     func launchEventPaymentScreen(completionAction:String) {
-        let vc = storyboard?.instantiateViewController(withIdentifier: "EventPayment2ViewController") as! EventPayment2ViewController
-        vc.modalPresentationStyle = UIModalPresentationStyle.custom
+        //let vc = storyboard?.instantiateViewController(withIdentifier: "EventPayment2ViewController") as! EventPayment2ViewController
+        //vc.modalPresentationStyle = UIModalPresentationStyle.custom
+        /*vc.eventId = eventId
+        vc.profileId = profileId
+        vc.token = token
+        vc.eventOwnerName = eventOwnerName
+        vc.eventOwnerId = eventOwnerProfileId
+        vc.encryptedAPIKey = encryptedAPIKey
+        vc.updategfitamountdelegate = self
+        vc.completionAction = "launchpaymentscreen"
+        vc.haspaymentdelegate = self
+        vc.setuppaymentmethoddelegate   = self
+        vc.refreshscreendelegate = self
+        //vc.receiverInfoDelegate = self
+        vc.paymentClientToken = paymentClientToken
+        vc.country = country*/
+        
+        print("COUNTRY before eventPayment2ViewController -\(country)")
+//        vc.eventTypeIcon = eventTypeIcon
+//        vc.autoReplenishFlg = autoReplenishFlg
+//        vc.autoReplenishAmt = autoReplenishAmt
+        
+        //present(vc, animated: true, completion: nil)
+        
+        
+        
+        let storyboard: UIStoryboard = UIStoryboard(name: "Main", bundle: Bundle.main)
+        let vc = storyboard.instantiateViewController(withIdentifier: "EventPayment2ViewController") as! EventPayment2ViewController
+        
+        if #available(iOS 15.0, *) {
+            if let presentationController = vc.presentationController as? UISheetPresentationController {
+                presentationController.detents = [.medium()] /// set here!
+            }
+        } else {
+            // Fallback on earlier versions
+            vc.modalPresentationStyle = UIModalPresentationStyle.formSheet
+            vc.navigationController?.modalPresentationStyle = UIModalPresentationStyle.currentContext
+        }
+        
         vc.eventId = eventId
         vc.profileId = profileId
         vc.token = token
@@ -1597,13 +1674,10 @@ class GoSprayViewController: UIViewController, UIViewControllerTransitioningDele
         //vc.receiverInfoDelegate = self
         vc.paymentClientToken = paymentClientToken
         vc.country = country
+        vc.myProfileData = myProfileData
         
-        print("COUNTRY before eventPayment2ViewController -\(country)")
-//        vc.eventTypeIcon = eventTypeIcon
-//        vc.autoReplenishFlg = autoReplenishFlg
-//        vc.autoReplenishAmt = autoReplenishAmt
+        self.present(vc, animated: true)
         
-        present(vc, animated: true, completion: nil)
     }
    
     func updateEventPreference(paymentMethodId: Int, updatedWithdrawAmount: Int, completionAction: String) {
@@ -1745,7 +1819,7 @@ class GoSprayViewController: UIViewController, UIViewControllerTransitioningDele
             print("flash 1 \(isFlashLightFlag)")
         } else if isFlashLightFlag == false {
             
-            isFlashLightFlag = true
+            isFlashLightFlag = false
             print("flash 2 \(isFlashLightFlag)")
         }
         toggleTorch(on: isFlashLightFlag)
@@ -1782,9 +1856,9 @@ class GoSprayViewController: UIViewController, UIViewControllerTransitioningDele
         
         
        //self.navigationController?.pushViewController(nextVC , animated: true)
-        print("Home screen was called")
-       let mainStoryBoard: UIStoryboard = UIStoryboard(name: "Main", bundle: nil)
-//        let nextVC: HomeViewController =  mainStoryBoard.instantiateViewController(withIdentifier: "HomeViewController" ) as! HomeViewController
+        print("Home screen was called - after QR code")
+        let mainStoryBoard: UIStoryboard = UIStoryboard(name: "Main", bundle: nil)
+        //let nextVC: HomeViewController =  mainStoryBoard.instantiateViewController(withIdentifier: "HomeViewController" ) as! HomeViewController
         
         
         
@@ -1798,12 +1872,15 @@ class GoSprayViewController: UIViewController, UIViewControllerTransitioningDele
         //nextVC.ownerId = ownerId
         nextVC.token = token
         nextVC.encryptedAPIKey = encryptedAPIKey
+        nextVC.myProfileData = myProfileData
         //nextVC.refreshscreendelegate = self
         //nextVC.refreshscreendelegate = self
         
         /*comment this out for now 9/2*/
-        self.navigationController?.pushViewController(nextVC , animated: true)
-         dismiss(animated: true, completion: nil)
+        nextVC.modalPresentationStyle = .fullScreen
+        self.present(nextVC, animated:true, completion:nil)
+        //self.navigationController?.pushViewController(nextVC , animated: true)
+         //dismiss(animated: true, completion: nil)
         
         /*self.window?.rootViewController = nextVC
         self.window?.makeKeyAndVisible()
@@ -1872,12 +1949,17 @@ class GoSprayViewController: UIViewController, UIViewControllerTransitioningDele
             //increase gifterBalance
             gifterBalance = gifterBalance + autoReplenishAmount
             
+            print("AUTHO REPLENISH AMOUNT = \(autoReplenishAmount)")
+            print("GIFTER BALANCE = \(gifterBalance)")
             defaults.set(true, forKey: "isContinueAutoReplenish") //whenauto replish is enabled while using app
             isOkToReplenish = defaults.bool(forKey: "isContinueAutoReplenish")
             isContinueAutoReplenishSet = defaults.bool(forKey: "isContinueAutoReplenish")
         }
         
-        giftBalanceLbl.text = currencySymbol + String(gifterBalance)
+        displayGifterAmt(gifterText: "My Credit", sprayAmt: 0, gifterBalance: gifterBalance)
+        
+        //giftBalanceLbl.text = currencySymbol + String(gifterBalance)
+       // print("giftBalanceLbl = \(giftBalanceLbl)")
         //gifterStartingBalance.text =  String("$\(gifterBalance)")
         //navBarData(data: "$\(gifterBalance)", type: "balance")
         //updateMyBalanceLblAmt(data: "$\(gifterBalance)")
@@ -1969,7 +2051,7 @@ class GoSprayViewController: UIViewController, UIViewControllerTransitioningDele
                             //
                             print("AA")
                             if isAutoReplenishFlag == true {
-                                print("BB")
+                                print("airBB")
                                 //check if auto replenish = true is stored in user defaults... if so continue to increment by the autoreplenish amount
                                 if isContinueAutoReplenishSet == true {
                                         //automatically increment by replenis amount
@@ -1982,6 +2064,8 @@ class GoSprayViewController: UIViewController, UIViewControllerTransitioningDele
                                     
                                     //displaySprayAmtAndBalance(receiverName: <#T##String#>, sprayAmt: <#T##Int#>, calculatedGiftAmtReceived: <#T##Int#>, gifterBalance: gifterBalance)
                                     
+                                    displayGifterAmt(gifterText: "My Credit", sprayAmt: 0, gifterBalance: gifterBalance)
+
                                     
                                     UIView.transition(with: self.currencyImage,
                                      duration: 0.5,
@@ -2030,9 +2114,9 @@ class GoSprayViewController: UIViewController, UIViewControllerTransitioningDele
                             
                             gifterBalance = newbalance
                             
-                            displaySprayAmtAndBalance(receiverName: "Dominic", sprayAmt: activeCurrencyDenom, calculatedGiftAmtReceived: giftAmountReceived, gifterBalance: gifterBalance)
+                            displaySprayAmtAndBalance(receiverName: receiverName, sprayAmt: activeCurrencyDenom, calculatedGiftAmtReceived: giftAmountReceived, gifterBalance: gifterBalance)
                             
-                            displayGifterAmt(gifterText: "Me", sprayAmt: activeCurrencyDenom, gifterBalance: gifterBalance)
+                            displayGifterAmt(gifterText: "My Balance", sprayAmt: activeCurrencyDenom, gifterBalance: gifterBalance)
 
                             
                             
@@ -2196,7 +2280,7 @@ extension GoSprayViewController:   UpdatedGiftAmountDelegate  {
         print("sendLatestGiftAmount I am here")
         print("latest gift amount \(latestGiftAmount)")
         gifterBalance = latestGiftAmount
-        giftBalanceLbl.text = currencySymbol + String(gifterBalance)
+        //giftBalanceLbl.text = currencySymbol + String(gifterBalance)
         isAutoReplenishFlag = latestIsAutoReplenishFlag
         autoReplenishAmount = latestAutoReplenishAmount
         
@@ -2234,7 +2318,7 @@ extension GoSprayViewController:   SprayReceiverDelegate  {
          this at some point..??? is gifterBalance valid here... problaby not? 12/12/21*/
         displaySprayAmtAndBalance(receiverName: receivername, sprayAmt: activeCurrencyDenom, calculatedGiftAmtReceived: giftAmountReceived, gifterBalance: gifterBalance)
         
-        displayGifterAmt(gifterText: "Me", sprayAmt: activeCurrencyDenom, gifterBalance: gifterBalance)
+        displayGifterAmt(gifterText: "My Credit", sprayAmt: activeCurrencyDenom, gifterBalance: gifterBalance)
 
         
         //self.navigationItem.title = "Now Spraying, " + receivername
@@ -2351,7 +2435,7 @@ extension GoSprayViewController:  SetupPaymentMethodDelegate {
             
             displaySprayAmtAndBalance(receiverName: receiverName, sprayAmt: sprayAmount, calculatedGiftAmtReceived: giftAmountReceived, gifterBalance: gifterBalance)
             
-            displayGifterAmt(gifterText: "Me", sprayAmt: sprayAmount, gifterBalance: gifterBalance)
+            displayGifterAmt(gifterText: "My Credit", sprayAmt: sprayAmount, gifterBalance: gifterBalance)
 
             print("I am inside SetupPaymentMethodDelegate")
             

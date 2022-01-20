@@ -33,8 +33,9 @@ class LoginQRScanViewController: UIViewController, UITextFieldDelegate {
     
     @IBOutlet weak var signInBtn: MyCustomButton! //UIButton!
     
-    @IBOutlet weak var signUpBtn: NoNActiveActionButton!
+    //@IBOutlet weak var signUpBtn: NoNActiveActionButton!
     
+    @IBOutlet weak var signUpBtn: UIButton!
     @IBOutlet weak var biometricLbl2: UILabel!
    
     @IBOutlet weak var biometricSwitchBtn2: UISwitch!
@@ -88,8 +89,10 @@ class LoginQRScanViewController: UIViewController, UITextFieldDelegate {
     
     override func viewDidLoad() {
         super.viewDidLoad()
+        print("MY 2 EVENT CODE \(eventCode)")
         setNavigationBar()
         
+        signInBtn.isEnabled = false //disabled until data is entered
        
         //navigationController?.navigationBar.topItem?.backBarButtonItem = UIBarButtonItem(title: "", style: .plain, target: nil, action: nil)
         
@@ -428,7 +431,7 @@ class LoginQRScanViewController: UIViewController, UITextFieldDelegate {
     
     func setNavigationBar() {
         print("I was called")
-        let screenSize: CGRect = UIScreen.main.bounds
+        /*let screenSize: CGRect = UIScreen.main.bounds
         let navBar = UINavigationBar(frame: CGRect(x: 0, y: 35, width: screenSize.width, height: 44))
         let navItem = UINavigationItem(title: "Join Event")
      
@@ -440,6 +443,35 @@ class LoginQRScanViewController: UIViewController, UITextFieldDelegate {
         let image = UIImage(named: "closeicon")!.withRenderingMode(.alwaysOriginal)
         let doneItem = UIBarButtonItem(image: image, style: .plain, target: nil, action: #selector(done))
            navItem.leftBarButtonItem = doneItem
+           navBar.setItems([navItem], animated: false)
+           self.view.addSubview(navBar) */
+        
+        print("I was called")
+        let screenSize: CGRect = UIScreen.main.bounds
+        let navBar = UINavigationBar(frame: CGRect(x: 0, y: 35, width: screenSize.width, height: 44))
+        let navItem = UINavigationItem(title: "Join Event")
+        //let navItem2 = UINavigationItem(title: "Step 1 of 3")
+        
+       
+        //let item =  UIBarButtonItem(customView: customView)
+//        rbar.setTitleTextAttributes([NSAttributedString.Key.foregroundColor : UIColor.white], for: .normal)
+        //navigationItem.rightBarButtonItems = [rbar]
+        
+        let image = UIImage(named: "closeicon")!.withRenderingMode(.alwaysOriginal)
+        //let doneItem2 = UIBarButtonItem(barButtonSystemItem: , style: .plain, target: nil, action: #selector(done))
+        let doneItem = UIBarButtonItem(image: UIImage(systemName: "xmark") , style: .plain, target: nil, action: #selector(done))
+       // let doneItem2 = UIBarButtonItem(systemItem: .close, primaryAction: closeAction, menu: nil)
+        //navItem.rightBarButtonItem  = doneItem2
+        
+        let rbar = UIBarButtonItem(title: "", style: UIBarButtonItem.Style.plain, target: self, action: nil)
+        
+        rbar.setTitleTextAttributes([NSAttributedString.Key.foregroundColor : UIColor.white], for: .normal)
+        
+        //navItem.setTitleTextAttributes([NSAttributedString.Key.foregroundColor : UIColor.white], for: .normal)
+        
+        navItem.leftBarButtonItem = doneItem
+    
+        navItem.rightBarButtonItem  = rbar
            navBar.setItems([navItem], animated: false)
            self.view.addSubview(navBar)
     }
@@ -745,6 +777,7 @@ class LoginQRScanViewController: UIViewController, UITextFieldDelegate {
     }
     
     @IBAction func loginButtonPressed(_ sender: Any) {
+        print("SHINJA")
 //        encryptedAPIKey = ""
 //        encryptedAPIKey = encryptdecrypt.encryptDecryptAPIKey(type: "", value: "", action: "encrypt")
 //        
@@ -886,6 +919,7 @@ class LoginQRScanViewController: UIViewController, UITextFieldDelegate {
         
         if username != "" {
             self.username = username
+            print("SHINJA2")
             encryptedDeviceId = device.getDeviceId(userName: username)
             device.sendDeviceInfo(encryptedAPIKey: encryptedAPIKey, encryptedDeviceId: encryptedDeviceId)
             
@@ -906,6 +940,7 @@ class LoginQRScanViewController: UIViewController, UITextFieldDelegate {
             usernameTextField.becomeFirstResponder()
         }
         
+        print("SHINJA3 - \(usernameFieldIsEmpty)")
         if password != "" {
             passwordFieldIsEmpty = false
            // passwordErrorLabel.text = ""
@@ -1154,8 +1189,9 @@ class LoginQRScanViewController: UIViewController, UITextFieldDelegate {
     }
     
     @IBAction func signUpBtnPressed(_ sender: Any) {
-        let nextVC = storyboard?.instantiateViewController(withIdentifier: "OTPStep1ViewController") as! OTPStep1ViewController
+        let nextVC = storyboard?.instantiateViewController(withIdentifier: "CreateAccountQRScanViewController") as! CreateAccountQRScanViewController
 
+        print("MY 1 EVENT CODE \(eventCode)")
         nextVC.eventName = eventName
         nextVC.eventDateTime = eventDateTime
         nextVC.eventTypeIcon = eventTypeIcon

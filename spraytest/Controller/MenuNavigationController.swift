@@ -14,7 +14,7 @@ class MenuNavigationController: UINavigationController {
     override func viewDidLoad() {
         super.viewDidLoad()
         
-        UINavigationBar.appearance().isTranslucent = false
+       UINavigationBar.appearance().isTranslucent = false
         UINavigationBar.appearance().barTintColor = UIColor(red: 35/256, green: 9/256, blue: 98/256, alpha: 1.0)
         UINavigationBar.appearance().tintColor = .white
         UINavigationBar.appearance().backgroundColor = UIColor(red: 35/256, green: 9/256, blue: 98/256, alpha: 1.0)

@@ -196,7 +196,10 @@ class RSVPViewController: UIViewController {
     }
     
     func gotoSprayScreen(completionAction:String) {
-        let nextVC = storyboard?.instantiateViewController(withIdentifier: "GoSprayViewController") as! GoSprayViewController
+        let storyBoard : UIStoryboard = UIStoryboard(name: "Main", bundle:nil)
+        //let nextVC = storyBoard.instantiateViewController(withIdentifier: "GoSprayViewController") as! GoSprayViewController
+       
+        let nextVC = storyBoard.instantiateViewController(withIdentifier: "GoSprayViewController") as! GoSprayViewController
 
         nextVC.eventId = eventId
         nextVC.profileId = profileId
@@ -205,8 +208,13 @@ class RSVPViewController: UIViewController {
         nextVC.completionAction = completionAction
         nextVC.paymentClientToken = paymentClientToken
         nextVC.country = country
+        nextVC.myProfileData = myProfileData
 
-        self.navigationController?.pushViewController(nextVC , animated: true)
+        //self.navigationController?.pushViewController(nextVC , animated: true)
+        nextVC.modalPresentationStyle = .fullScreen
+        
+       self.present(nextVC, animated:true, completion:nil)
+        
     }
     func gotoEventPaymentScreen() {
         let nextVC = storyboard?.instantiateViewController(withIdentifier: "EventPaymentViewController") as! EventPaymentViewController

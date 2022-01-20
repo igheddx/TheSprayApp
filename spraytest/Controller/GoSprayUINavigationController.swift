@@ -26,7 +26,7 @@ class GoSprayUINavigationController: UINavigationController {
         
         UINavigationBar.appearance().setBackgroundImage(UIImage(named: ""), for: .default)
         UINavigationBar.appearance().shadowImage = UIImage(named: "")
-        // Do any additional setup after loading the view.
+        // Do any additional setup after loading the view. 
     }
     
 

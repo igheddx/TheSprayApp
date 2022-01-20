@@ -29,6 +29,8 @@ class SetupPaymentMethodViewController: UIViewController, STPAuthenticationConte
     var haspaymentdelegate: HasPaymentMethodDelegate?
     var customtextfield = CustomTextField()
     var formValidation =   Validation()
+    var myProfileData: [MyProfile] = []
+    
     var last4Digit: String = ""
     var expireDate: String = ""
     var token: String = ""
@@ -89,12 +91,16 @@ class SetupPaymentMethodViewController: UIViewController, STPAuthenticationConte
         textField.layer.cornerRadius = 5
         textField.text = country
         textField.frame.size.height = 45
+        textField.layer.cornerRadius = 6.0
+        textField.layer.masksToBounds = true
+        textField.layer.borderWidth = 0.5
+        textField.borderStyle = .none
         //CGRect frameRect.size.height = 100; // <-- Specify the height you want here.
         //textField.frame = frameRect;
         
         textField.returnKeyType = UIReturnKeyType.done
         textField.autocorrectionType = UITextAutocorrectionType.no
-        textField.font = UIFont.systemFont(ofSize: 22)
+        textField.font = UIFont.systemFont(ofSize: 17)
         textField.borderStyle = UITextField.BorderStyle.roundedRect
         textField.clearButtonMode = UITextField.ViewMode.whileEditing;
         textField.contentVerticalAlignment = UIControl.ContentVerticalAlignment.center
@@ -122,12 +128,27 @@ class SetupPaymentMethodViewController: UIViewController, STPAuthenticationConte
         let button = UIButton(type: .custom)
         button.layer.cornerRadius = 5
         //button.backgroundColor = UIColor(red: 138/256, green: 196/256, blue: 208/256, alpha: 1.0)//.systemBlue
-        button.backgroundColor = UIColor(red: 7/256, green: 104/256, blue: 159/256, alpha: 1.0)
-        button.titleLabel?.font = UIFont.systemFont(ofSize: 22)
+        //button.backgroundColor = UIColor(red: 7/256, green: 104/256, blue: 159/256, alpha: 1.0)
+        //button.backgroundColor = UIColor(red: 177/256, green: 23/256, blue: 23/256, alpha: 1.0)
+        //button.backgroundColor = UIColor(red: 61/256, green: 126/256, blue: 166/256, alpha: 1.0)
+        button.backgroundColor = UIColor(red: 99/256, green: 61/256, blue: 189/256, alpha: 1.0)
+        button.setTitleColor(UIColor.white, for: .normal)
+        button.layer.borderWidth = 0.5
+        
+        button.layer.cornerRadius = 4
+        button.layer.shadowColor = UIColor.white.cgColor
+        button.layer.shadowOffset = CGSize(width: 2, height: 2)
+        button.layer.shadowRadius = 5
+        button.layer.shadowOpacity = 0.5
+        button.layer.masksToBounds = true
+        
+        button.titleLabel?.font = UIFont.systemFont(ofSize: 17)
         button.setTitle("Add Payment Method", for: .normal)
-        button.layer.borderWidth = 1.0
+        //button.layer.borderWidth = 1.0
         button.addTarget(self, action: #selector(pay), for: .touchUpInside)
         return button
+        
+
     }()
 
 //    lazy var cardImageView: UIImageView = {
@@ -147,6 +168,11 @@ class SetupPaymentMethodViewController: UIViewController, STPAuthenticationConte
     
     override func viewDidLoad() {
         super.viewDidLoad()
+        
+        
+        getclienToken()
+        
+        print("MY PROFILE DATA = \(myProfileData)")
 //        if let stripeKey = Bundle.main.infoDictionary?["STRIPEAPI_PUBLISHABLEKEY"] as? String {
 //            STRIPEAPI_PUBLISHABLEKEY = stripeKey
 //        } else {
@@ -166,6 +192,8 @@ class SetupPaymentMethodViewController: UIViewController, STPAuthenticationConte
         pickerView.delegate = self
         pickerView.dataSource = self
         //textFiled.delegate = self
+        
+        pickerView.backgroundColor = .white
         
         cardNickNameTextField.addTarget(self, action: #selector(SetupPaymentMethodViewController.textFieldDidChange(_:)),
                                   for: .editingChanged)
@@ -188,20 +216,43 @@ class SetupPaymentMethodViewController: UIViewController, STPAuthenticationConte
           stackView.topAnchor.constraint(equalToSystemSpacingBelow: view.safeAreaLayoutGuide.topAnchor, multiplier: 2),
         ])
         //startCheckout()
-        setupIntentClientSecret = paymentClientToken
-        self.paymentIntentClientSecret = paymentClientToken
+       
         
         print("self.paymentIntentClientSecret = \(self.paymentIntentClientSecret)")
         
         
         countrylist.removeAll()
-        
-      
         loadCountryList()
-        
         dismissPickerView()
     }
     
+    func getclienToken() {
+        
+        var firstName: String = ""
+        var lastName: String = ""
+        var profileId: Int64 = 0
+        var email: String = ""
+        var phone: String = ""
+        var userName: String = ""
+        
+        for myprofile in myProfileData {
+            firstName = myprofile.firstName
+            lastName = myprofile.lastName
+            email = myprofile.email
+            phone = myprofile.phone
+            userName = myprofile.email
+            profileId = myprofile.profileId
+        }
+        
+         //call payment initialization
+         self.initializePayment(token: token, profileId: profileId , firstName: firstName, lastName: lastName, userName: userName, email: email, phone: "")
+        
+        print("My name is getClientToken - I was called")
+    }
+    
+    override func viewDidAppear(_ animated: Bool) {
+        getclienToken()
+    }
     override func viewDidDisappear(_ animated: Bool) {
         if launchedFromMenu == false {
             print("I AM CALLING EVENTPAYENT2VIEWE OR GO TO SPRAY launched from menu is false?")
@@ -251,6 +302,90 @@ class SetupPaymentMethodViewController: UIViewController, STPAuthenticationConte
                 break
         }
         return true
+    }
+    
+    //Initialize payment
+    func initializePayment(token: String, profileId: Int64, firstName: String, lastName: String, userName: String, email: String, phone: String) {
+        let initPayment = InitializePaymentModel(token: token, profileId: profileId, firstName: firstName, lastName: lastName, userName: userName, email: email, phone: phone)
+  
+        var encryptedAPIKeyUserName: String = ""
+        
+        var encryptdecrypt = EncryptDecrpyt()
+        encryptedAPIKeyUserName = encryptdecrypt.encryptDecryptAPIKey(type: "username", value: userName, action: "encrypt")
+
+        
+        print("new API Key = \(encryptedAPIKeyUserName)")
+        //let encryptedAPIKey = userName + "|" + self.encryptedAPIKey
+        let request = PostRequest(path: "/api/profile/initialize", model: initPayment, token: token, apiKey: encryptedAPIKeyUserName, deviceId: "")
+         
+        print("request = \(request)")
+        print("initPayment = \(initPayment)")
+        
+          Network.shared.send(request) { (result: Result<InitializePaymentData, Error>)  in
+             switch result {
+             case .success(let paymentInit):
+                
+                 
+                 self.paymentClientToken = ""
+                 self.paymentClientToken = paymentInit.clientToken!
+                
+                 /*assign new client token everytime the screen appears*/
+                 self.setupIntentClientSecret = self.paymentClientToken
+                 self.paymentIntentClientSecret = self.paymentClientToken
+                 
+                 
+                 
+                 print("payment client token DOMINIC = \(self.paymentClientToken)")
+                //capture profile data
+               // self.getProfileData(profileId1: profileId, token1: token)
+
+               
+             case .failure(let error):
+                 //self.labelMessage.text = error.localizedDescription
+                self.theAlertView(alertType: "InitializeError", message: error.localizedDescription + " - /api/profile/initialize")
+             }
+         }
+        //closing loading
+       // self.dismiss(animated: false, completion: nil)
+    }
+    
+    /*alert message*/
+    func theAlertView(alertType: String, message: String){
+        var alertTitle: String = ""
+        var alertMessage: String = ""
+        if alertType == "IncorrecUserNamePassword" {
+            alertTitle = "Login Error"
+            alertMessage = "You entered an invalid login ID or Password 1. \n"
+            
+        
+        } else if alertType == "MissingFields" {
+            alertTitle = "Login Error"
+            alertMessage = "You entered an invalid login ID or Password 2. \n"
+        } else if alertType == "InitializeError" {
+            alertTitle = "Login Error"
+            alertMessage = "Something went wrong with the initialization. Please try again later. \n \(message)"
+        } else if alertType == "GenericError" {
+            alertTitle = "Error"
+            alertMessage = "Something went wrong with the initialization. Please try again later. \n \(message)"
+        }  else if alertType == "GenericError2" {
+            alertTitle = "Error"
+            alertMessage = message
+        }
+       
+        
+        
+//        self.loginButton.isEnabled = true
+//        self.loginButton.setTitle("Sign In", for: .normal)
+//        self.usernameTextField.isEnabled = true
+//        self.passwordTextField.isEnabled = true
+//        //self.loginButton.loadIndicator(false)
+//        self.loginButton.loadIndicator(false)
+        
+        let alert2 = UIAlertController(title: alertTitle, message: alertMessage, preferredStyle: .alert)
+
+        alert2.addAction(UIAlertAction(title: "Close", style: .default, handler: nil))
+        //alert2.addAction(UIAlertAction(title: "No", style: .cancel, handler: nil))
+        self.present(alert2, animated: true)
     }
     
     func paymentCardTextFieldDidChange(_ textField: STPPaymentCardTextField) {
@@ -349,8 +484,9 @@ class SetupPaymentMethodViewController: UIViewController, STPAuthenticationConte
             self?.displayAlert(title: "Error loading page", message: message)
             return
       }
-      print("Created PaymentIntent")
-      self?.paymentIntentClientSecret = clientSecret
+        print("Created PaymentIntent")
+        self?.paymentIntentClientSecret = clientSecret
+        print("self?.paymentIntentClientSecret = clientSecret \(self?.paymentIntentClientSecret )")
     })
     task.resume()
   }
@@ -558,7 +694,9 @@ class SetupPaymentMethodViewController: UIViewController, STPAuthenticationConte
             let paymentMethodParams = STPPaymentMethodParams(card: cardParams, billingDetails: billingDetails, metadata: nil)
             let setupIntentParams = STPSetupIntentConfirmParams(clientSecret: setupIntentClientSecret!)
                    setupIntentParams.paymentMethodParams = paymentMethodParams
-            // Complete the setup
+           
+           print("setupIntentParams = \(setupIntentParams)")
+           // Complete the setup
             let paymentHandler = STPPaymentHandler.shared()
             paymentHandler.confirmSetupIntent(setupIntentParams, with: self) { [self] status, setupIntent, error in
             switch (status) {

@@ -33,11 +33,17 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
     func application(_ application: UIApplication, didFinishLaunchingWithOptions launchOptions: [UIApplication.LaunchOptionsKey: Any]?) -> Bool {
         // Override point for customization after application launch.
         
+//        UINavigationBar.appearance().setBackgroundImage(UIImage(),
+//                                                        for: .default)
+//
+//        // Sets shadow (line below the bar) to a blank image
+//        UINavigationBar.appearance().shadowImage = UIImage()
+//        UINavigationBar.appearance().isTranslucent = true
         
-     
-        UINavigationBar.appearance().setBackgroundImage(UIImage(), for: UIBarMetrics.default)
-            UINavigationBar.appearance().shadowImage = UIImage()
-        
+     //comment out for now 12/18
+//        UINavigationBar.appearance().setBackgroundImage(UIImage(), for: UIBarMetrics.default)
+//            UINavigationBar.appearance().shadowImage = UIImage()
+//
         AppCenter.start(withAppSecret: "ec81818c-6d8c-452d-9011-85b7ecbf8a5e", services:[
           Analytics.self,
             Crashes.self, Distribute.self

@@ -120,7 +120,7 @@ class MySprayEventTableViewCell: UITableViewCell {
 //        sprayCardView.layer.shadowRadius = 4.0
         goSprayCardView.layer.borderColor  = UIColor.gray.cgColor
         goSprayCardView.layer.shadowOffset = CGSize(width: 1, height: 1.0)
-        goSprayCardView.layer.shadowOpacity  = 1.0
+        goSprayCardView.layer.shadowOpacity  = 0.25
         goSprayCardView.layer.masksToBounds = false
         goSprayCardView.layer.cornerRadius = 8.0
         

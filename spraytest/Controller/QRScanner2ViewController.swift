@@ -62,11 +62,16 @@ class QRScanner2ViewController: UIViewController, UINavigationBarDelegate,  UITa
     override func viewDidLoad() {
         super.viewDidLoad()
         getAvailablePaymentData()
-        print("BRIAN TAB ID VIEW DID LOAD = \(tabBarController!.selectedIndex )")
+        //print("BRIAN TAB ID VIEW DID LOAD = \(tabBarController!.selectedIndex )")
         //print("completeion action ====== \(completionAction)")
             //tabBarController?.delegate = self
-        navigationController!.removeViewController(HomeViewController.self)
         
+        if let stack = self.navigationController?.viewControllers {
+            for vc in stack where vc.isKind(of: HomeViewController.self) {
+                debugPrint("exists")
+                navigationController!.removeViewController(HomeViewController.self)
+            }
+          }
         //addNavigationBar()
         
         for myprofile in myProfileData {
@@ -467,8 +472,10 @@ class QRScanner2ViewController: UIViewController, UINavigationBarDelegate,  UITa
         //let nextVC = storyboard?.instantiateViewController(withIdentifier: "HomeViewController") as! HomeViewController
         
         //let nextVC = storyboard?.instantiateViewController(withIdentifier: "HomeViewController") as! HomeViewController
+        let storyBoard : UIStoryboard = UIStoryboard(name: "Main", bundle:nil)
+        let nextVC = storyBoard.instantiateViewController(withIdentifier: "GoSprayViewController") as! GoSprayViewController
         
-        let nextVC = storyboard?.instantiateViewController(withIdentifier: "GoSprayViewController") as! GoSprayViewController
+        //let nextVC = storyboard?.instantiateViewController(withIdentifier: "GoSprayViewController") as! GoSprayViewController
         //MenuTabViewController
         print("QR Scan country =\(country)")
         nextVC.profileId = profileId
@@ -481,6 +488,7 @@ class QRScanner2ViewController: UIViewController, UINavigationBarDelegate,  UITa
         nextVC.completionAction = completionAction2
         nextVC.paymentClientToken = paymentClientToken
         nextVC.source  = "scanner"
+        nextVC.myProfileData = myProfileData
 //        nextVC.eventType =  theEventType
 //        nextVC.eventOwnerId = theOwnerId
 //        nextVC.myProfileData = myProfileData
@@ -490,8 +498,12 @@ class QRScanner2ViewController: UIViewController, UINavigationBarDelegate,  UITa
         print("event owner profileId = \(theOwnerId)")
         nextVC.eventOwnerProfileId = theOwnerId
         
-       self.navigationController?.pushViewController(nextVC , animated: true)
-        dismiss(animated: true, completion: nil)
+       //self.navigationController?.pushViewController(nextVC , animated: true)
+        nextVC.modalPresentationStyle = .fullScreen
+        
+        self.present(nextVC, animated:true, completion:nil)
+        
+        //dismiss(animated: true, completion: nil)
         
        // navigationController!.removeViewController(QRScanner2ViewController.self)
         

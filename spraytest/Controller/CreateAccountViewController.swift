@@ -36,7 +36,7 @@ class CreateAccountViewController: UIViewController, UINavigationBarDelegate, UI
     var userdata: UserData?
     var token2pass: String?
     var profileId: String?
-    var eventCode: String?
+    var eventCode: String = ""
     var message: String?
     var paymentClientToken: String = ""
     //instanciate the network object
@@ -193,6 +193,8 @@ class CreateAccountViewController: UIViewController, UINavigationBarDelegate, UI
                 nameTextField.resignFirstResponder()
             case emailTextField:
                 emailTextField.resignFirstResponder()
+            case phoneNumberTextField:
+                phoneNumberTextField.resignFirstResponder()
             case passwordTextField:
                 passwordTextField.resignFirstResponder()
             case passwordConfirmTextField:   //passwordConfirmLabel.isHidden = false
@@ -301,6 +303,7 @@ class CreateAccountViewController: UIViewController, UINavigationBarDelegate, UI
         if actionType == "displayloadingmsg" {
             nameTextField.isEnabled = false
             emailTextField.isEnabled = false
+            phoneNumberTextField.isEnabled = false
             passwordTextField.isEnabled = false
             passwordConfirmTextField.isEnabled = false
             signInBtn.isEnabled = false
@@ -315,6 +318,7 @@ class CreateAccountViewController: UIViewController, UINavigationBarDelegate, UI
             signUpBtn.setTitle("Sign Up", for: .normal)
             nameTextField.isEnabled = true
             emailTextField.isEnabled = true
+            phoneNumberTextField.isEnabled = true
             passwordTextField.isEnabled = true
             passwordConfirmTextField.isEnabled = true
             //self.loginButton.loadIndicator(false)
@@ -326,6 +330,7 @@ class CreateAccountViewController: UIViewController, UINavigationBarDelegate, UI
             signUpBtn.setTitle("Sign Up", for: .normal)
             nameTextField.isEnabled = true
             emailTextField.isEnabled = true
+            phoneNumberTextField.isEnabled = true
             passwordTextField.isEnabled = true
             passwordConfirmTextField.isEnabled = true
             //self.loginButton.loadIndicator(false)
@@ -335,9 +340,27 @@ class CreateAccountViewController: UIViewController, UINavigationBarDelegate, UI
     @IBAction func signInBtnPressed(_ sender: Any) {
         //self.navigationController?.popViewController(animated: true)
         
-        let nextVC = storyboard?.instantiateViewController(withIdentifier: "LoginViewController") as! LoginViewController
+        callLoginScreen()
+//        let nextVC = storyboard?.instantiateViewController(withIdentifier: "LoginViewController") as! LoginViewController
+//
+//        self.navigationController?.pushViewController(nextVC, animated: true)
         
-        self.navigationController?.pushViewController(nextVC, animated: true)
+        
+    }
+    func callLoginScreen() {
+        self.navigationController!.viewControllers.removeAll()
+        
+        let loginVC = self.storyboard?.instantiateViewController(withIdentifier: "LoginViewController") as? LoginViewController
+        let window = UIApplication.shared.windows.first
+
+        loginVC?.logout = true
+        
+        // Embed loginVC in Navigation Controller and assign the Navigation Controller as windows root
+        let nav = UINavigationController(rootViewController: loginVC!)
+        window?.rootViewController = nav
+        
+       self.navigationController?.popToRootViewController(animated: true)
+
     }
     func theAlertView(alertType: String, message: String){
         var alertTitle: String = ""
@@ -361,6 +384,7 @@ class CreateAccountViewController: UIViewController, UINavigationBarDelegate, UI
         //self.usernameTextField.isEnabled = true
         self.nameTextField.isEnabled = true
         self.emailTextField.isEnabled = true
+        self.phoneNumberTextField.isEnabled = true
         self.passwordTextField.isEnabled = true
         self.passwordConfirmTextField.isEnabled = true
         self.termsConditionSwitch.isEnabled = true
@@ -432,19 +456,13 @@ class CreateAccountViewController: UIViewController, UINavigationBarDelegate, UI
         if (isValidatePhone == false) {
             //LoadingStop()
             phoneNumberTextField.becomeFirstResponder()
-           //phoneNumberTextField.borderForTextField(textField: nameTextField, validationFlag: true)
-            //print("Incorrect First Name")
-            //call UI Alert
             phoneNumberTextField.isEnabled = true
             customtextfield.borderForTextField(textField:  phoneNumberTextField, validationFlag: true)
             
             self.presentUIAlert(alertMessage: "Incorrect Phone Number", alertTitle: "Missing Information", errorMessage: validationMessage, alertType: "formvalidation")
-            
-        
             return
         } else {
             customtextfield.borderForTextField(textField: phoneNumberTextField, validationFlag: false)
-            
         }
         
         let isValidatePass = self.formValidation.validatePassword(password: password)
@@ -506,6 +524,7 @@ class CreateAccountViewController: UIViewController, UINavigationBarDelegate, UI
             //default phone number - to be changed later
             phone = ""
             let phone = convertPhoneToString(phone: phoneNumberTextField.text!)
+            
             KeychainWrapper.standard.set(password, forKey: "registrationPasswordKeyChain")
            
             launchOTPVerifyVC(firstName: firstname, lastName: lastname, username: username!, phone: phone)
@@ -531,7 +550,7 @@ class CreateAccountViewController: UIViewController, UINavigationBarDelegate, UI
         //nextVC.eventTypeIcon = eventTypeIcon
         nextVC.eventCode = eventCode
         //nextVC.eventType = eventType
-        nextVC.action = ""
+        nextVC.action = "createAccount"
         //nextVC.email = email
         nextVC.encryptedAPIKey = encryptedAPIKey
         nextVC.encryptedDeviceId = encryptedDeviceId
@@ -602,4 +621,14 @@ class CreateAccountViewController: UIViewController, UINavigationBarDelegate, UI
 }
 
 
+extension UIViewController {
+    func hideKeyboardWhenTappedAround() {
+        let tapGesture = UITapGestureRecognizer(target: self,
+                         action: #selector(hideKeyboard))
+        view.addGestureRecognizer(tapGesture)
+    }
 
+    @objc func hideKeyboard() {
+        view.endEditing(true)
+    }
+}
