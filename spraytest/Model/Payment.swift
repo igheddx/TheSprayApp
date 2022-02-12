@@ -42,6 +42,21 @@ struct AddPayment: Model {
     let profileId: Int64?
 }
 
+struct AddPaymentNew: Model {
+    let paymentMethodToken: String?
+    let isUpdate: Bool?
+    let customName: String?
+    let paymentType: Int64?
+    let paymentSubType: String?
+    let paymentDescription: String?
+    let paymentExpiration: String?
+    let paymentGatewayType: Int64?
+    let paystackAuthorizationCode: String?
+    let paystackEmail: String?
+    let currency: String
+    let profileId: Int64?
+}
+
 struct AddPaymentType: Model {
     let nonce: String?
     let customName: String?

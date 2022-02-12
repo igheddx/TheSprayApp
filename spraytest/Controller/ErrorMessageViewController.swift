@@ -14,8 +14,10 @@ class ErrorMessageViewController: UIViewController {
 
 
 
+    @IBOutlet weak var messageImage: UIImageView!
     @IBOutlet weak var signBtn: MyCustomButton!
     
+    @IBOutlet weak var messageLbl: UILabel!
     //@IBOutlet weak var verifyBtn: MyCustomButton!
     var otpCode: String = ""
     var otpPhone: String = ""
@@ -52,6 +54,7 @@ class ErrorMessageViewController: UIViewController {
     var isKeyChainInUse: Bool = false
     var regPassword: String = ""
     var myprofiledata: [MyProfile] = []
+    var messageCode: String = ""
     
     //@IBOutlet weak var otpTextField: OneTimeCodeTextField!
     
@@ -79,6 +82,26 @@ class ErrorMessageViewController: UIViewController {
         setstatusbarbgcolor.setBackground()
        
         setNavigationBar()
+        
+        /* check error code*/
+        switch messageCode {
+        case "001":
+            messageImage.image = UIImage(named: "incomplete")
+            messageLbl.text = "...please check your email to continue"
+        case "002":
+            messageImage.image = UIImage(named: "incomplete")
+            messageLbl.text = "...something went wrong with registraion. Please try again later."
+        case "003": //failure with passwrod reset
+            messageImage.image = UIImage(named: "incomplete")
+            messageLbl.text = "...something went wrong with password reset. Please try again later."
+        case "004": //general failure
+            messageImage.image = UIImage(named: "incomplete")
+            messageLbl.text = "...something went wrong with. Please try again later."
+            
+        default:
+            print("Some other character")
+        }
+    
     }
     
     @IBAction func signIn(_ sender: Any) {

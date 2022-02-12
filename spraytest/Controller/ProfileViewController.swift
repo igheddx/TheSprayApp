@@ -22,6 +22,8 @@ struct ProgressDialog {
 
 class ProfileViewController: UIViewController,UITextFieldDelegate, UIImagePickerControllerDelegate, UINavigationControllerDelegate {
 
+    let defaults = UserDefaults.standard
+    
     @IBOutlet weak var myAvatar: UIImageView!
     //var myNewAvatar: UIImageView!
     //var myAvatar2 = UIImageView(frame: CGRectMake(0, 0, 100, 100))
@@ -71,11 +73,16 @@ class ProfileViewController: UIViewController,UITextFieldDelegate, UIImagePicker
     let imagePicker = UIImagePickerController()
     
     var encryptedAPIKey: String = ""
+    var displayName: String = ""
+    var userDisplayName: String = ""
+    var refreshProfileImageDelegate:  RefreshProfileImageDelegate?
+    var isRefresh: Bool = false
+    
     
     override func viewDidLoad() {
         super.viewDidLoad()
         
-       
+        
         //use to keep keyboard down
         NotificationCenter.default.addObserver(self, selector: #selector(keyboardWillShow(sender:)), name: UIResponder.keyboardWillShowNotification, object: nil);
 
@@ -240,9 +247,17 @@ class ProfileViewController: UIViewController,UITextFieldDelegate, UIImagePicker
         scroll2Top()
     }
     
+    
+    
     override func viewWillDisappear(_ animated: Bool) {
         super.viewWillDisappear(animated)
         
+        if self.isMovingFromParent {
+               //self.delegate.updateData( data)
+            print(" I am moving back - \(isRefresh)")
+            refreshProfileImageDelegate?.profileImage(avatar: "", isRefresh: isRefresh)
+         
+           }
         // Don't forget to reset when view is being removed
         AppUtility.lockOrientation(.all)
     }
@@ -652,7 +667,7 @@ class ProfileViewController: UIViewController,UITextFieldDelegate, UIImagePicker
     
     
     func updateAvatar(avatar: UIImage){
-        
+        var avatarStr: String = ""
         var newAvatarImage: String = ""
         
         do {
@@ -677,10 +692,43 @@ class ProfileViewController: UIViewController,UITextFieldDelegate, UIImagePicker
            Network.shared.send(request) { (result: Result<ProfileAvatar, Error>) in
                switch result {
                case .success(let avatardata):
-                print("Avatar update was successful")
-                self.LoadingStop()
-                  // print("avatar \(userdata.avatar)")
-                print(avatardata.firstName)
+                print("Avatar update was successful - \(newAvatarImage)")
+                   //self.refreshProfileImageDelegate?.profileImage(avatar: avatardata.avatar!, isRefresh: true)
+                   
+                   self.isRefresh = true
+                   self.defaults.set(avatardata.firstName, forKey: "userDisplayName")
+                   self.defaults.set(newAvatarImage, forKey: "userProfileImage")
+                   self.defaults.set(true, forKey: "isProfileImageChange")
+                   self.defaults.set(true, forKey: "isRefreshHomeVC")
+                   
+                   print("COBRA - isProfileImageChange =")
+                   print(self.defaults.bool(forKey: "isProfileImageChange"))
+                   
+                   self.LoadingStop()
+                //print("avatar \(userdata.avatar)")
+                   //avatardata.avatar
+                  
+               /*
+               UserDefaults.standard.set(avatardata.firstName, forKey: "userDisplayName")
+                UserDefaults.standard.set(avatarStr, forKey: "userProfileImage")
+                
+               self.userDisplayName = UserDefaults.standard.string(forKey: "userDisplayName")!
+               self.displayName = self.userDisplayName //name.firstName
+               
+               print("I am inside myProfile loop")
+               if let avatarStr1 = avatardata.avatar {
+                   avatarStr = avatarStr1
+                   UserDefaults.standard.set(avatarStr, forKey: "userProfileImage")
+                  
+               } else {
+                   avatarStr = "noimage"
+                   UserDefaults.standard.set("userprofile", forKey: "userProfileImage")
+                   print("no image here")
+                   break
+               } */
+            print(avatardata.firstName)
+                   
+                   
                    break
           case .failure(let error):
                    print(error.localizedDescription)

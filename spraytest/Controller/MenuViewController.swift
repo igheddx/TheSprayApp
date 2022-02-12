@@ -50,11 +50,17 @@ class MenuViewController: UIViewController {
     var biometricCellDesc: String = ""
     var biometricCellIcon: String = ""
     var setstatusbarbgcolor = StatusBarBackgroundColor()
-    var myprofiledata: [MyProfile] = []
+    var myProfileData: [MyProfile] = []
+    
+    var displayName: String = ""
+    var paymentCustomerId: String = ""
+    var paymentConnectedActId: String = ""
+    var isRefreshScreen: Bool = false
     
     override func viewDidLoad() {
         super.viewDidLoad()
         
+        print("my profile data \(myProfileData)")
         let isKeyChainInUse = isKeyPresentInUserDefaults(key: "isKeyChainInUse")
         
         tableView.tableFooterView = UIView(frame: .zero)
@@ -129,8 +135,13 @@ class MenuViewController: UIViewController {
         print("DOMINIC OZIE IGHEDOAS")
         print("token \(token!)")
         
-        MenuListData()
-        displayData()
+        /*only call on load*/
+        if isRefreshScreen == false {
+            print("False onload")
+            MenuListData()
+        }
+        
+        //displayData()
        // menudata.append(MenuData(sectionName: "More Actions...", sectionDetails: [MenuSections(name: "Create Event", image: "createEventIon")])!)
        
         
@@ -157,6 +168,11 @@ class MenuViewController: UIViewController {
         //menulists = MenuListData()
         //MenuListData()
         setstatusbarbgcolor.setBackground()
+        if isRefreshScreen == true {
+            print("isRefreshScreen ViewDidApper - MenuViewController")
+            MenuListData()
+        }
+       
         //deSelectReloadData()
         for cell in tableView.visibleCells {
             cell.setSelected(false, animated: true)
@@ -176,6 +192,175 @@ class MenuViewController: UIViewController {
     override func viewDidDisappear(_ animated: Bool) {
         AppUtility.lockOrientation(.all)
     }
+    
+    
+    /*call this function to refresh - not using this now */
+    func getProfileData(profileId1: Int64, token1: String) {
+        let request = Request(path: "/api/profile/\(profileId1)", token: token1, apiKey: encryptedAPIKey)
+
+        Network.shared.send(request) { [self] (result: Result<ProfileData2, Error>)  in
+        switch result {
+        case .success(let profileData):
+            
+            var defaultEventPaymentCustomName: String = ""
+            if let custName = profileData.defaultPaymentMethodCustomName  {
+                defaultEventPaymentCustomName = custName
+            } else {
+                defaultEventPaymentCustomName = ""
+            }
+            
+        
+            print("BIG PHONE NUMBER \(profileData.phone)")
+            //add profile record into object to be used later
+            let data1 = MyProfile(token: "", profileId: profileId1, firstName: profileData.firstName, lastName: profileData.lastName, userName: profileData.userName, email: profileData.email, phone: profileData.phone, avatar: profileData.avatar, paymentCustomerId: profileData.paymentCustomerId, paymentConnectedActId: profileData.paymentConnectedActId, success: true, returnUrl: "", refreshUrl: "",  hasValidPaymentMethod: profileData.hasValidPaymentMethod, defaultPaymentMethod: profileData.defaultPaymentMethod, defaultPaymentMethodCustomName: defaultEventPaymentCustomName)
+            self.myProfileData.append(data1)
+            
+            //checkOnboardingStatus()
+            getProfileNamePicture()
+           // break
+        case .failure(let error):
+           //self.textLabel.text = error.localizedDescription
+            self.theAlertView(alertType: "GenericError", message: error.localizedDescription + " - /api/profile")
+            }
+        }
+    }
+    
+    //this is used to get profile name and picture from the myprofile object..
+    //this is displayed at the top of the nagvigation bar in the homeviewcontroller
+    func getProfileNamePicture() {
+        
+        //get profileName
+        var avatarStr: String = ""
+        var newAvatarImage: UIImage?
+        var userDisplayName: String = ""
+        if myProfileData.isEmpty {
+            UserDefaults.standard.set("userprofile", forKey: "userProfileImage")
+            UserDefaults.standard.set("", forKey: "userDisplayName")
+            avatarStr = "noimage" //UserDefaults.standard.string(forKey: "userProfileImage")! //"noimage"
+            displayName = UserDefaults.standard.string(forKey: "userDisplayName")!
+            print("no avatar")
+            paymentCustomerId = ""
+            paymentConnectedActId = ""
+            
+        } else {
+            for name in myProfileData {
+                UserDefaults.standard.set(name.firstName, forKey: "userDisplayName")
+                userDisplayName = UserDefaults.standard.string(forKey: "userDisplayName")!
+                displayName = userDisplayName //name.firstName
+                
+                print("I am inside myProfile loop")
+                if let avatarStr1 = name.avatar {
+                    avatarStr = avatarStr1
+                    UserDefaults.standard.set(avatarStr, forKey: "userProfileImage")
+                   
+                } else {
+                    avatarStr = "noimage"
+                    UserDefaults.standard.set("userprofile", forKey: "userProfileImage")
+                    print("no image here")
+                    break
+                }
+               
+//                if let  paymentCustId = name.paymentCustomerId {
+//                    paymentCustomerId = paymentCustId
+//                } else  {
+//                    paymentCustomerId = ""
+//                }
+//
+//                if let  paymentConnectedId = name.paymentConnectedActId {
+//                   paymentConnectedActId = paymentConnectedId
+//                } else  {
+//                    paymentConnectedActId = ""
+//                }
+                
+                    
+            }
+        }
+       
+        
+        if avatarStr == "noimage" {
+            let userProfileImage = UserDefaults.standard.string(forKey: "userProfileImage")
+            newAvatarImage = UIImage(named: userProfileImage!)
+            print("noimage")
+            
+        } else {
+            let userProfileImage = UserDefaults.standard.string(forKey: "userProfileImage")
+            //newAvatarImage = UIImage(named: userProfileImage!)
+            
+            newAvatarImage = convertBase64StringToImage(imageBase64String: userProfileImage!)
+            print("there is an image???")
+        }
+       
+        
+//        if let myAvatar2 = myAvatar2 {
+//
+//            myAvatar.image = convertBase64StringToImage(imageBase64String: myAvatar2)
+//        } else {
+//            myAvatar.image = UIImage(named: "userprofile")
+        //}
+//        let frame = CGRect(x: 0, y: 0, width: 30, height: 30)
+//           let customView = UIView(frame: frame)
+//           let imageView = UIImageView(image: newAvatarImage)
+//           imageView.frame = frame
+//           imageView.layer.cornerRadius = imageView.frame.height * 0.5
+//           imageView.layer.masksToBounds = true
+//        imageView.tintColor = UIColor.white
+//           customView.addSubview(imageView)
+//        if #available(iOS 14.0, *) {
+//
+//            let rbar = UIBarButtonItem(title: displayName, style: UIBarButtonItem.Style.plain, target: self, action: #selector(handleClick))
+//            let item =  UIBarButtonItem(customView: customView)
+//            rbar.setTitleTextAttributes([NSAttributedString.Key.foregroundColor : UIColor.white], for: .normal)
+//            navigationItem.rightBarButtonItems = [item, rbar]
+            
+//            navigationItem.rightBarButtonItems = [
+//                UIBarButtonItem(customView: customView), UIBarButtonItem(title: displayName, style: UIBarButtonItem.Style.plain, target: self, action: #selector(handleClick))
+//
+//            ]
+//        } else {
+//            // Fallback on earlier versions
+//        }
+    }
+    
+    func theAlertView(alertType: String, message: String){
+        var alertTitle: String = ""
+        var alertMessage: String = ""
+        if alertType == "IncorrecUserNamePassword" {
+            alertTitle = "Login Error"
+            alertMessage = "You entered an invalid login ID or Password 1. \n"
+            
+            
+            
+        } else if alertType == "MissingFields" {
+            alertTitle = "Login Error"
+            alertMessage = "You entered an invalid login ID or Password 2. \n"
+        } else if alertType == "InitializeError" {
+            alertTitle = "Login Error"
+            alertMessage = "Something went wrong with the initialization. Please try again later. \n \(message)"
+        } else if alertType == "GenericError" {
+            alertTitle = "Error"
+            alertMessage = "Something went wrong with the initialization. Please try again later. \n \(message)"
+        }  else if alertType == "GenericError2" {
+            alertTitle = "Error"
+            alertMessage = message
+        }
+       
+        
+        
+//        self.loginButton.isEnabled = true
+//        self.loginButton.setTitle("Sign In", for: .normal)
+//        self.usernameTextField.isEnabled = true
+//        self.passwordTextField.isEnabled = true
+//        //self.loginButton.loadIndicator(false)
+//        self.loginButton.loadIndicator(false)
+//
+        let alert2 = UIAlertController(title: alertTitle, message: alertMessage, preferredStyle: .alert)
+
+        alert2.addAction(UIAlertAction(title: "Close", style: .default, handler: nil))
+        //alert2.addAction(UIAlertAction(title: "No", style: .cancel, handler: nil))
+        self.present(alert2, animated: true)
+    }
+    
+    
     
     func CheckIfBiometricEnabled() {
         let context = LAContext()
@@ -242,13 +427,21 @@ class MenuViewController: UIViewController {
             self.tableView.deselectRow(at: index, animated: true)
         }
         
-        tableView.reloadData()
+        if isRefreshScreen == false {
+            tableView.reloadData()
+        }
+       
     }
     
     func MenuListData ()  {
         
         menudata.removeAll()
-        var userProfileImage: String = ""
+        menusectionprofile.removeAll()
+        menusectionmoreactions.removeAll()
+        menusectionprofile.removeAll()
+        menusecdtionlogout.removeAll()
+        
+        var userProfileImage: String?
         //UserDefaults.standard.set("userprofile", forKey: "userProfileImage")
         
         userProfileImage = UserDefaults.standard.string(forKey: "userProfileImage")! //"noimage"
@@ -258,18 +451,25 @@ class MenuViewController: UIViewController {
         
         if userProfileImage == "userprofile" {
 
-            profileImage = UIImage(named: userProfileImage)
+            profileImage = UIImage(named: userProfileImage!)
             print("noimage")
             
         } else {
             //let userProfileImage = UserDefaults.standard.string(forKey: "userProfileImage")
             //newAvatarImage = UIImage(named: userProfileImage!)
             
-            profileImage = convertBase64StringToImage(imageBase64String: userProfileImage)
-            print("there is an image???")
+           
+            print("there is an image??? I am here \(userProfileImage)")
+            profileImage = convertBase64StringToImage(imageBase64String: userProfileImage!)
         }
         print("profileImage =\(profileImage)")
         //profileImage = UIImage(named:  userProfileImage)
+        
+        menusectionprofile.removeAll()
+        menusectionmoreactions.removeAll()
+        menusectionprofile.removeAll()
+        menusecdtionlogout.removeAll()
+        
         
         let menuprofiledata1 = MenuSections(id: "profile", name: "Profile", image: userProfileImage, viewcontroller: "toMyProfileVC")
         menusectionprofile.append(menuprofiledata1)
@@ -285,7 +485,7 @@ class MenuViewController: UIViewController {
         let menudata1 = MenuData(sectionName: "MORE ACTIONS", sectionDetails: menusectionmoreactions)
         
 
-        let menunotificationdata1 = MenuSections(id: "mynotification", name: "My Notifications", image: "notificationIcon", viewcontroller: "toMyNotificationVC")
+        let menunotificationdata1 = MenuSections(id: "mynotification", name: "My Sounds", image: "notificationIcon", viewcontroller: "toMyNotificationVC")
         menusectionnotification.append(menunotificationdata1)
        
         let menusettingsdata1 = MenuSections(id: "biometric", name: biometricCellDesc, image: biometricCellIcon, viewcontroller: "toMySettingsVC")
@@ -465,7 +665,7 @@ extension  MenuViewController: UITableViewDataSource, UITableViewDelegate  {
         nextVC.paymentClientToken = paymentClientToken!
         nextVC.launchedFromMenu = true
         nextVC.encryptedAPIKey = encryptedAPIKey
-        nextVC.myProfileData = myprofiledata
+        nextVC.myProfileData = myProfileData
 //        nextVC.eventName = eventName
 //        nextVC.eventDateTime = eventDateTime
 //        nextVC.eventTypeIcon = eventTypeIcon
@@ -524,6 +724,7 @@ extension MenuViewController{
                 NextVC.token = token!
                 NextVC.paymentClientToken = paymentClientToken
                 NextVC.encryptedAPIKey = encryptedAPIKey
+                NextVC.myProfileData = myProfileData
                 
 
             } else if(segue.identifier == "backToHome") {
@@ -536,6 +737,8 @@ extension MenuViewController{
                 NextVC.profileId = profileId!
                 NextVC.token = token!
                 NextVC.encryptedAPIKey = encryptedAPIKey
+                NextVC.refreshProfileImageDelegate = self
+                
                             
             } else if(segue.identifier == "toAddBankAccountVC")  { //add bank account
                 
@@ -553,10 +756,34 @@ extension MenuViewController{
                 NextVC.profileId = profileId!
                 NextVC.token = token!
                 NextVC.encryptedAPIKey = encryptedAPIKey
+                NextVC.refreshProfileImageDelegate = self
                 //targetController.data = "hello from ReceiveVC !"
                     //NextVC.logout  = true
             }
     
+    }
+}
+
+extension MenuViewController:  RefreshProfileImageDelegate {
+    func profileImage(avatar: String, isRefresh: Bool) {
+       
+        print("I was called avartar = \(isRefresh)")
+        
+        let userProfileImage = UserDefaults.standard.string(forKey: "userProfileImage")
+        print("userProfileImage \(userProfileImage)")
+        //newAvatarImage = UIImage(named: userProfileImage!)
+        //var newAvatarImage: UIImage?
+        //profileImage = convertBase64StringToImage(imageBase64String: userProfileImage!)
+        
+        isRefreshScreen = isRefresh
+        //profileImage = convertBase64StringToImage(imageBase64String: avatar)
+        print("there is an image???")
+        
+        menudata.removeAll()
+        menusectionprofile.removeAll()
+        menusectionmoreactions.removeAll()
+        menusectionprofile.removeAll()
+        menusecdtionlogout.removeAll()  
     }
 }
 

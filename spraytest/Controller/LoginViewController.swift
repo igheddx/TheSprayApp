@@ -1392,9 +1392,11 @@ class LoginViewController: UIViewController, UITextFieldDelegate {
     func cleanUserDefaults() {
         UserDefaults.standard.removeObject(forKey: "isAccountConnected")
         defaults.set(false, forKey: "isContinueAutoReplenish") //when auto replish is enabled
+        defaults.set(false, forKey: "isProfileImageChange")
+        //defaults.set(false, forKey: "isRefreshHomeVC")
         UserDefaults.standard.removeObject(forKey: "userDisplayName")
         UserDefaults.standard.removeObject(forKey: "userProfileImage")
-
+    
     }
     
     //**************** good code hold ***********************

@@ -24,6 +24,8 @@ class OTPStep2ViewController: UIViewController {
     var email: String = ""
     var phone: String = ""
     var userdata: UserData?
+    var profiledata: ProfileData2?
+    
     var token2pass: String?
     var profileId: String?
     var eventCode: String = ""
@@ -384,7 +386,7 @@ class OTPStep2ViewController: UIViewController {
         }
     }
     
-    func callErrMessage() {
+    func callErrMessage(messageCode: String) {
         if action == "forgotpassword" {
             
         } else  {
@@ -414,50 +416,58 @@ class OTPStep2ViewController: UIViewController {
 
         print("my user data = \(userData)")
         let request = PostRequest(path: "/api/profile/register", model: userData, token: "", apiKey: encryptedAPIKey, deviceId: encryptedDeviceId)
-        Network.shared.send(request) { [self] (result: Result<UserData, Error>) in
+        Network.shared.send(request) { [self] (result: Result<ProfileData2, Error>) in
             switch result {
-            case .success(let userdata):
-                self.userdata = userdata
+            case .success(let profileData):
+                self.profiledata = profileData
                 print("REGISTER WAS SUCCESSFUL")
-                CheckIfBiometricEnabled()
                 
-                if isBiometricEnabled  == true {
-                    //presentUIAlert(alertMessage: "Would like to enable Face Id or this profile?", alertTitle: "Biometric", errorMessage: "", alertType: "biometric")
-                    var biometricType: String = ""
-                    
-                    //check if phone has touch of face Id
-                    let context = LAContext()
-                    if ( context.biometryType == .touchID ) {
-                         print("touch Id enabled")
-                        biometricType = "Touch Id"
-
-                    }
-                    if ( context.biometryType == .faceID) {
-                        biometricType = "Face ID"
-                        print("face Id is enabled")
-                    } else {
-                        print("stone age")
-                    }
-                    let password = password // passwordTextField.text
-                    
-                    let alert = UIAlertController(title: "Biometric Authentication", message: "Would you like to enable \(biometricType) for the Spray App?", preferredStyle: .actionSheet)
-
-                    alert.addAction(UIAlertAction(title: "Yes", style: .default, handler: { [self] (action) in removeCredentialFromKeyChain(userName: self.username, password: password)}))
-                    alert.addAction(UIAlertAction(title: "No", style: .default, handler: { [self] (action) in self.authenticateUser(userName: self.username, password: password)}))
-                    //alert.addAction(UIAlertAction(title: "No", style: .cancel, handler: nil))
-
-                    self.present(alert, animated: true)
-                    
+                /*if duplicate send a message*/
+                if self.profiledata!.isDuplicate  == true {
+                    callErrMessage(messageCode: "001") /*001 = duplicate account*/
                 } else {
-                    self.authenticateUser(userName: self.username, password: password)
+                    CheckIfBiometricEnabled()
+                    
+                    if isBiometricEnabled  == true {
+                        //presentUIAlert(alertMessage: "Would like to enable Face Id or this profile?", alertTitle: "Biometric", errorMessage: "", alertType: "biometric")
+                        var biometricType: String = ""
+                        
+                        //check if phone has touch of face Id
+                        let context = LAContext()
+                        if ( context.biometryType == .touchID ) {
+                             print("touch Id enabled")
+                            biometricType = "Touch Id"
+
+                        }
+                        if ( context.biometryType == .faceID) {
+                            biometricType = "Face ID"
+                            print("face Id is enabled")
+                        } else {
+                            print("stone age")
+                        }
+                        let password = password // passwordTextField.text
+                        
+                        let alert = UIAlertController(title: "Biometric Authentication", message: "Would you like to enable \(biometricType) for the Spray App?", preferredStyle: .actionSheet)
+
+                        alert.addAction(UIAlertAction(title: "Yes", style: .default, handler: { [self] (action) in removeCredentialFromKeyChain(userName: self.username, password: password)}))
+                        alert.addAction(UIAlertAction(title: "No", style: .default, handler: { [self] (action) in self.authenticateUser(userName: self.username, password: password)}))
+                        //alert.addAction(UIAlertAction(title: "No", style: .cancel, handler: nil))
+
+                        self.present(alert, animated: true)
+                        
+                    } else {
+                        self.authenticateUser(userName: self.username, password: password)
+                    }
+                    print("SHINJA = \(userdata)")
+                    //call authentication func
                 }
-                print("SHINJA = \(userdata)")
-                //call authentication func
+                
+               
                
 
             case .failure(let error):
                 
-                callErrMessage()
+                callErrMessage(messageCode: "004")
                 
                 /* comment this out while i test
                  out handling duplicate account...

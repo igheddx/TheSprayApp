@@ -23,6 +23,11 @@ struct CountryStateList {
     let stateCode: String
     let stateName: String
 }
+
+struct EventStatus {
+    let statusId: Int
+    let status: String
+}
 struct StateList {
     let stateCode: String
     let stateName: String

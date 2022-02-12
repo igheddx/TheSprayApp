@@ -169,6 +169,8 @@ class SetupPaymentMethodViewController: UIViewController, STPAuthenticationConte
     override func viewDidLoad() {
         super.viewDidLoad()
         
+        print("OLD paymentClientToken = \(paymentClientToken)")
+        
         
         getclienToken()
         
@@ -185,7 +187,7 @@ class SetupPaymentMethodViewController: UIViewController, STPAuthenticationConte
         
         navigationController?.navigationBar.topItem?.backBarButtonItem = UIBarButtonItem(title: "", style: .plain, target: nil, action: nil)
         
-        print("paymentClientToken = \(paymentClientToken)")
+       
         
         cardNickNameTextField.delegate = self
         countryTextField.delegate = self
@@ -251,7 +253,7 @@ class SetupPaymentMethodViewController: UIViewController, STPAuthenticationConte
     }
     
     override func viewDidAppear(_ animated: Bool) {
-        getclienToken()
+        //getclienToken()
     }
     override func viewDidDisappear(_ animated: Bool) {
         if launchedFromMenu == false {
@@ -335,7 +337,9 @@ class SetupPaymentMethodViewController: UIViewController, STPAuthenticationConte
                  
                  
                  
-                 print("payment client token DOMINIC = \(self.paymentClientToken)")
+                 print("NEW paymentClientToken = \(self.paymentClientToken)")
+                 
+                 //print("payment client token DOMINIC = \(self.paymentClientToken)")
                 //capture profile data
                // self.getProfileData(profileId1: profileId, token1: token)
 
@@ -875,10 +879,12 @@ class SetupPaymentMethodViewController: UIViewController, STPAuthenticationConte
                         : String, customName: String, paymentOptionType: Int64, paymentDescription: String, paymentExpiration: String, currencyCode: String) {
         //if i want to add default payment method, use the paymentmethod Id from this call to setup AddPref...
         //paymentmethodtoken is from the stripe UI
-        let addPayment = AddPayment(paymentMethodToken: paymentMethodToken, isUpdate: false, customName: customName, paymentType:1, paymentDescription: paymentDescription, paymentExpiration: paymentExpiration, currency: currencyCode, profileId: profileId)
+        /*paymentGatewayType  1=stripe 2 = paystack*/
+        //let addPayment = AddPayment(paymentMethodToken: paymentMethodToken, isUpdate: false, customName: customName, paymentType:1, paymentDescription: paymentDescription, paymentExpiration: paymentExpiration, currency: currencyCode, profileId: profileId)
+        let addPaymentNew = AddPaymentNew(paymentMethodToken: paymentMethodToken, isUpdate: false, customName: customName, paymentType: 1, paymentSubType: "", paymentDescription: paymentDescription, paymentExpiration: paymentExpiration, paymentGatewayType: 1, paystackAuthorizationCode: "", paystackEmail: "", currency: currencyCode, profileId: profileId)
 
-        print("addPayment \(addPayment)")
-        let request = PostRequest(path: "/api/PaymentMethod/add", model: addPayment , token: token, apiKey: encryptedAPIKey, deviceId: "")
+        print("addPayment \(addPaymentNew)")
+        let request = PostRequest(path: "/api/PaymentMethod/add", model: addPaymentNew, token: token, apiKey: encryptedAPIKey, deviceId: "")
 
         Network.shared.send(request) { [self] (result: Result<Data, Error>)  in
             switch result {

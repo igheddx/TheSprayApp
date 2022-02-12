@@ -127,21 +127,6 @@
                                 <color key="textColor" white="0.33333333333333331" alpha="1" colorSpace="custom" customColorSpace="genericGamma22GrayColorSpace"/>
                                 <nil key="highlightedColor"/>
                             </label>
-                            <button opaque="NO" contentMode="scaleToFill" misplaced="YES" contentHorizontalAlignment="center" contentVerticalAlignment="center" buttonType="system" lineBreakMode="middleTruncation" translatesAutoresizingMaskIntoConstraints="NO" id="Axg-6a-Kof" customClass="GoSpray" customModule="spraytest" customModuleProvider="target">
-                                <rect key="frame" x="22" y="165" width="340" height="30"/>
-                                <color key="backgroundColor" red="0.92156862750000001" green="0.36862745099999999" blue="0.043137254899999998" alpha="0.84999999999999998" colorSpace="calibratedRGB"/>
-                                <constraints>
-                                    <constraint firstAttribute="height" constant="30" id="2bV-S9-zqZ"/>
-                                    <constraint firstAttribute="width" constant="340" id="xgd-MP-Jxv"/>
-                                </constraints>
-                                <color key="tintColor" red="0.95179441580000002" green="0.9770865675" blue="1" alpha="1" colorSpace="custom" customColorSpace="sRGB"/>
-                                <state key="normal" title="SPRAY NOW!">
-                                    <color key="titleColor" red="0.95179441580000002" green="0.9770865675" blue="1" alpha="1" colorSpace="custom" customColorSpace="sRGB"/>
-                                </state>
-                                <connections>
-                                    <action selector="readyToSprayButtonPressed:" destination="KGk-i7-Jjw" eventType="touchUpInside" id="9IG-dQ-q4b"/>
-                                </connections>
-                            </button>
                             <button opaque="NO" contentMode="scaleToFill" contentHorizontalAlignment="center" contentVerticalAlignment="center" lineBreakMode="middleTruncation" translatesAutoresizingMaskIntoConstraints="NO" id="CxU-0T-USe" customClass="CircleActionBtn" customModule="spraytest" customModuleProvider="target">
                                 <rect key="frame" x="296" y="212" width="35" height="35"/>
                                 <color key="backgroundColor" white="0.66666666669999997" alpha="1" colorSpace="custom" customColorSpace="genericGamma22GrayColorSpace"/>
@@ -157,6 +142,21 @@
                                     <action selector="eventMetricsButtonPressed:" destination="KGk-i7-Jjw" eventType="touchUpInside" id="ULe-yV-J9c"/>
                                 </connections>
                             </button>
+                            <button opaque="NO" contentMode="scaleToFill" contentHorizontalAlignment="center" contentVerticalAlignment="center" buttonType="system" lineBreakMode="middleTruncation" translatesAutoresizingMaskIntoConstraints="NO" id="Axg-6a-Kof" customClass="GoSpray" customModule="spraytest" customModuleProvider="target">
+                                <rect key="frame" x="24" y="166" width="340" height="30"/>
+                                <color key="backgroundColor" red="0.92156862750000001" green="0.36862745099999999" blue="0.043137254899999998" alpha="0.84999999999999998" colorSpace="calibratedRGB"/>
+                                <constraints>
+                                    <constraint firstAttribute="height" constant="30" id="2bV-S9-zqZ"/>
+                                    <constraint firstAttribute="width" constant="340" id="xgd-MP-Jxv"/>
+                                </constraints>
+                                <color key="tintColor" red="0.95179441580000002" green="0.9770865675" blue="1" alpha="1" colorSpace="custom" customColorSpace="sRGB"/>
+                                <state key="normal" title="SPRAY NOW!">
+                                    <color key="titleColor" red="0.95179441580000002" green="0.9770865675" blue="1" alpha="1" colorSpace="custom" customColorSpace="sRGB"/>
+                                </state>
+                                <connections>
+                                    <action selector="readyToSprayButtonPressed:" destination="KGk-i7-Jjw" eventType="touchUpInside" id="9IG-dQ-q4b"/>
+                                </connections>
+                            </button>
                         </subviews>
                         <color key="backgroundColor" white="1" alpha="1" colorSpace="custom" customColorSpace="genericGamma22GrayColorSpace"/>
                         <constraints>
@@ -164,14 +164,14 @@
                             <constraint firstAttribute="trailing" secondItem="8xA-ea-gos" secondAttribute="trailing" constant="24" id="1q9-ue-M0I"/>
                             <constraint firstAttribute="trailing" secondItem="CxU-0T-USe" secondAttribute="trailing" constant="56" id="1r5-CZ-eFc"/>
                             <constraint firstItem="6G5-sa-9vI" firstAttribute="top" secondItem="8ur-Jc-6b2" secondAttribute="top" constant="8" id="3z1-Aj-V4N"/>
-                            <constraint firstItem="Axg-6a-Kof" firstAttribute="leading" secondItem="8ur-Jc-6b2" secondAttribute="leading" constant="23" id="4D6-u5-NaP"/>
+                            <constraint firstItem="Axg-6a-Kof" firstAttribute="leading" secondItem="8ur-Jc-6b2" secondAttribute="leading" constant="24" id="4D6-u5-NaP"/>
                             <constraint firstItem="b8M-vp-daM" firstAttribute="top" secondItem="Njc-VS-gSB" secondAttribute="bottom" constant="4" id="8Cd-KP-yPA"/>
-                            <constraint firstItem="Axg-6a-Kof" firstAttribute="top" secondItem="GTH-Bz-hhx" secondAttribute="bottom" constant="34" id="Ahb-mA-cPb"/>
+                            <constraint firstItem="Axg-6a-Kof" firstAttribute="top" secondItem="GTH-Bz-hhx" secondAttribute="bottom" constant="35" id="Ahb-mA-cPb"/>
                             <constraint firstItem="5rQ-hG-dG1" firstAttribute="top" secondItem="8ur-Jc-6b2" secondAttribute="top" constant="14" id="BRo-VJ-nOd"/>
                             <constraint firstItem="BmO-ks-VRG" firstAttribute="leading" secondItem="GTH-Bz-hhx" secondAttribute="trailing" constant="16" id="Ert-NJ-NcR"/>
                             <constraint firstAttribute="trailing" secondItem="Njc-VS-gSB" secondAttribute="trailing" constant="23" id="Jrb-cE-3by"/>
                             <constraint firstItem="1aw-CL-ilE" firstAttribute="leading" secondItem="8ur-Jc-6b2" secondAttribute="leading" constant="46" id="MQx-b9-r50"/>
-                            <constraint firstItem="CxU-0T-USe" firstAttribute="top" secondItem="Axg-6a-Kof" secondAttribute="bottom" constant="17" id="Naj-mv-dGL"/>
+                            <constraint firstItem="CxU-0T-USe" firstAttribute="top" secondItem="Axg-6a-Kof" secondAttribute="bottom" constant="16" id="Naj-mv-dGL"/>
                             <constraint firstItem="b8M-vp-daM" firstAttribute="leading" secondItem="GTH-Bz-hhx" secondAttribute="trailing" constant="16" id="NpX-jQ-g72"/>
                             <constraint firstItem="Njc-VS-gSB" firstAttribute="top" secondItem="5rQ-hG-dG1" secondAttribute="bottom" constant="3" id="ODU-Gm-BgO"/>
                             <constraint firstItem="BmO-ks-VRG" firstAttribute="top" secondItem="N9v-iX-Rvn" secondAttribute="bottom" constant="8" id="Rko-hG-0pz"/>
@@ -181,7 +181,7 @@
                             <constraint firstAttribute="trailing" secondItem="b8M-vp-daM" secondAttribute="trailing" constant="27" id="ZKX-JS-ZqV"/>
                             <constraint firstItem="fHB-1i-i17" firstAttribute="leading" secondItem="BmO-ks-VRG" secondAttribute="trailing" constant="22" id="bh3-33-5mp"/>
                             <constraint firstItem="tgk-Z1-qwY" firstAttribute="leading" secondItem="8ur-Jc-6b2" secondAttribute="leading" constant="23" id="c4B-0N-Gs6"/>
-                            <constraint firstAttribute="trailing" secondItem="Axg-6a-Kof" secondAttribute="trailing" constant="24" id="d9C-rv-2wV"/>
+                            <constraint firstAttribute="trailing" secondItem="Axg-6a-Kof" secondAttribute="trailing" constant="23" id="d9C-rv-2wV"/>
                             <constraint firstItem="Njc-VS-gSB" firstAttribute="leading" secondItem="GTH-Bz-hhx" secondAttribute="trailing" constant="16" id="dTJ-58-CMn"/>
                             <constraint firstAttribute="trailing" secondItem="6G5-sa-9vI" secondAttribute="trailing" constant="85" id="gqE-jS-DZB"/>
                             <constraint firstItem="GTH-Bz-hhx" firstAttribute="leading" secondItem="8ur-Jc-6b2" secondAttribute="leading" constant="8" id="lbZ-D1-43U"/>
@@ -190,7 +190,7 @@
                             <constraint firstItem="8xA-ea-gos" firstAttribute="top" secondItem="CxU-0T-USe" secondAttribute="bottom" constant="15" id="vHW-dI-fAm"/>
                             <constraint firstItem="6G5-sa-9vI" firstAttribute="leading" secondItem="8ur-Jc-6b2" secondAttribute="leading" constant="8" id="w2k-Wj-1hW"/>
                             <constraint firstItem="GTH-Bz-hhx" firstAttribute="leading" secondItem="8ur-Jc-6b2" secondAttribute="leading" constant="8" id="w6v-zM-fXc"/>
-                            <constraint firstItem="1aw-CL-ilE" firstAttribute="top" secondItem="Axg-6a-Kof" secondAttribute="bottom" constant="17" id="wdC-13-SBR"/>
+                            <constraint firstItem="1aw-CL-ilE" firstAttribute="top" secondItem="Axg-6a-Kof" secondAttribute="bottom" constant="16" id="wdC-13-SBR"/>
                             <constraint firstItem="tgk-Z1-qwY" firstAttribute="top" secondItem="1aw-CL-ilE" secondAttribute="bottom" constant="15" id="x0n-ca-41V"/>
                             <constraint firstAttribute="trailing" secondItem="5rQ-hG-dG1" secondAttribute="trailing" constant="35" id="xjX-mb-CEN"/>
                             <constraint firstItem="N9v-iX-Rvn" firstAttribute="leading" secondItem="GTH-Bz-hhx" secondAttribute="trailing" constant="16" id="yez-N6-2fC"/>

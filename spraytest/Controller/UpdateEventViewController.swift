@@ -41,10 +41,13 @@ class UpdateEventViewController: UIViewController {
     
     @IBOutlet weak var eventStatusSwitch: UISwitch!
     
-    @IBOutlet weak var closeEventLabel: UILabel!
+    //@IBOutlet weak var closeEventLabel: UILabel!
     
     @IBOutlet weak var saveButton: MyCustomButton!
     @IBOutlet weak var isForBusinessSwitch: Switch1!
+   
+    
+    @IBOutlet weak var eventStatusTextField: CustomTextField2!
     //@IBOutlet weak var eventDateTimeErrorLabel: UILabel!
 //    @IBOutlet weak var eventTypeErrorLabel: UILabel!
 //    @IBOutlet weak var address1ErrorLabel: UILabel!
@@ -57,6 +60,7 @@ class UpdateEventViewController: UIViewController {
     var customtextfield = CustomTextField()
     var countrylist: [CountryList] = []
     var countrystatelist: [CountryStateList] = []
+    var eventStatusList: [EventStatus] = []
     var statelist: [StateList] = []
     var stateData: [String] = []
     var countryData: [String] = []
@@ -86,10 +90,12 @@ class UpdateEventViewController: UIViewController {
     var refreshscreendelegate: RefreshScreenDelegate?
     var isRSVPRequired: Bool = false
     var isSingleReceiverEvent: Bool = false
-    var eventCurrentState: Int = 2 //99 is default
+    var eventCurrentState: Int? // 2 //99 is default
     var isRefreshScreen: Bool = false
     var isForBusiness: Bool?
     var isForBusinessCheck: Bool = false
+    var isEventClosureCancel: Bool = false
+    var isProceed: Bool = false
     var eventStage: Int = 1
 //    var eventName: String?
 //    var eventDateTime: String?
@@ -103,6 +109,7 @@ class UpdateEventViewController: UIViewController {
 //    var eventCode: String?
 //    var eventId: Int64?
     var selectedCountry: String?
+    var eventStageId: Int?
 
     
     override func viewDidLoad() {
@@ -110,41 +117,21 @@ class UpdateEventViewController: UIViewController {
         
         navigationController?.navigationBar.topItem?.backBarButtonItem = UIBarButtonItem(title: "", style: .plain, target: nil, action: nil)
         
+        print("eventCurrentState = \(eventCurrentState)")
         //always disable eventcode
         eventCodeLbl.isEnabled = false
-        //loadEventCurrentStateSegCont()
-        
-        //NotificationCenter.default.addObserver(self, selector: #selector(keyboardWillShow(sender:)), name: UIResponder.keyboardWillShowNotification, object: nil);
-
-        //NotificationCenter.default.addObserver(self, selector: #selector(keyboardWillHide(sender:)), name: UIResponder.keyboardWillHideNotification, object: nil);
-        
-        //default value
-        //eventCurrentStateSegCont.selectedSegmentIndex = eventCurrentState
-//        switch eventCurrentState {
-//        case 1:
-//            eventCurrentStateSegCont.selectedSegmentIndex = 0
-//        case 2:
-//            eventCurrentStateSegCont.selectedSegmentIndex = 1
-//        case 3:
-//            eventCurrentStateSegCont.selectedSegmentIndex = 2
-//        case 4:
-//            eventCurrentStateSegCont.selectedSegmentIndex = 3
-//        default:
-//            eventCurrentStateSegCont.selectedSegmentIndex = 0
-//        }
         
         if eventStatus == true {
-            eventStatusSwitch.isOn = false
+            //eventStatusSwitch.isOn = false
             enableDisableTextFields(enable: true)
-            closeEventLabel.text = "Event Is Active"
+            //closeEventLabel.text = "Event Is Active"
         } else {
-            eventStatusSwitch.isOn = true
+            //eventStatusSwitch.isOn = true
             enableDisableTextFields(enable: false)
-            closeEventLabel.text = "Inactive Event"
+           // closeEventLabel.text = "Inactive Event"
         }
         
         
-       
         if let i = isForBusiness {
             isForBusinessCheck = i
         } else {
@@ -155,16 +142,23 @@ class UpdateEventViewController: UIViewController {
         isRSVPRequiredSwitch.isOn = isRSVPRequired
         isForBusinessSwitch.isOn = isForBusinessCheck
     
-        //countryList = ["Algeria", "Andorra", "Angola", "India", "Thailand"]
-        
         self.navigationItem.title = "Update Event"
-        //data for the date picker
-        //stateData = ["Select State", "Texas", "New York", "California"]
-       // countryData = ["Select Country", "USA", "England", "Nigeria", "Ghana"]
-        //eventTypeData = ["Select Event Type", "Birthday", "Wedding", "Anniversary", "Baby Shower", "Wedding Shower", "Family Reunion", "Engagement Party", "House Party", "Part"]
           
         pickerView.delegate = self
         pickerView.dataSource = self
+        pickerView.backgroundColor = .white
+        pickerView.setValue(UIColor.black, forKey:"textColor")
+        
+        
+        countrystatelist.removeAll()
+        statelist.removeAll()
+        eventtypeData.removeAll()
+        countrylist.removeAll()
+        eventStatusList.removeAll()
+        
+        loadCountryList()
+        loadCountryStateListData()
+        EventStatusList()
         
         eventNameTextField.text = eventName
         eventDateTextField.text = eventDateTime //dateFormatTime2(date: date)
@@ -176,6 +170,7 @@ class UpdateEventViewController: UIViewController {
         eventCountryTextField.text = eventCountry
         eventCodeLbl.text = eventCode
         eventTypeTextField.text = eventType
+        eventStatusTextField.text = eventStageConversionId(statusId: eventCurrentState!)
         
         eventNameTextField.delegate = self
         eventDateTextField.delegate = self
@@ -186,6 +181,7 @@ class UpdateEventViewController: UIViewController {
         eventStateTextField.delegate  = self
         eventZipCodeTextField.delegate = self
         eventCountryTextField.delegate = self
+        eventStatusTextField.delegate = self
         //textFiled.delegate = self
         
         eventNameTextField.addTarget(self, action: #selector(UpdateEventViewController.textFieldDidChange(_:)),
@@ -206,32 +202,9 @@ class UpdateEventViewController: UIViewController {
                                   for: .editingChanged)
         eventCountryTextField.addTarget(self, action: #selector(UpdateEventViewController.textFieldDidChange(_:)),
                                   for: .editingChanged)
-        //eventCodeTextField.addTarget(self, action: #selector(UpdateEventViewController.textFieldDidChange(_:)),
-                                  //for: .editingChanged)
-//        statePickerView.delegate = self
-//        statePickerView.dataSource = self
-//        countryPickerView.delegate = self
-//        countryPickerView.dataSource = self
+        eventStatusTextField.addTarget(self, action: #selector(UpdateEventViewController.textFieldDidChange(_:)),
+                                  for: .editingChanged)
         
-        //set value of pickerview to text fiels
-        //ccountTypeTextField.inputView = accountTypePickerView
-//        eventCountryTextField.inputView = countryPickerView
-//        eventStateTextField.inputView = statePickerView
-        
-        
-//        statePickerView.delegate = self as! UIPickerViewDelegate
-//        statePickerView.dataSource = self as! UIPickerViewDataSource
-//
-//        countryPickerView.delegate = self
-//        countryPickerView.dataSource = self
-//
-        countrystatelist.removeAll()
-        statelist.removeAll()
-        eventtypeData.removeAll()
-        countrylist.removeAll()
-        
-        loadCountryList()
-        loadCountryStateListData()
         
         
         //createPickerView()
@@ -247,24 +220,11 @@ class UpdateEventViewController: UIViewController {
         customtextfield.borderForTextField(textField: eventStateTextField, validationFlag: false)
         customtextfield.borderForTextField(textField: eventZipCodeTextField, validationFlag: false)
         customtextfield.borderForTextField(textField: eventCountryTextField, validationFlag: false)
+        customtextfield.borderForTextField(textField: eventStatusTextField, validationFlag: false)
+        customtextfield.borderForTextField(textField: eventStatusTextField, validationFlag: false)
         customtextfield.borderForTextField(textField: eventTypeTextField, validationFlag: false)
         //customtextfield.borderForTextField(textField: eventCodeTextField, validationFlag: false)
-        
-        
-//        eventNameErrorLabel.isHidden = true
-//        eventDateTimeErrorLabel.isHidden = true
-//        eventTypeErrorLabel.isHidden = true
-//        address1ErrorLabel.isHidden = true
-//        address2ErrorLabel.isHidden = true
-//        cityErrorLabel.isHidden = true
-//        stateErrorLabel.isHidden = true
-//        zipcodeErrorLabel.isHidden = true
-//        countryErrorLabel.isHidden = true
-       // createEventLabel.isHidden = true
-       // createEventLabel.text = createEventTitle
-        // Do any additional setup after loading the view.
-        
-        
+                
     }
     override func viewDidAppear(_ animated: Bool) {
         AppUtility.lockOrientation(.portrait)
@@ -310,6 +270,7 @@ class UpdateEventViewController: UIViewController {
             eventStateTextField.isEnabled = true
             eventZipCodeTextField.isEnabled = true
             eventCountryTextField.isEnabled = true
+            eventStatusTextField.isEnabled = true
             saveButton.isEnabled = true
         case false:
             eventNameTextField.isEnabled = false
@@ -321,6 +282,7 @@ class UpdateEventViewController: UIViewController {
             eventStateTextField.isEnabled = false
             eventZipCodeTextField.isEnabled = false
             eventCountryTextField.isEnabled = false
+            eventStatusTextField.isEnabled = false
             saveButton.isEnabled = false
         default:
             break
@@ -378,23 +340,23 @@ class UpdateEventViewController: UIViewController {
         eventCurrentState = eventCurrentStateSegCont.selectedSegmentIndex
         
     }
-    @IBAction func cancelCloseEventSwitch(_ sender: UISwitch) {
+    /*@IBAction func cancelCloseEventSwitch(_ sender: UISwitch) {
         //disable all fields
         if eventStatus == true {
             if sender.isOn == true {
                 enableDisableTextFields(enable: false)
-                closeEventLabel.text = "Inactivate Event"
+                //closeEventLabel.text = "Inactivate Event"
             } else {
                 enableDisableTextFields(enable: true)
-                closeEventLabel.text = "Event Is Active"
+                //closeEventLabel.text = "Event Is Active"
             }
         } else {
             if sender.isOn == true {
                 enableDisableTextFields(enable: true)
-                closeEventLabel.text = "Event Is Active"
+                //closeEventLabel.text = "Event Is Active"
             } else {
                 enableDisableTextFields(enable: false)
-                closeEventLabel.text = "Inactivate Event"
+                //closeEventLabel.text = "Inactivate Event"
             }
         }
         
@@ -406,7 +368,9 @@ class UpdateEventViewController: UIViewController {
 //            closeEventLabel.text = "Activate Event"
 //        }
 
-    }
+    }*/
+    
+    
 //    func scroll2Top() {
 //        scrollView.contentOffset = CGPoint(x: 0.0, y: 0.0)
 //    }
@@ -421,8 +385,49 @@ class UpdateEventViewController: UIViewController {
         countrylist.append(data3)
         let data4 = CountryList(countryCode: "IN", countryName: "India")
         countrylist.append(data4)
-        
     }
+    
+    func EventStatusList() {
+        let data1 = EventStatus(statusId: 1, status: "Created")
+            eventStatusList.append(data1)
+        
+        let data2 = EventStatus(statusId: 2, status: "Open")
+        eventStatusList.append(data2)
+        
+        let data3 = EventStatus(statusId: 3, status: "Close")
+        eventStatusList.append(data3)
+        
+        let data4 = EventStatus(statusId: 4, status: "Cancel")
+        eventStatusList.append(data4)
+    }
+    
+    /*get event stage Id*/
+    func eventStageConversion(status: String) -> Int {
+        var statusId: Int = 0
+        //myStatus = status
+        for theEventStage in eventStatusList {
+            if status == theEventStage.status {
+                statusId = theEventStage.statusId
+                break
+            }
+        }
+        return statusId
+    }
+    
+    /*get event Stage name*/
+    func eventStageConversionId(statusId: Int) -> String {
+        var status: String = ""
+        //myStatus = status
+        for theEventStage in eventStatusList {
+             
+            if statusId == theEventStage.statusId {
+                status = theEventStage.status
+                break
+            }
+        }
+        return status
+    }
+    
     func loadCountryStateListData() {
         let data01 = CountryStateList(countryCode: "US", countryName: "United States", stateCode: "OO", stateName: "Select State")
         countrystatelist.append(data01)
@@ -506,7 +511,7 @@ class UpdateEventViewController: UIViewController {
     
     @objc func textFieldDidChange(_ textField: UITextField) {
         let text = textField.text
-
+        self.tabBarController?.tabBar.isHidden = true
             if text?.utf16.count==0{
                 switch textField{
                 case eventNameTextField :
@@ -551,9 +556,11 @@ class UpdateEventViewController: UIViewController {
                     eventZipCodeTextField.becomeFirstResponder()
                 case eventCountryTextField:
                     customtextfield.borderForTextField(textField: eventCountryTextField, validationFlag: true)
+                case eventStatusTextField:
+                    customtextfield.borderForTextField(textField: eventStatusTextField, validationFlag: true)
                     //countryErrorLabel.isHidden = false
                     //self.formValidation.validateName2(name2: eventCountryTextField.text!).errorMsg
-                    eventCountryTextField.becomeFirstResponder()
+                    eventStatusTextField.becomeFirstResponder()
                 default:
                     break
                 }
@@ -595,6 +602,10 @@ class UpdateEventViewController: UIViewController {
                     //countryErrorLabel.isHidden = true
                     //countryErrorLabel.text = ""
                     customtextfield.borderForTextField(textField: eventCountryTextField, validationFlag: false)
+                case eventStatusTextField:
+                    //countryErrorLabel.isHidden = true
+                    //countryErrorLabel.text = ""
+                    customtextfield.borderForTextField(textField: eventStatusTextField, validationFlag: false)
                 default:
                     break
                     
@@ -641,6 +652,8 @@ class UpdateEventViewController: UIViewController {
                 eventZipCodeTextField.resignFirstResponder()
             case eventCountryTextField:
                 eventCountryTextField.resignFirstResponder()
+            case eventStatusTextField:
+                eventStatusTextField.resignFirstResponder()
             default:
                 break
         }
@@ -665,6 +678,7 @@ class UpdateEventViewController: UIViewController {
     }
     
     @objc func donePressed() {
+        self.tabBarController?.tabBar.isHidden = false
         let dateFormatter = DateFormatter()
         dateFormatter.dateFormat = "E, d MMM yyyy h:mm a" //yyyy-MM-dd'T'HH:mm"
         eventDateTextField.text   = dateFormatter.string(from: datePicker.date)
@@ -694,9 +708,11 @@ class UpdateEventViewController: UIViewController {
         eventTypeTextField.inputAccessoryView = toolBar
         eventStateTextField.inputAccessoryView = toolBar
         eventCountryTextField.inputAccessoryView = toolBar
+        eventStatusTextField.inputAccessoryView = toolBar
     }
     @objc func action() {
-          view.endEditing(true)
+        view.endEditing(true)
+        self.tabBarController?.tabBar.isHidden = false
     }
     
 //    private func addBottomLineToTextField(textField: UITextField) {
@@ -736,6 +752,16 @@ class UpdateEventViewController: UIViewController {
     func textFieldFocus(textField: UITextField) {
         textField.becomeFirstResponder()
         customtextfield.borderForTextField(textField: textField, validationFlag: true)
+        
+        print("There is focus")
+        switch textField{
+       
+        case eventDateTextField:
+            print("NOah ighedosa")
+            self.tabBarController?.tabBar.isHidden = true
+        default:
+            break
+        }
     }
     func displayAlertMessage(displayMessage: String, textField: UITextField) {
         let alert2 = UIAlertController(title: "Missing Information", message: displayMessage, preferredStyle: .alert)
@@ -778,6 +804,19 @@ class UpdateEventViewController: UIViewController {
         
     }
     
+    /*call this function to set a flag for alerting user that event
+     will be closed or cancel*/
+    func okwithEventClosureCancel() {
+        isEventClosureCancel = true
+        isProceed = true
+        updateEvent()
+    }
+    /* set flag to false if user does not want to proceed w/ closing event but the event
+     stage is close or cancel*/
+    func proceedFlag() {
+        isProceed = false
+    }
+    
     func getFormattedDateToDate(dateinput: String) -> Date {
         let dateFormatter = DateFormatter()
         //dateFormatter.locale = Locale(identifier: "en_US_POSIX") // set locale to reliable US_POSIX
@@ -794,6 +833,10 @@ class UpdateEventViewController: UIViewController {
     
     @IBAction func eventSaveButtonPressed(_ sender: Any) {
         
+        updateEvent()
+    }
+    
+    func updateEvent() {
         //self.LoadingStart(message: "Updating Event...")
         print("this is the 3rd event name \(eventNameTextField.text)")
         guard let eventName = eventNameTextField.text,
@@ -801,13 +844,12 @@ class UpdateEventViewController: UIViewController {
             //let eventName = eventNameTextField.text
             let eventDateTime = eventDateTextField.text,
             let eventAddress1 = eventAddress1TextField.text,
-            
             let eventCity = eventCityTextField.text,
             let eventState = eventStateTextField.text,
             let eventCountry = eventCountryTextField.text,
             let eventZipCode = eventZipCodeTextField.text,
-            let eventType = eventTypeTextField.text
-        
+            let eventType = eventTypeTextField.text,
+            let eventStatusList = eventStatusTextField.text
         else {
             return
         }
@@ -826,25 +868,34 @@ class UpdateEventViewController: UIViewController {
         let isValidateZipCode = self.formValidation.validateName2(name2: eventZipCode).isValidate
         let isValidateState = self.formValidation.validateName2(name2: eventState).isValidate
         let isValidateCountry = self.formValidation.validateName2(name2: eventCountry).isValidate
-        print("isValidateEventName = \(isValidateEventName)")
+        
+        let isValidateEventStatus = self.formValidation.validateName2(name2: eventStatusList).isValidate
+        
+        
         
         if (isValidateCountry == false || eventCountryTextField.text == "Select Country") {
             self.LoadingStop()
-            //customtextfield.borderForTextField(textField: eventCountryTextField, validationFlag: true)
-       
             let message = "Country is Required"
-            //eventCountryTextField.becomeFirstResponder()
             displayAlertMessage(displayMessage: message, textField: eventCountryTextField)
-            
-            //print("Incorrect First Name")
-            //loadingLabel.text = "Incorrect First Name"
-            //countryErrorLabel.text = self.formValidation.validateName2(name2: eventCountry).errorMsg
             
             return
         } else {
             customtextfield.borderForTextField(textField: eventCountryTextField, validationFlag: false)
-            //countryErrorLabel.text = self.formValidation.validateName2(name2: eventCountry).errorMsg
         }
+        
+        /* event status */
+        if (isValidateEventStatus == false || eventStatusTextField.text == "Select Event Status") {
+            self.LoadingStop()
+            let message = "Event Status is Required"
+            displayAlertMessage(displayMessage: message, textField: eventStatusTextField)
+            
+            return
+        } else {
+            customtextfield.borderForTextField(textField: eventStatusTextField, validationFlag: false)
+        }
+        
+        print("isValidateEventStatus = \(isValidateEventStatus)")
+        
         if (isValidateEventName == false) {
             self.LoadingStop()
             //customtextfield.borderForTextField(textField: eventNameTextField, validationFlag: true)
@@ -996,6 +1047,45 @@ class UpdateEventViewController: UIViewController {
         }
         
      
+        //var eventStageId: Int?
+        var message: String = ""
+        eventStageId = eventStageConversion(status: eventStatusTextField.text!)
+        
+        print("eventStageId = \(eventStageId)")
+        print("isEventClosureCancel =\(isEventClosureCancel)")
+        if isEventClosureCancel == false {
+            print("Dominic 1 ")
+            if eventStageId == 3 || eventStageId == 4 {
+                print("Dominic 2 ")
+                self.LoadingStop()
+                
+                if eventStageId == 3 {
+                    message = "You are about to close this event. Closing this event will trigger the payout process. Would you like to process?"
+                } else if eventStageId == 4 {
+                    message = "You are about to Cancel this event. Note: this event will no longer be accisible. Would you like to process?"
+                }
+                //customtextfield.borderForTextField(textField: eventZipCodeTextField, validationFlag: true)
+                
+                //displayAlertMessage(displayMessage: message, textField: eventZipCodeTextField)
+                let alert = UIAlertController(title: "Event Closure/Cancel", message: message, preferredStyle: .actionSheet)
+
+                //alert.addAction(UIAlertAction(title: "Cancel", style: .default, handler: { [self] (action) in }))
+                alert.addAction(UIAlertAction(title: "Cancel", style: .cancel, handler: { [self] (action) in proceedFlag()}))
+                alert.addAction(UIAlertAction(title: "Proceed", style: .default, handler: { [self] (action) in okwithEventClosureCancel()}))
+
+                self.present(alert, animated: true)
+                
+            } else {
+                print("Dominic 5 ")
+                isProceed = true
+            }
+        } else {
+            print("Dominic 4 ")
+            isProceed = true
+        }
+       
+        
+        
         //var eventDateTime: String = "Wed, 19 Aug 2020 08:02 AM"
         //remove the AM/PM before you pass string on to be formatted to yyyy-MM-dd HH:mm
 //        let incomingDate = eventDateTime
@@ -1003,29 +1093,17 @@ class UpdateEventViewController: UIViewController {
 //        let finalDate = incomingDate![..<index]
 //        print("finalDate= \(finalDate)")
         
-        if (isValidateEventName == true || isValidateEventDateTime == true || isValidateEventType == true || isValidateAddress1 == true ||  isValidateCity == true || isValidateState == true || isValidateZipCode == true || isValidateCountry == true ) {
-            
-            isRefreshScreen = true
-            //print("address2TextField.text =\(address2TextField.text)")
-            let dateFormatter = DateFormatter()
-            dateFormatter.locale = Locale(identifier: "en_US_POSIX")
-            dateFormatter.dateFormat = "E, d MMM yyyy h:mm a"
-            let date = dateFormatter.date(from:String(eventDateTime))!
-
-            print("data = \(date)")
-            let formatedEventDateTime  = getFormattedDate(date: date, format: "yyyy-MM-dd'T'HH:mm")
-            
-            print("formatedEventDateTime \(formatedEventDateTime)")
-            var eventTypeId: Int
-           
-            eventTypeId = getEventTypeId(eventTypeName: eventType)
-            
-            print("eventTypeId =\(eventTypeId)")
-            print("eventType Name =\(eventType)")
+        print("isProceed = \(isProceed)")
+        if (isValidateEventName == true && isValidateEventDateTime == true && isValidateEventType == true && isValidateAddress1 == true &&  isValidateCity == true && isValidateState == true && isValidateZipCode == true && isValidateCountry == true && isValidateEventStatus == true && isProceed == true) {
             
            
-                
-            print("event date time =\(eventDateTime)")
+            
+//            print("eventTypeId =\(eventTypeId)")
+//            print("eventType Name =\(eventType)")
+//
+//
+//
+//            print("event date time =\(eventDateTime)")
            
             //let newUser = UserModel(id: 2, name: "Peter", username: "Livesey", email: "941ecfff8dc3@medium.com")
             var eventCurrentStateUpdated: Int?
@@ -1043,66 +1121,113 @@ class UpdateEventViewController: UIViewController {
                 break
             }
             
-            print("new event name \(eventName)")
-            let eventData = EventModelEdit(ownerId: profileId, name: eventName, dateTime: formatedEventDateTime, address1: eventAddress1, address2: eventAddress2, city: eventCity, zipCode: eventZipCode, country: eventCountry, state: eventState, eventType: eventTypeId,  isRsvprequired: isRSVPRequiredSwitch.isOn, isSingleReceiver: isSingleReceiverSwitch.isOn, isForBusiness: isForBusinessSwitch.isOn, eventId: eventId!, isActive: eventStatus!, eventState: Int64(eventStage))
-            
-            /*
-             isSingleReceiverSwitch.isOn = isSingleReceiverEvent
-             isRSVPRequiredSwitch.isOn = isRSPRequired
-             */
-            print(eventData)
- 
-            let request = PostRequest(path: "/api/Event/update", model: eventData, token: token!, apiKey: encryptedAPIKey, deviceId: "")
-            Network.shared.send(request) { [self] (result: Result<Data, Error>) in
-                switch result {
-                case .success(let eventdata1):
-                    print("eventdate =\(eventdata1.description)")
-                    let decoder = JSONDecoder()
-                    do {
-                       let eventDataJson: EventDataReturned = try decoder.decode(EventDataReturned.self, from: eventdata1)
-
-                        if eventDataJson.success == false {
-                            self.LoadingStop()
-                            let message = "Something went wrong. Please try again."
-                            self.displayAlertMessage2(displayMessage: message, completionAction: "error")
-
-                        }else {
-                            self.scroll2Top()
-                            
-                            //check if event close is called
-                            if Int64(eventCurrentStateUpdated!) == 3 {
-                                print("Int64(eventCurrentStateUpdated!) \(Int64(eventCurrentStateUpdated!))")
-                                self.LoadingStop()
-                                self.LoadingStart(message: "Closing Event. Please wait...")
-                                closeEvent()
-                            } else {
-                                self.LoadingStop()
-                                let message = "Event was updated successfully."
-                                self.displayAlertMessage2(displayMessage: message, completionAction: "success")
-                            }
-                           
-                        }
-                    } catch {
-                        self.LoadingStop()
-                        self.scroll2Top()
-                        let message = "Something went wrong. Please try again \n. \(error.localizedDescription)"
-                        self.displayAlertMessage2(displayMessage: message, completionAction: "error")
-                   }
-      
-                   self.isEventEdited = true
-                case .failure(let error):
-                    self.LoadingStop()
-                    self.scroll2Top()
-                    let message = "Something went wrong. Please try again \n. \(error.localizedDescription)"
-                    self.displayAlertMessage2(displayMessage: message, completionAction: "error")
-                }
+            //check if event close is selected - then close event before updating the remaining event record
+            if Int64(eventStageId!) == 3 {
+                print("Most current Event StageId) \(Int64(eventStageId!))")
+                
+                //self.LoadingStart(message: "Closing Event. Please wait...")
+                
+                
+                //self.completionAlert(message: "Closing Event. Please wait...", timer: 4, completionAction: "")
+                
+                closeEvent()
+                print("Close event was called")
+            } else {
+                updateEventRecord()
             }
+            
+            
+           
     
         }
 
     }
     
+    func updateEventRecord() {
+        guard let eventName = eventNameTextField.text,
+              //print("This is the second event name \(eventName!)")
+            //let eventName = eventNameTextField.text
+            let eventDateTime = eventDateTextField.text,
+            let eventAddress1 = eventAddress1TextField.text,
+            let eventCity = eventCityTextField.text,
+            let eventState = eventStateTextField.text,
+            let eventCountry = eventCountryTextField.text,
+            let eventZipCode = eventZipCodeTextField.text,
+            let eventType = eventTypeTextField.text,
+            let eventStatusList = eventStatusTextField.text
+        else {
+            return
+        }
+       
+        let eventAddress2 = eventAddress2TextField.text
+        print("new event name \(eventName)")
+        
+        
+        isRefreshScreen = true
+        //print("address2TextField.text =\(address2TextField.text)")
+        let dateFormatter = DateFormatter()
+        dateFormatter.locale = Locale(identifier: "en_US_POSIX")
+        dateFormatter.dateFormat = "E, d MMM yyyy h:mm a"
+        let date = dateFormatter.date(from:String(eventDateTime))!
+
+        print("data = \(date)")
+        let formatedEventDateTime  = getFormattedDate(date: date, format: "yyyy-MM-dd'T'HH:mm")
+        
+        print("formatedEventDateTime \(formatedEventDateTime)")
+        var eventTypeId: Int
+       
+        eventTypeId = getEventTypeId(eventTypeName: eventType)
+        eventStageId = eventStageConversion(status: eventStatusTextField.text!)
+        
+        let eventData = EventModelEdit(ownerId: profileId, name: eventName, dateTime: formatedEventDateTime, address1: eventAddress1, address2: eventAddress2, city: eventCity, zipCode: eventZipCode, country: eventCountry, state: eventState, eventType: eventTypeId,  isRsvprequired: isRSVPRequiredSwitch.isOn, isSingleReceiver: isSingleReceiverSwitch.isOn, isForBusiness: isForBusinessSwitch.isOn, eventId: eventId!, isActive: eventStatus!, eventState: Int64(eventStageId!))
+        
+        /*
+         isSingleReceiverSwitch.isOn = isSingleReceiverEvent
+         isRSVPRequiredSwitch.isOn = isRSPRequired
+         */
+        print(eventData)
+
+        let request = PostRequest(path: "/api/Event/update", model: eventData, token: token!, apiKey: encryptedAPIKey, deviceId: "")
+        Network.shared.send(request) { [self] (result: Result<Data, Error>) in
+            switch result {
+            case .success(let eventdata1):
+                print("eventdate =\(eventdata1.description)")
+                let decoder = JSONDecoder()
+                do {
+                   let eventDataJson: EventDataReturned = try decoder.decode(EventDataReturned.self, from: eventdata1)
+
+                    if eventDataJson.success == false {
+                        self.LoadingStop()
+                        let message = "Something went wrong. Please try again."
+                        self.displayAlertMessage2(displayMessage: message, completionAction: "error")
+
+                    }else {
+                        self.scroll2Top()
+                        
+                        print("UPDATED")
+                        self.LoadingStop()
+                        let message = "Event was updated successfully."
+                        self.displayAlertMessage2(displayMessage: message, completionAction: "success")
+                       
+                    }
+                } catch {
+                    self.LoadingStop()
+                    self.scroll2Top()
+                    let message = "Something went wrong. Please try again \n. \(error.localizedDescription)"
+                    self.displayAlertMessage2(displayMessage: message, completionAction: "error")
+               }
+  
+               self.isEventEdited = true
+            case .failure(let error):
+                self.LoadingStop()
+                self.scroll2Top()
+                let message = "Something went wrong. Please try again \n. \(error.localizedDescription)"
+                self.displayAlertMessage2(displayMessage: message, completionAction: "error")
+            }
+        }
+    }
     func closeEvent() {
+        print("I called closed")
         let close = EventCloseModel(profileId: profileId, eventId: eventId!)
         
         /*
@@ -1111,11 +1236,14 @@ class UpdateEventViewController: UIViewController {
          */
         //print(eventData)
         let request = PostRequest(path: "/api/Event/close", model: close, token: token!, apiKey: encryptedAPIKey, deviceId: "")
+        print("Event Close Request = \(request)")
         Network.shared.send(request) { (result: Result<EventCloseResult, Error>) in
             switch result {
             case .success(let eventclose):
+                self.updateEventRecord()
                 self.LoadingStop()
-                let message = "Event Close is Complete."
+                
+                let message = "Event Closure is Complete."
                 self.displayAlertMessage2(displayMessage: message, completionAction: "success")
                 
                 break
@@ -1126,6 +1254,27 @@ class UpdateEventViewController: UIViewController {
             }
         }
     }
+    
+    
+    func completionAlert(message: String, timer: Int, completionAction:String) -> Void {
+        let delay = Double(timer) //* Double(NSEC_PER_SEC)
+        let alert = UIAlertController(title: "", message: message, preferredStyle: UIAlertController.Style.alert)
+        present(alert, animated: true, completion: nil)
+        DispatchQueue.main.asyncAfter(deadline: .now() + delay) {
+            alert.dismiss(animated: true)
+            //self.LoadingStop()
+            if completionAction == "goback" {
+                //self.redirect() commented out 10/9
+                self.dismiss(animated: true, completion: nil)
+                //self.launchEventPaymentScreen()
+//                if((self.presentingViewController) != nil){
+//                    self.dismiss(animated: false, completion: nil)
+//                }
+            }
+        }
+    }
+    
+    
     /*
     // MARK: - Navigation
 
@@ -1142,7 +1291,7 @@ class UpdateEventViewController: UIViewController {
 
 
 extension  UpdateEventViewController: UIPickerViewDataSource {
-      func numberOfComponents(in pickerView: UIPickerView) -> Int {
+    func numberOfComponents(in pickerView: UIPickerView) -> Int {
           return 1
       }
     
@@ -1153,6 +1302,9 @@ extension  UpdateEventViewController: UIPickerViewDataSource {
             return countrylist.count
         } else if activePickerViewTextField == eventTypeTextField {
             return eventtypeData.count
+        } else if activePickerViewTextField == eventStatusTextField {
+            return eventStatusList.count
+        
 //        } else if activePickerViewTextField == textFiled {
 //            return countryList.count // number of dropdown items
 //
@@ -1171,6 +1323,8 @@ extension  UpdateEventViewController: UIPickerViewDelegate {
             return countrylist[row].countryName
         } else if activePickerViewTextField == eventTypeTextField {
             return eventtypeData[row].eventTypeName
+        } else if activePickerViewTextField == eventStatusTextField {
+            return eventStatusList[row].status
 //        } else if activePickerViewTextField == textFiled {
 //            return countryList[row] // dropdown item
 //
@@ -1192,6 +1346,9 @@ extension  UpdateEventViewController: UIPickerViewDelegate {
         } else if activePickerViewTextField == eventTypeTextField {
             eventTypeTextField.text = eventtypeData[row].eventTypeName
             //self.view.endEditing(true)
+        } else if activePickerViewTextField == eventStatusTextField  {
+            eventStatusTextField.text = eventStatusList[row].status
+            //self.view.endEditing(true)
         }
 //        else if activePickerViewTextField == textFiled {
 //            selectedCountry = countryList[row] // selected item
@@ -1210,6 +1367,8 @@ extension  UpdateEventViewController: UITextFieldDelegate {
         } else if activePickerViewTextField == eventCountryTextField {
             activePickerViewTextField.inputView = pickerView
         } else if activePickerViewTextField == eventTypeTextField {
+            activePickerViewTextField.inputView = pickerView
+        } else if activePickerViewTextField == eventStatusTextField {
             activePickerViewTextField.inputView = pickerView
         }
         

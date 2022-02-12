@@ -13,35 +13,44 @@ class MyNotificationsTableViewController: UITableViewController {
    
     let defaults = UserDefaults.standard
     
+    @IBOutlet weak var cashRegisterSoundSwitch: UISwitch!
+    
+    @IBOutlet weak var coinDropSoundSwitch: UISwitch!
+    
     @IBOutlet weak var alertMeWhenEventEndsSwitch: UISwitch!
+    
     @IBOutlet weak var alertMeWhenGiftDepositedSwitch: UISwitch!
     @IBOutlet weak var alertMeWhenRSVPSwitch: UISwitch!
     
     override func viewDidLoad() {
         super.viewDidLoad()
         //let defaults = UserDefaults.standard
-        let isAlertMeWhenEventEnds = defaults.bool(forKey: "isAlertMeWhenEventEnds")
-        if isAlertMeWhenEventEnds == false {
-            alertMeWhenEventEndsSwitch.isOn = false
+        let isCashRegisterSound = defaults.bool(forKey: "isCashRegisterSound")
+        if isCashRegisterSound == false {
+            cashRegisterSoundSwitch.isOn = false
+            //coinDropSoundSwitch.isOn = true
         } else {
-            alertMeWhenEventEndsSwitch.isOn = true
+            cashRegisterSoundSwitch.isOn = true
+           // coinDropSoundSwitch.isOn = false
         }
         
         
-        let isAlertMeWhenGiftDeposited = defaults.bool(forKey: "isAlertMeWhenGiftDeposited")
-        if isAlertMeWhenGiftDeposited == false {
-            alertMeWhenGiftDepositedSwitch.isOn = false
+        let isCoinDropSound = defaults.bool(forKey: "isCoinDropSound")
+        if isCoinDropSound == false {
+            coinDropSoundSwitch.isOn = false
+            //cashRegisterSoundSwitch.isOn = true
         } else {
-            alertMeWhenGiftDepositedSwitch.isOn = true
+            coinDropSoundSwitch.isOn = true
+            //cashRegisterSoundSwitch.isOn = false
         }
         
         
-        let isAlertMeWhenRSVP = defaults.bool(forKey: "isAlertMeWhenRSVP")
-        if isAlertMeWhenRSVP == false {
-            alertMeWhenRSVPSwitch.isOn = false
-        } else {
-            alertMeWhenRSVPSwitch.isOn = true
-        }
+//        let isAlertMeWhenRSVP = defaults.bool(forKey: "isAlertMeWhenRSVP")
+//        if isAlertMeWhenRSVP == false {
+//            alertMeWhenRSVPSwitch.isOn = false
+//        } else {
+//            alertMeWhenRSVPSwitch.isOn = true
+//        }
         
         
         //let useTouchID = defaults.bool(forKey: "UseTouchID")
@@ -53,6 +62,43 @@ class MyNotificationsTableViewController: UITableViewController {
     override func viewDidDisappear(_ animated: Bool) {
         AppUtility.lockOrientation(.all)
     }
+    
+    
+    @IBAction func cashRegisterSwitchSelected(_ sender: Any) {
+        if ((sender as AnyObject).isOn == true) {
+            defaults.set(true, forKey: "isCashRegisterSound")
+            
+            defaults.set(false, forKey: "isCoinDropSound")
+            cashRegisterSoundSwitch.isOn = true
+            coinDropSoundSwitch.isOn = false
+        } else if ((sender as AnyObject).isOn == false) {
+            defaults.set(false, forKey: "isCashRegisterSound")
+            
+            defaults.set(true, forKey: "isCoinDropSound")
+            coinDropSoundSwitch.isOn = true
+            cashRegisterSoundSwitch.isOn = false
+        }
+    }
+    
+    @IBAction func coinDropSwitchSelected(_ sender: Any) {
+        if ((sender as AnyObject).isOn == true) {
+            defaults.set(true, forKey: "isCoinDropSound")
+            coinDropSoundSwitch.isOn = true
+            
+            defaults.set(false, forKey: "isCashRegisterSound")
+            cashRegisterSoundSwitch.isOn = false
+          
+        } else if ((sender as AnyObject).isOn == false) {
+            defaults.set(false, forKey: "isCoinDropSound")
+            coinDropSoundSwitch.isOn = false
+            
+            defaults.set(true, forKey: "isCashRegisterSound")
+            cashRegisterSoundSwitch.isOn = true
+        }
+    }
+   
+
+    
     @IBAction func alertMeWhenEventEndsSwitch(_ sender: UISwitch) {
         if (sender.isOn == true) {
             defaults.set(true, forKey: "isAlertMeWhenEventEnds")

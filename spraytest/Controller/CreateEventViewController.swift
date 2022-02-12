@@ -9,6 +9,8 @@
 import UIKit
 
 class CreateEventViewController: UIViewController {
+    let defaults = UserDefaults.standard
+    
     var window: UIWindow?
     @IBOutlet weak var scrollView: UIScrollView!
     @IBOutlet weak var profileLable: UILabel!
@@ -206,6 +208,30 @@ class CreateEventViewController: UIViewController {
         
     }
     
+    var child =  SpinnerViewController()
+    func createSpinnerView() {
+        //let child = SpinnerViewController()
+
+        // add the spinner view controller
+        addChild(child)
+        child.view.frame = view.frame
+        view.addSubview(child.view)
+        child.didMove(toParent: self)
+
+        
+    }
+    
+    func stopSpinnerView() {
+        // wait two seconds to simulate some work happening
+        DispatchQueue.main.asyncAfter(deadline: .now() + 2) { [self] in
+            // then remove the spinner view controller
+            child.willMove(toParent: nil)
+            child.view.removeFromSuperview()
+            child.removeFromParent()
+        }
+    }
+    
+    
     @IBAction func sprayCelebrantSwitchSelect(_ sender: Any) {
         if isSingleReceiverSwitch.isOn == true {
             isForBusinessSwitch.isOn = false
@@ -278,7 +304,7 @@ class CreateEventViewController: UIViewController {
          self.view.frame.origin.y = 0 // Move view to original position
     }
     func scroll2Top() {
-        scrollView.contentOffset = CGPoint(x: 0.0, y: 0.0)
+        scrollView.contentOffset = CGPoint(x: 5.0, y: 5.0)
     }
     func loadCountryList() {
         let data0 = CountryList(countryCode: "OO", countryName: "Select Country")
@@ -701,7 +727,7 @@ class CreateEventViewController: UIViewController {
                 print(error.localizedDescription)
                 //localizedDescriptionif error.localizedDescription
                 //self.rsvp(eventIdvar: eventId, ownerId: ownerProfileId)
-                
+                stopSpinnerView()
                 
             }
         }
@@ -729,12 +755,15 @@ class CreateEventViewController: UIViewController {
         Network.shared.send(request) { [self] (result: Result<Empty, Error>)  in
             switch result {
             case .success( _):
+                defaults.set(true, forKey: "isRefreshHomeVC")
+                stopSpinnerView()
                 let message = "Congratulations! Your event has been successfully created."
                 self.displayAlertMessage2(displayMessage: message, completionAction: "success")
                 break
             //case .failure(let error):
             case .failure(let error):
                 print(error.localizedDescription)
+                stopSpinnerView()
             }
         }
     }
@@ -899,11 +928,15 @@ class CreateEventViewController: UIViewController {
             //zipcodeErrorLabel.text = self.formValidation.validateName2(name2: eventZipCode).errorMsg
         }
         
+        
+        var isEventDateTimeInThePast: Bool = false
         if (isValidateEventDateTime == false) {
             
             //customtextfield.borderForTextField(textField: eventDateTextField, validationFlag: true)
             let message = "Event Date & Time is Required"
             displayAlertMessage(displayMessage: message, textField: eventDateTextField)
+            
+            
             //eventDateTextField.becomeFirstResponder()
             print("isValidateEventDateTime = false")
             //print("Incorrect First Name")
@@ -927,6 +960,7 @@ class CreateEventViewController: UIViewController {
             
             if newEventDateTime <= currentDate {
                 let isValidateEventDateTime = false
+                isEventDateTimeInThePast = true
                 let message = "Event date & time must be greater than the current date & time"
                 displayAlertMessage(displayMessage: message, textField: eventDateTextField)
             } else {
@@ -944,8 +978,9 @@ class CreateEventViewController: UIViewController {
 //        let finalDate = incomingDate![..<index]
 //        print("finalDate= \(finalDate)")
         
-        if (isValidateEventName == true || isValidateEventDateTime == true || isValidateEventType == true || isValidateAddress1 == true ||  isValidateCity == true || isValidateState == true || isValidateZipCode == true || isValidateCountry == true ) {
+        if (isValidateEventName == true && isValidateEventDateTime == true && isValidateEventType == true && isValidateAddress1 == true &&  isValidateCity == true && isValidateState == true && isValidateZipCode == true && isValidateCountry == true &&  isEventDateTimeInThePast == false ) {
             
+            createSpinnerView()
             
             let dateFormatter = DateFormatter()
             dateFormatter.locale = Locale(identifier: "en_US_POSIX")
@@ -1022,6 +1057,7 @@ class CreateEventViewController: UIViewController {
                  case .failure(let error):
                     //self.createEventLabel.text = error.localizedDescription
                     //print( error.localizedDescription)
+                     stopSpinnerView()
                     let message = "This Feature is Temporarily Unavaiable. Please contact our support at 1-800-000-0001 \n \(error.localizedDescription)"
                     self.displayAlertMessage2(displayMessage: message, completionAction: "error")
                  }

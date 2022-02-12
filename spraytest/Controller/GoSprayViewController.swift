@@ -1105,15 +1105,34 @@ class GoSprayViewController: UIViewController,  STPAddCardViewControllerDelegate
 //        pvc.view.backgroundColor = UIColor.red
 //
 //        self.present(pvc, animated: true, completion: nil)
-        let vc = storyboard?.instantiateViewController(withIdentifier: "SelectPersonToSpray") as! SelectPersonToSprayViewController
-        vc.modalPresentationStyle = UIModalPresentationStyle.custom
+        //let vc = storyboard?.instantiateViewController(withIdentifier: "SelectPersonToSpray2ViewController") as! SelectPersonToSpray2ViewController
+        //vc.modalPresentationStyle = UIModalPresentationStyle.custom
+        
+        let storyboard: UIStoryboard = UIStoryboard(name: "Main", bundle: Bundle.main)
+        let vc = storyboard.instantiateViewController(withIdentifier: "SelectPersonToSpray2ViewController") as! SelectPersonToSpray2ViewController
+        
+        if #available(iOS 15.0, *) {
+            if let presentationController = vc.presentationController as? UISheetPresentationController {
+                presentationController.detents = [.medium()] /// set here!
+            }
+        } else {
+            // Fallback on earlier versions
+            vc.modalPresentationStyle = UIModalPresentationStyle.formSheet
+            vc.navigationController?.modalPresentationStyle = UIModalPresentationStyle.currentContext
+        }
+        
+        
+        
         vc.eventId = eventId
         vc.profileId = profileId
         vc.eventOwnerProfileId = eventOwnerProfileId
         vc.token = token
         vc.encryptedAPIKey = encryptedAPIKey
         vc.receiverInfoDelegate = self
-        present(vc, animated: true, completion: nil)
+        
+        self.present(vc, animated: true)
+        
+        //present(vc, animated: true, completion: nil)
     }
 
 //    func presentationControllerForPresentedViewController(presented: UIViewController, presentingViewController presenting: UIViewController!, sourceViewController source: UIViewController) -> UIPresentationController? {
@@ -1986,10 +2005,50 @@ class GoSprayViewController: UIViewController,  STPAddCardViewControllerDelegate
             print("Torch can't be used")
         }
     }
-    func playSound() {
+    /*func playSound() {
         let url = Bundle.main.url(forResource: "cashRegisterSound", withExtension: "mp3")
         player = try! AVAudioPlayer(contentsOf: url!)
         player.play()
+    }*/
+    
+    func playSound() {
+        
+        let isCoinDropSound = defaults.bool(forKey: "isCoinDropSound")
+        let isCashRegisterSound = defaults.bool(forKey: "isCashRegisterSound")
+        
+        var spraySound: String = ""
+        if isCoinDropSound == true {
+            spraySound = "CoinsDropSound"
+            print(spraySound)
+        } else if  isCashRegisterSound == true {
+            spraySound = "cashRegisterSound"
+            print(spraySound)
+        } else {
+            spraySound = "cashRegisterSound"
+        }
+        guard let url = Bundle.main.url(forResource: spraySound, withExtension: "mp3") else {
+            print("url not found")
+            return
+        }
+
+        do {
+            /// this codes for making this app ready to takeover the device audio
+            try AVAudioSession.sharedInstance().setCategory(AVAudioSession.Category.playback)
+            try AVAudioSession.sharedInstance().setActive(true)
+
+            /// change fileTypeHint according to the type of your audio file (you can omit this)
+
+            /// for iOS 11 onward, use :
+            player = try AVAudioPlayer(contentsOf: url, fileTypeHint: AVFileType.mp3.rawValue)
+
+            /// else :
+            /// player = try AVAudioPlayer(contentsOf: url, fileTypeHint: AVFileTypeMPEGLayer3)
+
+            // no need for prepareToPlay because prepareToPlay is happen automatically when calling play()
+            player!.play()
+        } catch let error as NSError {
+            print("error: \(error.localizedDescription)")
+        }
     }
          
     @objc func swipeGesture(sendr: UISwipeGestureRecognizer) {
@@ -2074,7 +2133,7 @@ class GoSprayViewController: UIViewController,  STPAddCardViewControllerDelegate
                                         self.currencyImage.image = UIImage(imageLiteralResourceName: self.currencydenom[currentIndex].currencyImage)
                                            }, completion: nil)
                                     
-                                    //playSound()
+                                    playSound()
                                     toggleTorch(on: isFlashLightFlag)
                                     setRefreshScreen = true
                                     if isFlashLightFlag == true {
@@ -2127,7 +2186,7 @@ class GoSprayViewController: UIViewController,  STPAddCardViewControllerDelegate
                                 self.currencyImage.image = UIImage(imageLiteralResourceName: self.currencydenom[currentIndex].currencyImage)
                                    }, completion: nil)
                             
-                            //playSound()
+                            playSound()
                             toggleTorch(on: isFlashLightFlag)
                             if isFlashLightFlag == true {
                                 isFlashLightFlag = false

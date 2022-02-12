@@ -19,6 +19,7 @@ struct UserData: Model {
     let userName: String?
     let email: String?
     
+    
 //    var result: String {
 //        return "token: \(String(describing: token)), profileId: \(String(describing: profileId)), firstName: \(firstName), lastName: \(lastName), userName: \(String(describing: userName)), email: \(String(describing: email)) "}
 
@@ -59,5 +60,6 @@ struct ProfileData2: Model {
     var hasValidPaymentMethod: Bool
     var defaultPaymentMethod: Int
     var defaultPaymentMethodCustomName: String?
+    var isDuplicate: Bool
     
 }

@@ -193,6 +193,8 @@ class StripeAccountOnboardingViewController: UIViewController, WKUIDelegate {
             webView?.load(request)
             print("loading browser")
         //}
+        /*set the isRefreshHomeVC variable to force a refresh when user returns to the home screen*/
+        defaults.set(true, forKey: "isRefreshHomeVC")
     }
     override func loadView() {
        let webConfiguration = WKWebViewConfiguration()

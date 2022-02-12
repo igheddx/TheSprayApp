@@ -136,6 +136,9 @@ class HomeViewController: UIViewController, UITextFieldDelegate {
 //            return .darkContent
 //        }
 //    }
+    
+    var sprayTimer = SprayTimer()
+    
     override func viewDidLoad() {
         super.viewDidLoad()
         createSpinnerView()
@@ -151,6 +154,9 @@ class HomeViewController: UIViewController, UITextFieldDelegate {
                     }
                 }
             }
+        
+        //sprayTimer.startTimer()
+       
         
 //        AppCenter.start(withAppSecret: "ec81818c-6d8c-452d-9011-85b7ecbf8a5e", services:[
 //          Crashes.self
@@ -323,6 +329,10 @@ class HomeViewController: UIViewController, UITextFieldDelegate {
         tableView.register(InfoBoardTableViewCell.nib(), forCellReuseIdentifier: InfoBoardTableViewCell.identifier)
         tableView.register(InfoBoard2TableViewCell.nib(), forCellReuseIdentifier: InfoBoard2TableViewCell.identifier)
         tableView.register(InfoBoard3TableViewCell.nib(), forCellReuseIdentifier: InfoBoard3TableViewCell.identifier)
+        tableView.register(InfoBoardNewsUpdatesTableViewCell.nib(), forCellReuseIdentifier: InfoBoardNewsUpdatesTableViewCell.identifier)
+        
+        
+        
         
         //SVProgressHUD.setDefaultMaskType(.black)
         //SVProgressHUD.show(withStatus: "Authenticating...")
@@ -406,6 +416,11 @@ class HomeViewController: UIViewController, UITextFieldDelegate {
 //        }
 //        
         //uncommented this so that getMyEvents is not called on initial load of screen
+        //check if screen should be refreshed
+        if defaults.bool(forKey: "isRefreshHomeVC") == true {
+            isRefreshData = true
+            defaults.set(false, forKey: "isRefreshHomeVC") //reset to false
+        }
         if isRefreshData == true {
             print("isRefreshData Did Appear 1 = \(isRefreshData)")
             clearData()
@@ -427,9 +442,10 @@ class HomeViewController: UIViewController, UITextFieldDelegate {
                 getOtherProfileData(profileId: eventOwnerId)
             }
             
-            getProfileNamePicture()
+            
         }
        
+        getProfileNamePicture()
         AppUtility.lockOrientation(.portrait)
        
          // print("isRefreshData  Did Appear 2 \(isRefreshData)")
@@ -675,6 +691,10 @@ class HomeViewController: UIViewController, UITextFieldDelegate {
         var avatarStr: String = ""
         var newAvatarImage: UIImage?
         var userDisplayName: String = ""
+        var isProfileImageChanged: Bool = defaults.bool(forKey: "isProfileImageChange")
+        
+        print("isProfileImageChange = \(isProfileImageChanged)")
+        
         if myProfileData.isEmpty {
             UserDefaults.standard.set("userprofile", forKey: "userProfileImage")
             UserDefaults.standard.set("", forKey: "userDisplayName")
@@ -686,6 +706,10 @@ class HomeViewController: UIViewController, UITextFieldDelegate {
             
         } else {
             for name in myProfileData {
+                
+                
+                
+                
                 UserDefaults.standard.set(name.firstName, forKey: "userDisplayName")
                 userDisplayName = UserDefaults.standard.string(forKey: "userDisplayName")!
                 displayName = userDisplayName //name.firstName
@@ -693,7 +717,18 @@ class HomeViewController: UIViewController, UITextFieldDelegate {
                 print("I am inside myProfile loop")
                 if let avatarStr1 = name.avatar {
                     avatarStr = avatarStr1
-                    UserDefaults.standard.set(avatarStr, forKey: "userProfileImage")
+                    
+                    print("avatarStr = \(avatarStr)")
+                    print("COBRA 1")
+                    /*as long as no new image, use teh one from the my profile object*/
+                    if isProfileImageChanged == false {
+                        UserDefaults.standard.set(avatarStr, forKey: "userProfileImage")
+                        
+                        print("COBRA 2")
+                    } else {
+                        print("Nothing is happening")
+                    }
+                   
                    
                 } else {
                     avatarStr = "noimage"
@@ -1566,6 +1601,8 @@ class HomeViewController: UIViewController, UITextFieldDelegate {
     }
     func getMyEvents(){
         
+        print("pendingPayoutAmt2 = \(pendingPayoutAmt2)" )
+        print("outstandingTransferAmt = \(outstandingTransferAmt)")
         clearData()
         
         let request = Request(path: "/api/Event/myevents?profileid=\(profileId)", token: token!, apiKey: encryptedAPIKey)
@@ -1601,6 +1638,12 @@ class HomeViewController: UIViewController, UITextFieldDelegate {
         //eventjson.result.eventsOwned
         
        
+        /* welcome card*/
+        let dataCollection4 = EventProperty(eventId: 0, ownerId: 0, name: "", dateTime: "", address1: "", address2: "", city: "", zipCode: "", country: "", state: "", eventState: 1, eventCode: "", isActive: true, eventType: 1, isRsvprequired: true, isSingleReceiver: false, isForBusiness: false, defaultEventPaymentMethod: 0, defaultEventPaymentCustomName: "", isAttending: false, dataCategory: "welcome", hasPaymentMethod: false, outstandingTransferAmt1: outstandingTransferAmt, pendingPayoutAmt1: pendingPayoutAmt2, totalGiftedAmt1: self.totalGiftedAmt, totalReceivedAmt1: totalGiftReceivedAmt, currency1: currencyCode, paymentCustomerId1: paymentCustomerId, paymentConnectedActId1: paymentCustomerId)
+        
+        
+       homescreeneventdata.append(dataCollection4)
+        
          //let dataCollection0 = EventProperty(eventId: eventId, ownerId: ownerId, name: name, dateTime: dateTime, address1: address1, address2: address2, city: city, zipCode: zipCode, country: country, state: state, eventState: eventState, eventCode: eventCode, isActive: isActive, eventType: eventType, isAttending: nil, dataCategory: "Info", hasPaymentMethod: hasPaymentMethod)
         
         
@@ -1618,12 +1661,18 @@ class HomeViewController: UIViewController, UITextFieldDelegate {
          also show this if i am receiving money from an active event
          
          */
-        let dataCollection000 = EventProperty(eventId: 0, ownerId: 0, name: "", dateTime: "", address1: "", address2: "", city: "", zipCode: "", country: "", state: "", eventState: 1, eventCode: "", isActive: true, eventType: 1, isRsvprequired: true, isSingleReceiver: false, isForBusiness: false, defaultEventPaymentMethod: 0, defaultEventPaymentCustomName: "", isAttending: false, dataCategory: "info3", hasPaymentMethod: false, outstandingTransferAmt1: outstandingTransferAmt, pendingPayoutAmt1: pendingPayoutAmt2, totalGiftedAmt1: self.totalGiftedAmt, totalReceivedAmt1: totalGiftReceivedAmt, currency1: currencyCode, paymentCustomerId1: paymentCustomerId, paymentConnectedActId1: paymentCustomerId)
-        homescreeneventdata.append(dataCollection000)
+        if pendingPayoutAmt2 != "0.0" || outstandingTransferAmt != "0.0" {
+            print("outstandingTransferAmt = \(outstandingTransferAmt)")
+            let dataCollection000 = EventProperty(eventId: 0, ownerId: 0, name: "", dateTime: "", address1: "", address2: "", city: "", zipCode: "", country: "", state: "", eventState: 1, eventCode: "", isActive: true, eventType: 1, isRsvprequired: true, isSingleReceiver: false, isForBusiness: false, defaultEventPaymentMethod: 0, defaultEventPaymentCustomName: "", isAttending: false, dataCategory: "info3", hasPaymentMethod: false, outstandingTransferAmt1: outstandingTransferAmt, pendingPayoutAmt1: pendingPayoutAmt2, totalGiftedAmt1: self.totalGiftedAmt, totalReceivedAmt1: totalGiftReceivedAmt, currency1: currencyCode, paymentCustomerId1: paymentCustomerId, paymentConnectedActId1: paymentCustomerId)
+            homescreeneventdata.append(dataCollection000)
+            
+        }
         
         /* infoBoard get veridied */
         let dataCollection0 = EventProperty(eventId: 0, ownerId: 0, name: "", dateTime: "", address1: "", address2: "", city: "", zipCode: "", country: "", state: "", eventState: 1, eventCode: "", isActive: true, eventType: 1, isRsvprequired: true, isSingleReceiver: false, isForBusiness: false, defaultEventPaymentMethod: 0, defaultEventPaymentCustomName: "", isAttending: false, dataCategory: "info", hasPaymentMethod: false, outstandingTransferAmt1: outstandingTransferAmt, pendingPayoutAmt1: pendingPayoutAmt2, totalGiftedAmt1: self.totalGiftedAmt, totalReceivedAmt1: totalGiftReceivedAmt, currency1: currencyCode, paymentCustomerId1: paymentCustomerId, paymentConnectedActId1: paymentCustomerId)
-       // homescreeneventdata.append(dataCollection0)
+        
+        
+       
         
         //print("MY COUNTER = \(j) = \(dataCollection0)")
         //eventsownedmodel.append(dataCollection)
@@ -2212,7 +2261,22 @@ extension HomeViewController: UITableViewDataSource, UITableViewDelegate {
     
     func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
         
-        /*cell for creating an event*/
+        /*welcome card*/
+        if homescreeneventdata[indexPath.row].dataCategory == "welcome" {
+            let cell4 = tableView.dequeueReusableCell(withIdentifier: InfoBoardNewsUpdatesTableViewCell.identifier, for: indexPath) as! InfoBoardNewsUpdatesTableViewCell
+
+            //cell4.newsimage.image = UIImage(named: "newsimage1")
+            
+            print("homescreeneventdata[indexPath.row].pendingPayoutAmt1 \(homescreeneventdata[indexPath.row].pendingPayoutAmt1)")
+            cell4.configure(with: homescreeneventdata[indexPath.row].outstandingTransferAmt1, pendingPayoutAmt: homescreeneventdata[indexPath.row].pendingPayoutAmt1, totalGiftedAmt: homescreeneventdata[indexPath.row].totalGiftedAmt1, totalReceivedAmt: homescreeneventdata[indexPath.row].totalReceivedAmt1, currency: homescreeneventdata[indexPath.row].currency1, paymentCustomerId: homescreeneventdata[indexPath.row].paymentCustomerId1, paymentConnectedActId:
+                homescreeneventdata[indexPath.row].paymentConnectedActId1)
+            //cell0.configure(with: T##String, pendingPayoutAmt: <#T##String#>, totalGiftedAmt: <#T##String#>, totalReceivedAmt: <#T##String#>)
+//
+            cell4.customCellDelegate = self
+            return cell4
+        }
+        
+        /*cell to verifySelf*/
         if homescreeneventdata[indexPath.row].dataCategory == "info2" {
             let cell00 = tableView.dequeueReusableCell(withIdentifier: InfoBoard2TableViewCell.identifier, for: indexPath) as! InfoBoard2TableViewCell
 
@@ -2491,7 +2555,7 @@ extension HomeViewController: UITableViewDataSource, UITableViewDelegate {
     
     func tableView(_ tableView: UITableView, heightForRowAt indexPath: IndexPath) -> CGFloat {
         var height:CGFloat = CGFloat()
-        if homescreeneventdata[indexPath.row].dataCategory == "info2"  {
+        if homescreeneventdata[indexPath.row].dataCategory == "info2" || homescreeneventdata[indexPath.row].dataCategory == "welcome" {
             height = 230
         } else if homescreeneventdata[indexPath.row].dataCategory == "info3" {
             height = 210}
@@ -3306,8 +3370,6 @@ extension HomeViewController:  RefreshScreenDelegate {
         print(isRefreshData)
         //print("refreshHomeScreenDate = \(isShowScreen)")
     }
-
-
 }
 
 extension HomeViewController: SideSelectionDelegate {

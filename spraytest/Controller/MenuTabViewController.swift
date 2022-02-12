@@ -45,7 +45,7 @@ class MenuTabViewController: UITabBarController, UITabBarControllerDelegate {
                     //menuViewController.myProfileData = myProfileData
                     menuViewController.paymentClientToken = paymentClientToken
                     menuViewController.encryptedAPIKey = encryptedAPIKey
-                    menuViewController.myprofiledata = myProfileData
+                    menuViewController.myProfileData = myProfileData
                     
                 }
             }

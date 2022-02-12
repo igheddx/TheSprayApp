@@ -30,10 +30,10 @@ class InfoBoard3TableViewCell: UITableViewCell {
     @IBOutlet weak var pendingPayountAmtLbl: UILabel!
     
     @IBOutlet weak var totalGiftedAmtLbl: UILabel!
-    @IBOutlet weak var totalGiftReceivedAmtLbl: UILabel!
     
     
-    @IBOutlet weak var onboardingMessageLbl: UILabel!
+    @IBOutlet weak var amountDisplayedLbl: UILabel!
+    @IBOutlet weak var amountTitleLbl: UILabel!
     //var myInvitationCustomCellDelegate: MyInvitationCustomCellDelegate?
     var customCellDelegate: MyCustomCellDelegator?
     static let identifier = "InfoBoard3TableViewCell"
@@ -63,13 +63,19 @@ class InfoBoard3TableViewCell: UITableViewCell {
     
     public func configure(with outstandingTransferAmt: String, pendingPayoutAmt: String, totalGiftedAmt: String, totalReceivedAmt: String, currency: String, paymentCustomerId: String, paymentConnectedActId: String) {
         
-
+        print("SHINJA - pendingPayoutAmt - \(pendingPayoutAmt) --- \(currency)")
         infoUICardView2.layer.borderColor  = UIColor.gray.cgColor
         infoUICardView2.layer.shadowOffset = CGSize(width: 1, height: 1.0)
         infoUICardView2.layer.shadowOpacity  = 0.1
         infoUICardView2.layer.masksToBounds = false
         infoUICardView2.layer.cornerRadius = 8.0
         
+        currencySymbol = Currency.shared.findSymbol(currencyCode: currency)
+        
+        if pendingPayoutAmt != "0.0" {
+            amountTitleLbl.text = "...pending payout amount"
+            amountDisplayedLbl.text = currencySymbol + pendingPayoutAmt
+        }
         
         //cell2.layer.shadowPath = UIBezierPath(roundedRect: sprayCardView.bounds, cornerRadius: cell2.contentView.layer.cornerRadius).cgPath
     }

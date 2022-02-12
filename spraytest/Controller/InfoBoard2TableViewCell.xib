@@ -38,7 +38,7 @@
                                 </constraints>
                             </imageView>
                             <button opaque="NO" contentMode="scaleToFill" contentHorizontalAlignment="center" contentVerticalAlignment="center" buttonType="system" lineBreakMode="middleTruncation" translatesAutoresizingMaskIntoConstraints="NO" id="Mog-Bt-Ky0" customClass="MyCustomButton" customModule="spraytest" customModuleProvider="target">
-                                <rect key="frame" x="23" y="137" width="340" height="30"/>
+                                <rect key="frame" x="23" y="129" width="340" height="30"/>
                                 <color key="backgroundColor" red="0.13725490200000001" green="0.035294117649999998" blue="0.38431372549999998" alpha="1" colorSpace="calibratedRGB"/>
                                 <constraints>
                                     <constraint firstAttribute="width" constant="340" id="BjI-9G-f9R"/>
@@ -60,7 +60,7 @@
                             <constraint firstAttribute="trailing" secondItem="Mog-Bt-Ky0" secondAttribute="trailing" constant="24" id="Fay-ua-wEb"/>
                             <constraint firstAttribute="trailing" secondItem="bVS-JI-2QT" secondAttribute="trailing" constant="48" id="IHa-1y-XEj"/>
                             <constraint firstItem="Mog-Bt-Ky0" firstAttribute="leading" secondItem="Yxp-0S-3aO" secondAttribute="leading" constant="23" id="IQo-Kt-lAF"/>
-                            <constraint firstItem="Mog-Bt-Ky0" firstAttribute="top" secondItem="5OW-mv-1fZ" secondAttribute="bottom" constant="16" id="MHC-aR-gir"/>
+                            <constraint firstItem="Mog-Bt-Ky0" firstAttribute="top" secondItem="5OW-mv-1fZ" secondAttribute="bottom" constant="8" id="MHC-aR-gir"/>
                             <constraint firstItem="5OW-mv-1fZ" firstAttribute="top" secondItem="Yxp-0S-3aO" secondAttribute="top" constant="31" id="QAh-EV-rmK"/>
                             <constraint firstItem="bVS-JI-2QT" firstAttribute="leading" secondItem="5OW-mv-1fZ" secondAttribute="trailing" constant="7" id="hSa-gx-cwS"/>
                             <constraint firstItem="5OW-mv-1fZ" firstAttribute="leading" secondItem="Yxp-0S-3aO" secondAttribute="leading" constant="8" id="yzs-Q0-zJi"/>

@@ -1,19 +1,22 @@
 //
-//  SelectPersonToSprayViewController.swift
+//  SelectPersonToSpray2ViewController.swift
 //  spraytest
 //
-//  Created by Dominic O. Ighedosa on 1/30/21.
-//  Copyright © 2021 Ighedosa, Dominic. All rights reserved.
+//  Created by Dominic O. Ighedosa on 1/22/22.
+//  Copyright © 2022 Ighedosa, Dominic. All rights reserved.
 //
 
 import UIKit
 
-class SelectPersonToSprayViewController: UIViewController {
 
-    @IBOutlet weak var halfScreenView: UIView!
-    @IBOutlet weak var tableView: UITableView!
+class SelectPersonToSpray2ViewController: UIViewController {
+
+    //@IBOutlet weak var halfScreenView: UIView!
+    ///@IBOutlet weak var tableView: UITableView!
+    //@IBOutlet weak var searchBar: UISearchBar!
+
     @IBOutlet weak var searchBar: UISearchBar!
-
+    @IBOutlet weak var tableView: UITableView!
     var eventId: Int64 = 0
     var profileId: Int64 = 0
     var token: String = ""
@@ -31,10 +34,12 @@ class SelectPersonToSprayViewController: UIViewController {
 
         NotificationCenter.default.addObserver(self, selector: #selector(keyboardWillHide(sender:)), name: UIResponder.keyboardWillHideNotification, object: nil);
         
-        navigationController?.navigationBar.topItem?.backBarButtonItem = UIBarButtonItem(title: "", style: .plain, target: nil, action: nil)
+        //navigationController?.navigationBar.topItem?.backBarButtonItem = UIBarButtonItem(title: "", style: .plain, target: nil, action: nil)
         
-        view.backgroundColor = .clear
-        createTheView()
+        /* i don't need this now that im using half modal
+         remove late*/
+        //view.backgroundColor = .clear
+        //createTheView()
         
         fetchRSVPAttendees(eventId: eventId)
         tableView.delegate = self
@@ -58,11 +63,11 @@ class SelectPersonToSprayViewController: UIViewController {
        //        sprayCardView.layer.shadowColor = UIColor.lightGray.cgColor
        tableView.layer.borderWidth = 0
         
-        halfScreenView.layer.borderColor  = UIColor.lightGray.cgColor
-        halfScreenView.layer.shadowOffset = CGSize(width: 1, height: 1.0)
-        halfScreenView.layer.shadowOpacity  = 1.0
-        halfScreenView.layer.masksToBounds = false
-        halfScreenView.layer.cornerRadius = 8.0
+//        halfScreenView.layer.borderColor  = UIColor.lightGray.cgColor
+//        halfScreenView.layer.shadowOffset = CGSize(width: 1, height: 1.0)
+//        halfScreenView.layer.shadowOpacity  = 1.0
+//        halfScreenView.layer.masksToBounds = false
+//        halfScreenView.layer.cornerRadius = 8.0
         
         }
     override func viewDidAppear(_ animated: Bool) {
@@ -155,7 +160,7 @@ class SelectPersonToSprayViewController: UIViewController {
 
 }
 
-extension SelectPersonToSprayViewController: UISearchBarDelegate {
+extension SelectPersonToSpray2ViewController: UISearchBarDelegate {
     
     func searchBarSearchButtonClicked(_ searchBar: UISearchBar)
     {
@@ -222,8 +227,7 @@ extension SelectPersonToSprayViewController: UISearchBarDelegate {
 //    }
 }
 
-
- extension SelectPersonToSprayViewController: UITableViewDelegate, UITableViewDataSource {
+extension SelectPersonToSpray2ViewController: UITableViewDelegate, UITableViewDataSource {
     
     func numberOfSections(in tableView: UITableView) -> Int {
         return 1
@@ -241,7 +245,7 @@ extension SelectPersonToSprayViewController: UISearchBarDelegate {
     
     func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
         
-        let cell = tableView.dequeueReusableCell(withIdentifier: "receiverCell")! as! SelectPersonToSprayTableViewCell
+        let cell = tableView.dequeueReusableCell(withIdentifier: "receiver2Cell")! as! SelectPersonToSpray2TableViewCell
          //let contactToDisplay = contact[indexPath.row]
         
         
@@ -305,9 +309,21 @@ extension SelectPersonToSprayViewController: UISearchBarDelegate {
         }
     }
     
+    
+    
+    
+    /*
+    // MARK: - Navigation
+
+    // In a storyboard-based application, you will often want to do a little preparation before navigation
+    override func prepare(for segue: UIStoryboardSegue, sender: Any?) {
+        // Get the new view controller using segue.destination.
+        // Pass the selected object to the new view controller.
+    }
+    */
 }
 
-/*
+
 extension UIImage {
     
     func paintOver(with color: UIColor) -> UIImage {
@@ -320,4 +336,3 @@ extension UIImage {
         return renderedImage
     }
 }
-*/
