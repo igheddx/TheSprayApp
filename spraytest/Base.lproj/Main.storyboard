@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<document type="com.apple.InterfaceBuilder3.CocoaTouch.Storyboard.XIB" version="3.0" toolsVersion="19529" targetRuntime="iOS.CocoaTouch" propertyAccessControl="none" useAutolayout="YES" useTraitCollections="YES" useSafeAreas="YES" colorMatched="YES" initialViewController="PIJ-hp-FOT">
+<document type="com.apple.InterfaceBuilder3.CocoaTouch.Storyboard.XIB" version="3.0" toolsVersion="19529" targetRuntime="iOS.CocoaTouch" propertyAccessControl="none" useAutolayout="YES" useTraitCollections="YES" useSafeAreas="YES" colorMatched="YES" initialViewController="Wyl-ce-Xe6">
     <device id="retina6_1" orientation="portrait" appearance="light"/>
     <dependencies>
         <deployment identifier="iOS"/>
@@ -162,6 +162,21 @@
                 <placeholder placeholderIdentifier="IBFirstResponder" id="KoQ-1J-UdU" userLabel="First Responder" customClass="UIResponder" sceneMemberID="firstResponder"/>
             </objects>
             <point key="canvasLocation" x="13928.985507246378" y="809.59821428571422"/>
+        </scene>
+        <!--Menu2 View Controller-->
+        <scene sceneID="zDV-RU-3hw">
+            <objects>
+                <viewController storyboardIdentifier="Menu2ViewController" id="Wyl-ce-Xe6" customClass="Menu2ViewController" customModule="spraytest" customModuleProvider="target" sceneMemberID="viewController">
+                    <view key="view" contentMode="scaleToFill" id="fr9-DG-BbG">
+                        <rect key="frame" x="0.0" y="0.0" width="414" height="896"/>
+                        <autoresizingMask key="autoresizingMask" widthSizable="YES" heightSizable="YES"/>
+                        <viewLayoutGuide key="safeArea" id="Bf1-79-Znv"/>
+                        <color key="backgroundColor" systemColor="systemBackgroundColor"/>
+                    </view>
+                </viewController>
+                <placeholder placeholderIdentifier="IBFirstResponder" id="RAu-0y-8UI" userLabel="First Responder" customClass="UIResponder" sceneMemberID="firstResponder"/>
+            </objects>
+            <point key="canvasLocation" x="13896" y="1471"/>
         </scene>
         <!--My Event Metrics Dashboard-->
         <scene sceneID="kbF-3y-fXJ">
@@ -1352,7 +1367,7 @@
                         <rect key="frame" x="0.0" y="0.0" width="414" height="896"/>
                         <autoresizingMask key="autoresizingMask" widthSizable="YES" heightSizable="YES"/>
                         <subviews>
-                            <imageView clipsSubviews="YES" userInteractionEnabled="NO" contentMode="scaleToFill" horizontalHuggingPriority="251" verticalHuggingPriority="251" image="currencySide1B" highlightedImage="currencySide1B" adjustsImageSizeForAccessibilityContentSizeCategory="YES" translatesAutoresizingMaskIntoConstraints="NO" id="dB5-Tu-s6p">
+                            <imageView clipsSubviews="YES" userInteractionEnabled="NO" contentMode="scaleToFill" horizontalHuggingPriority="251" verticalHuggingPriority="251" image="1dollar" highlightedImage="1dollar" adjustsImageSizeForAccessibilityContentSizeCategory="YES" translatesAutoresizingMaskIntoConstraints="NO" id="dB5-Tu-s6p">
                                 <rect key="frame" x="0.0" y="0.0" width="414" height="896"/>
                                 <color key="tintColor" white="0.0" alpha="0.0" colorSpace="custom" customColorSpace="genericGamma22GrayColorSpace"/>
                             </imageView>
@@ -3687,7 +3702,7 @@
         <scene sceneID="HuH-gP-cni">
             <objects>
                 <viewController storyboardIdentifier="CreateAccountQRScanViewController" id="HW4-xq-xZG" customClass="CreateAccountQRScanViewController" customModule="spraytest" customModuleProvider="target" sceneMemberID="viewController">
-                    <view key="view" contentMode="scaleToFill" id="DMk-vE-Nwt">
+                    <view key="view" contentMode="scaleToFill" ambiguous="YES" id="DMk-vE-Nwt">
                         <rect key="frame" x="0.0" y="0.0" width="414" height="896"/>
                         <autoresizingMask key="autoresizingMask" widthSizable="YES" heightSizable="YES"/>
                         <subviews>
@@ -5483,6 +5498,7 @@
     </inferredMetricsTieBreakers>
     <resources>
         <image name="1000naira" width="303" height="600"/>
+        <image name="1dollar" width="1713" height="4130"/>
         <image name="babyshowericon" width="50" height="50"/>
         <image name="barcodescannericon" width="100" height="100"/>
         <image name="closeicon" width="24" height="24"/>

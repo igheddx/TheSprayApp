@@ -1142,10 +1142,10 @@ class GoSprayViewController: UIViewController,  STPAddCardViewControllerDelegate
     func getCurrencyData2(currencyCode: String) {
         currencydenom.removeAll()
         if currencyCode == "usd" {
-            let currencyData1 = CurrencyDenom(amount: 1, value: "1.00", currencyImage: "currencySide1B")
+            let currencyData1 = CurrencyDenom(amount: 1, value: "1.00", currencyImage: "1dollar")
             currencydenom.append(currencyData1)
             
-            let currencyData2 = CurrencyDenom(amount: 5, value: "5.00", currencyImage: "5dollarSide1")
+            let currencyData2 = CurrencyDenom(amount: 5, value: "5.00", currencyImage: "5dollars")
             currencydenom.append(currencyData2)
             
             let currencyData3 = CurrencyDenom(amount: 10, value: "10.00", currencyImage: "10dollarSide1")
@@ -1206,10 +1206,10 @@ class GoSprayViewController: UIViewController,  STPAddCardViewControllerDelegate
     
     func getCurrencyData() {
         currencydenom.removeAll()
-        let currencyData1 = CurrencyDenom(amount: 1, value: "$1.00", currencyImage: "currencySide1B")
+        let currencyData1 = CurrencyDenom(amount: 1, value: "$1.00", currencyImage: "1dollar")
         currencydenom.append(currencyData1)
         
-        let currencyData2 = CurrencyDenom(amount: 5, value: "$5.00", currencyImage: "5dollarSide1")
+        let currencyData2 = CurrencyDenom(amount: 5, value: "$5.00", currencyImage: "5dollars")
         currencydenom.append(currencyData2)
         
         let currencyData3 = CurrencyDenom(amount: 10, value: "$10.00", currencyImage: "10dollarSide1")

@@ -136,6 +136,7 @@ class MenuViewController: UIViewController {
         print("token \(token!)")
         
         /*only call on load*/
+        print("MenuVC isRefreshScreen = \(isRefreshScreen)")
         if isRefreshScreen == false {
             print("False onload")
             MenuListData()
@@ -146,7 +147,7 @@ class MenuViewController: UIViewController {
        
         
         //mobileBrand.append(MobileBrand.init(brandName: "Apple", modelName: ["iPhone1", "iPhone2","iPhone3", "iPhone XC", "iPhone JJ"]))
-         mobileBrand.append(MobileBrand.init(brandName: "Sumsung", modelName: ["Sam1", "Sam2","Sam3"]))
+        //mobileBrand.append(MobileBrand.init(brandName: "Sumsung", modelName: ["Sam1", "Sam2","Sam3"]))
         
         
         //labelTest.text = String(profileId!)
@@ -171,6 +172,8 @@ class MenuViewController: UIViewController {
         if isRefreshScreen == true {
             print("isRefreshScreen ViewDidApper - MenuViewController")
             MenuListData()
+        } else {
+            print("MenuListData was not called")
         }
        
         //deSelectReloadData()
@@ -438,8 +441,10 @@ class MenuViewController: UIViewController {
         menudata.removeAll()
         menusectionprofile.removeAll()
         menusectionmoreactions.removeAll()
-        menusectionprofile.removeAll()
+
+        menusectionnotification.removeAll()
         menusecdtionlogout.removeAll()
+        
         
         var userProfileImage: String?
         //UserDefaults.standard.set("userprofile", forKey: "userProfileImage")
@@ -465,10 +470,10 @@ class MenuViewController: UIViewController {
         print("profileImage =\(profileImage)")
         //profileImage = UIImage(named:  userProfileImage)
         
-        menusectionprofile.removeAll()
-        menusectionmoreactions.removeAll()
-        menusectionprofile.removeAll()
-        menusecdtionlogout.removeAll()
+//        menusectionprofile.removeAll()
+//        menusectionmoreactions.removeAll()
+//        menusectionprofile.removeAll()
+//        menusecdtionlogout.removeAll()
         
         
         let menuprofiledata1 = MenuSections(id: "profile", name: "Profile", image: userProfileImage, viewcontroller: "toMyProfileVC")
@@ -571,15 +576,21 @@ extension  MenuViewController: UITableViewDataSource, UITableViewDelegate  {
             cell.menuImage.image = UIImage(named: menudata[indexPath.section].sectionDetails[indexPath.row].image!)
         }
         
-        if menudata[indexPath.section].sectionDetails[indexPath.row].id == "biometric" {
-            
-            print("SWITCH - \(menudata[indexPath.section].sectionDetails[indexPath.row].id)")
-            let switchView = UISwitch(frame: .zero)
-           switchView.setOn(false, animated: true)
-           switchView.tag = indexPath.row // for detect which row switch Changed
-           switchView.addTarget(self, action: #selector(self.switchChanged(_:)), for: .valueChanged)
-           cell.accessoryView = switchView
-        }
+         
+        
+         if menudata[indexPath.section].sectionName == "SETTINGS" {
+             if menudata[indexPath.section].sectionDetails[indexPath.row].id == "biometric" {
+                 
+                 print("SWITCH - \(menudata[indexPath.section].sectionDetails[indexPath.row].id)")
+                 let switchView = UISwitch(frame: .zero)
+                 switchView.setOn(false, animated: true)
+                 switchView.tag = indexPath.row // for detect which row switch Changed
+                 switchView.addTarget(self, action: #selector(self.switchChanged(_:)), for: .valueChanged)
+                 cell.accessoryView = switchView
+             }
+         }
+        
+    
         
         //print(menudata[indexPath.section].sectionDetails[indexPath.row].name!)
         //cell.detailTextLabel.text = menu[indexPath.section].sectionDetails.name
@@ -604,7 +615,6 @@ extension  MenuViewController: UITableViewDataSource, UITableViewDelegate  {
             self.present(alert, animated: true)
         } else if menudata[indexPath.section].sectionDetails[indexPath.row].id == "addpaymentmethod" {
             launchSetUpPaymentMethod()
-
         } else if menudata[indexPath.section].sectionDetails[indexPath.row].id == "biometric" {
             print("do nothing")
         } else {
@@ -627,12 +637,10 @@ extension  MenuViewController: UITableViewDataSource, UITableViewDelegate  {
             self.present(alert, animated: true)
         }
         
-        
-        
-        
         print("table row switch Changed \(sender.tag)")
         print("The switch is \(sender.isOn ? "ON" : "OFF")")
     }
+    
     func disableBiometric() {
         removeCredentialFromKeyChain()
     }
@@ -775,15 +783,24 @@ extension MenuViewController:  RefreshProfileImageDelegate {
         //var newAvatarImage: UIImage?
         //profileImage = convertBase64StringToImage(imageBase64String: userProfileImage!)
         
-        isRefreshScreen = isRefresh
-        //profileImage = convertBase64StringToImage(imageBase64String: avatar)
-        print("there is an image???")
+        /* only refresh if isRefresh is set to true*/
+        if isRefresh == true {
+            isRefreshScreen = isRefresh
+            //profileImage = convertBase64StringToImage(imageBase64String: avatar)
+            print("there is an image??? - Dominic ")
+            
+            
+//            menusectionprofile.removeAll()
+//            menusectionmoreactions.removeAll()
+//            menusectionprofile.removeAll()
+//            menusecdtionlogout.removeAll()
+//            menusectionnotification.removeAll()
+//            menudata.removeAll()
+        }
         
-        menudata.removeAll()
-        menusectionprofile.removeAll()
-        menusectionmoreactions.removeAll()
-        menusectionprofile.removeAll()
-        menusecdtionlogout.removeAll()  
+        
+        //MenuListData()
+        
     }
 }
 
