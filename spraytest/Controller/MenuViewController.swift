@@ -26,7 +26,7 @@ class MenuViewController: UIViewController {
     var token: String?
     var paymentClientToken: String?
     
-    @IBOutlet weak var tableView: UITableView!
+    //@IBOutlet weak var tableView: UITableView!
     
     var tableArray = ["Create Event", "Add Bank Account", "Settings", "Notification", "Log Out"]
     var segueIdentifiers = ["toCreateEventVC", "toAddBankAccountVC", "toNotificationVC", "toSettingsVC"]
@@ -57,14 +57,36 @@ class MenuViewController: UIViewController {
     var paymentConnectedActId: String = ""
     var isRefreshScreen: Bool = false
     
+    
+    private let tableView: UITableView = {
+        let table = UITableView(frame: .zero, style: .grouped)
+        table.register(UITableViewCell.self, forCellReuseIdentifier: "cell")
+        
+        return table
+    }()
+    
     override func viewDidLoad() {
         super.viewDidLoad()
         
         print("my profile data \(myProfileData)")
         let isKeyChainInUse = isKeyPresentInUserDefaults(key: "isKeyChainInUse")
         
-        tableView.tableFooterView = UIView(frame: .zero)
+        /*only call on load*/
+        print("MenuVC isRefreshScreen = \(isRefreshScreen)")
+        if isRefreshScreen == false {
+            print("False onload")
+            MenuListData()
+        }
+        view.addSubview(tableView)
+        tableView.delegate = self
+        tableView.dataSource = self
+        //tableView.tableFooterView = UIView(frame: .zero)
         
+       
+    }
+    
+    override func viewDidLayoutSubviews() {
+        super.viewDidLayoutSubviews()
         let context = LAContext()
         CheckIfBiometricEnabled()
         if isBiometricEnabled == true {
@@ -135,12 +157,7 @@ class MenuViewController: UIViewController {
         print("DOMINIC OZIE IGHEDOAS")
         print("token \(token!)")
         
-        /*only call on load*/
-        print("MenuVC isRefreshScreen = \(isRefreshScreen)")
-        if isRefreshScreen == false {
-            print("False onload")
-            MenuListData()
-        }
+       
         
         //displayData()
        // menudata.append(MenuData(sectionName: "More Actions...", sectionDetails: [MenuSections(name: "Create Event", image: "createEventIon")])!)
@@ -155,8 +172,7 @@ class MenuViewController: UIViewController {
         //and set it equal to the menulist object
       
         //MenuListData()
-        tableView.delegate = self
-        tableView.dataSource = self
+        
         
         //print("menu = \(menu)")
         
@@ -528,12 +544,48 @@ class MenuViewController: UIViewController {
 
 extension  MenuViewController: UITableViewDataSource, UITableViewDelegate  {
         
-    func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
-         print(" menudata[section].sectionName.count = \( menudata[section].sectionName.count)")
-        //return   mobileBrand[section].modelName!.count
-       return   menudata[section].sectionDetails.count  //!.count
+    func tableView(_ tableView: UITableView, viewForHeaderInSection section: Int) -> UIView? {
+        
+        print("my section \(section)")
+        // cell.menuImage.image = UIImage(named: menudata[indexPath.section].sectionDetails[indexPath.row].image!)
+        let header = UIView(frame: CGRect(x: 0, y: 0, width: view.frame.size.width, height: 50))
+        header.backgroundColor = .secondarySystemBackground
+        if menudata[section].sectionName == "PROFILE" {
+            
+            
+            //let imageView = UIImageView(image: UIImage(systemName: "house"))
+            let imageView = UIImageView(image: UIImage(named: "userprofile"))
+            
+            imageView.tintColor = .systemBlue
+            imageView.contentMode = .scaleAspectFit
+            header.addSubview(imageView)
+            imageView.frame = CGRect(x: 5, y: 5, width: header.frame.height-10, height: header.frame.size.height-10)
+        
+           
+            let label = UILabel(frame: CGRect(x: 10 + imageView.frame.size.width, y: 5, width: header.frame.size.width - 15 - imageView.frame.size.width, height: header.frame.size.height-10))
+            
+            header.addSubview(label)
+            
+            label.text = menudata[section].sectionName
+            label.font = .systemFont(ofSize: 22, weight: .thin)
+           
+            
+            
+        } else {
+            let label = UILabel(frame: CGRect(x: 10, y: 5, width: 200, height: 25))
+            
+            header.addSubview(label)
+            
+            label.text = menudata[section].sectionName
+            label.font = .systemFont(ofSize: 22, weight: .thin)
+        }
        
         
+        return header
+    }
+    
+    func tableView(_ tableView: UITableView, heightForHeaderInSection section: Int) -> CGFloat {
+        return 50
     }
     
     func numberOfSections(in tableView: UITableView) -> Int {
@@ -541,9 +593,14 @@ extension  MenuViewController: UITableViewDataSource, UITableViewDelegate  {
         return menudata.count
     }
     
-    func tableView(_ tableView: UITableView, heightForRowAt indexPath: IndexPath) -> CGFloat {
-         return 75
-     }
+    func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
+         print(" menudata[section].sectionName.count = \( menudata[section].sectionName.count)")
+        //return   mobileBrand[section].modelName!.count
+       return   menudata[section].sectionDetails.count  //!.count
+       
+    }
+    
+
      func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
 
         let cell = tableView.dequeueReusableCell(withIdentifier: "MenuCell") as! MenuTableViewCell
@@ -583,7 +640,7 @@ extension  MenuViewController: UITableViewDataSource, UITableViewDelegate  {
                  
                  print("SWITCH - \(menudata[indexPath.section].sectionDetails[indexPath.row].id)")
                  let switchView = UISwitch(frame: .zero)
-                 switchView.setOn(false, animated: true)
+                 switchView.setOn(isBiometricSwitchFlag, animated: true)
                  switchView.tag = indexPath.row // for detect which row switch Changed
                  switchView.addTarget(self, action: #selector(self.switchChanged(_:)), for: .valueChanged)
                  cell.accessoryView = switchView
@@ -598,13 +655,18 @@ extension  MenuViewController: UITableViewDataSource, UITableViewDelegate  {
         return cell
         //}
     }
-    func tableView(_ tableView: UITableView, titleForHeaderInSection section: Int) -> String? {
-        
-        //return mobileBrand[section].brandName
-        return menudata[section].sectionName
-        //return "test"
-        
-    }
+    
+    func tableView(_ tableView: UITableView, heightForRowAt indexPath: IndexPath) -> CGFloat {
+         return 75
+     }
+    
+//    func tableView(_ tableView: UITableView, titleForHeaderInSection section: Int) -> String? {
+//
+//        //return mobileBrand[section].brandName
+//        return menudata[section].sectionName
+//        //return "test"
+//
+//    }
     func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath) {
         if menudata[indexPath.section].sectionDetails[indexPath.row].id == "logout" {
             let alert = UIAlertController(title: "Sign Out", message: "Do you want to sign out?", preferredStyle: .actionSheet)
@@ -715,13 +777,13 @@ extension  MenuViewController: UITableViewDataSource, UITableViewDelegate  {
 }
 
 
-extension UICollectionView {
-    func deselectAllItems(animated: Bool = false) {
-        for indexPath in self.indexPathsForSelectedItems ?? [] {
-            self.deselectItem(at: indexPath, animated: animated)
-        }
-    }
-}
+//extension UICollectionView {
+//    func deselectAllItems(animated: Bool = false) {
+//        for indexPath in self.indexPathsForSelectedItems ?? [] {
+//            self.deselectItem(at: indexPath, animated: animated)
+//        }
+//    }
+//}
 
 extension MenuViewController{
  override func prepare(for segue: UIStoryboardSegue, sender: Any?) {

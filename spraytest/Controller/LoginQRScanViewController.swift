@@ -94,114 +94,16 @@ class LoginQRScanViewController: UIViewController, UITextFieldDelegate {
         
         signInBtn.isEnabled = false //disabled until data is entered
        
+        if let isKeyChainInUse = KeychainWrapper.standard.bool(forKey: "isKeyChainInUse") {
+            self.isKeyChainInUse = isKeyChainInUse
+        } else {
+            self.isKeyChainInUse = false
+        }
+        
+        print("self.isKeyChainInUse = \(self.isKeyChainInUse)")
         //navigationController?.navigationBar.topItem?.backBarButtonItem = UIBarButtonItem(title: "", style: .plain, target: nil, action: nil)
         
-        let context = LAContext()
-        CheckIfBiometricEnabled()
-        if isBiometricEnabled == true {
-          
-            //launch auto biometric if not logout and keychainInUse = true
-            let isKeyChainInUse = isKeyPresentInUserDefaults(key: "isKeyChainInUse")
-            
-            if ( context.biometryType == .touchID ) {
-                 print("touch Id enabled")
-                if isKeyChainInUse == true {
-                    biometricLbl2.text = "Touch ID is Enabled"
-                    biometricSwitchBtn2.isHidden = true
-                } else {
-                    biometricLbl2.text = "Enable Touch ID"
-                    biometricSwitchBtn2.isHidden = false
-                    biometricSwitchBtn2.isOn = false
-                }
-                
-                biometricIcon.image = UIImage(named: "touchid_icon")
-                //displayBiometricSelection(imageName: "touchid_icon")
-            } else if  ( context.biometryType == .faceID) {
-                if isKeyChainInUse == true {
-                    biometricLbl2.text = "Face ID is Enabled"
-                    biometricSwitchBtn2.isHidden = true
-                } else  {
-                    biometricLbl2.text = "Enable Face ID"
-                    biometricSwitchBtn2.isHidden = false
-                    biometricSwitchBtn2.isOn = false
-                }
-                
-                biometricIcon.image = UIImage(named: "faceid_icon")
-                //displayBiometricSelection(imageName: "faceid_icon")
-                print("face Id is enabled")
-            } else {
-                print("stone age")
-                biometricLbl2.text = ""
-                biometricSwitchBtn2.isHidden = true
-                biometricIcon.isHidden = true
-            }
-            
-            
-            if isKeyChainInUse == true && logout == false {
-                
-               
-                self.isKeyChainInUse = KeychainWrapper.standard.bool(forKey: "isKeyChainInUse")!
-                print("iskeychaininuse \(self.isKeyChainInUse )")
-                if (self.isKeyChainInUse  == true) {
-                    let usernamekeychainToDisplay = KeychainWrapper.standard.string(forKey: "usernameKeyChain")
-                    let username =  KeychainWrapper.standard.string(forKey: "usernameKeyChain")
-                    let password =  KeychainWrapper.standard.string(forKey: "passwordKeyChain")
-                    
-                    print("USERNAME =\(username)")
-                    print("USERNAME =\(password)")
-                    
-                    let value = redactUsername(username: usernamekeychainToDisplay!)
-                    print("value =\(value)")
-                    usernameTextField.text = redactUsername(username: usernamekeychainToDisplay!)
-                    usernameTextField.isEnabled = false
-                    processEnableBiometric()
-                }
-//            } else  {
-//                biometricLbl2.text = "Enable Biometric"
-//                biometricSwitchBtn2.isHidden = false
-//                biometricSwitchBtn2.isOn = false
-            }
-        
-        
-        } else  {
-//            biometricLbl.text = "Enable Biometric"
-//            biometricSwitchBtn2.isHidden = false
-//            biometricSwitchBtn2.isOn = false
-            //don't show it if it is not enabled
-            biometricLbl2.text = ""
-            biometricSwitchBtn2.isHidden = true
-            biometricIcon.isHidden = true
-//            displayBiometricSelection(imageName: "")
-//            displayRememberMeSelection()
-        }
-        
-        //preset biometric and remember swiftch based option biometric from setting
-        //let isKeyChainInUse = isKeyPresentInUserDefaults(key: "isKeyChainInUse")
-        
-        let checkEnableBiometricNextLogin = isKeyPresentInUserDefaults(key: "isEnablebiometricNextLogin")
-        if checkEnableBiometricNextLogin == true {
-            let isEnableBiometricNextLogin =
-                KeychainWrapper.standard.set(true, forKey: "isEnablebiometricNextLogin")
-            if isEnableBiometricNextLogin == true {
-                biometricSwitchBtn2.isOn = true
-//                rememberMeSwitch.isOn = true
-//                rememberMeSwitch.isEnabled = false
-            }
-        }
-        
-        var error: NSError?
-       if #available(iOS 13, *) {
-           print("this supported")
-           if context.canEvaluatePolicy(.deviceOwnerAuthenticationWithBiometrics, error: &error) {
-               //this is for success
-            print("this is for success")
-           }else{
-              //error.description for type error LAError.biometryLockout, .biometryNotEnrolled and other errors
-            print("error detaisl = \(LAError.biometryLockout) \(LAError.biometryNotEnrolled)")
-            print("this is for failure -")
-           }
-       }
-        
+      
         print("LoginQR = \(encryptedAPIKey)")
         NotificationCenter.default.addObserver(self, selector: #selector(keyboardWillShow(sender:)), name: UIResponder.keyboardWillShowNotification, object: nil);
 
@@ -216,7 +118,7 @@ class LoginQRScanViewController: UIViewController, UITextFieldDelegate {
         
         //rememberMeSwitch.isOn = false
         appInitilialization()
-        
+        initializeBiometric()
         encryptedAPIKey = encryptdecrypt.encryptDecryptAPIKey(type: "", value: "", action: "encrypt")
         
         eventUIView.layer.borderColor  = UIColor.lightGray.cgColor
@@ -262,7 +164,158 @@ class LoginQRScanViewController: UIViewController, UITextFieldDelegate {
     
 
 //
-
+    //check and username when biometric
+    func initializeBiometric() {
+        print("encryptedAPIKey=\(encryptedAPIKey)")
+             
+        let context = LAContext()
+        CheckIfBiometricEnabled()
+        if isBiometricEnabled == true {
+            print("Dominic - \(KeychainWrapper.standard.bool(forKey: "isKeyChainInuse"))")
+             //launch auto biometric if not logout and keychainInUse = true
+            //KeychainWrapper.standard.set(false, forKey: "isKeyChainInUse")
+            let isKeyChainInUseInUserDefaults = isKeyPresentInUserDefaults(key: "isKeyChainInUse")
+            
+           
+//            if let  isKeyChainInUse = KeychainWrapper.standard.bool(forKey: "isKeyChainInuse") {
+//                self.isKeyChainInUse = isKeyChainInUse
+//                print("Dominic 2 \(self.isKeyChainInUse)")
+//            } else  {
+//                isKeyChainInUse = false
+//
+//                print("Dominic 1 \(isKeyChainInUse)")
+//            }
+            
+            //let isKeyChainInUse = KeychainWrapper.standard.bool(forKey: "isKeyChainInuse")!
+            
+             print("Dominic isKeyChainInUse = \(isKeyPresentInUserDefaults(key: "isKeyChainInUse"))")
+             if ( context.biometryType == .touchID ) {
+                  print("touch Id enabled")
+                 if isKeyChainInUseInUserDefaults == true {
+                     if isKeyChainInUse == true {
+                         biometricLbl2.text = "Touch ID is Enabled"
+                         biometricSwitchBtn2.isHidden = true
+                     } else {
+                         biometricLbl2.text = "Enable Touch ID"
+                         biometricSwitchBtn2.isHidden = false
+                         biometricSwitchBtn2.isOn = false
+                     }
+                    
+                 } else {
+                     biometricLbl2.text = "Enable Touch ID"
+                     biometricSwitchBtn2.isHidden = false
+                     biometricSwitchBtn2.isOn = false
+                 }
+                 
+                 biometricIcon.image = UIImage(named: "touchid_icon")
+                 //displayBiometricSelection(imageName: "touchid_icon")
+             } else if  ( context.biometryType == .faceID) {
+                 if isKeyChainInUseInUserDefaults == true {
+                     if isKeyChainInUse == true {
+                         biometricLbl2.text = "Face ID is Enabled"
+                         biometricSwitchBtn2.isHidden = true
+                     } else {
+                         biometricLbl2.text = "Enable Face ID"
+                         biometricSwitchBtn2.isHidden = false
+                         biometricSwitchBtn2.isOn = false
+                     }
+                         
+                     
+                 } else  {
+                     biometricLbl2.text = "Enable Face ID"
+                     biometricSwitchBtn2.isHidden = false
+                     biometricSwitchBtn2.isOn = false
+                 }
+                 
+                 biometricIcon.image = UIImage(named: "faceid_icon")
+                 //displayBiometricSelection(imageName: "faceid_icon")
+                 print("face Id is enabled")
+             } else {
+                 print("stone age")
+                 biometricLbl2.text = ""
+                 biometricSwitchBtn2.isHidden = true
+                 biometricIcon.isHidden = true
+             }
+             
+             
+             if isKeyChainInUseInUserDefaults == true  {
+                 
+                print("boogie \(KeychainWrapper.standard.string(forKey: "usernameKeyChain"))")
+                 self.isKeyChainInUse = KeychainWrapper.standard.bool(forKey: "isKeyChainInUse")!
+                 print("iskeychaininuse ~~~~ \(self.isKeyChainInUse )")
+                 if (self.isKeyChainInUse  == true) {
+                     let usernamekeychainToDisplay = KeychainWrapper.standard.string(forKey: "usernameKeyChain")
+                     let username =  KeychainWrapper.standard.string(forKey: "usernameKeyChain")
+                     let password =  KeychainWrapper.standard.string(forKey: "passwordKeyChain")
+                     
+                     print("USERNAME =\(username)")
+                     print("USERNAME =\(password)")
+                     
+                     let value = redactUsername(username: usernamekeychainToDisplay!)
+                     print("value =\(value)")
+                     usernameTextField.text = redactUsername(username: usernamekeychainToDisplay!)
+                     usernameTextField.isEnabled = false
+                     processEnableBiometric()
+                 }
+ //            } else  {
+ //                biometricLbl2.text = "Enable Biometric"
+ //                biometricSwitchBtn2.isHidden = false
+ //                biometricSwitchBtn2.isOn = false
+             }
+         
+         
+         } else  {
+ //            biometricLbl.text = "Enable Biometric"
+ //            biometricSwitchBtn2.isHidden = false
+ //            biometricSwitchBtn2.isOn = false
+             //don't show it if it is not enabled
+             biometricLbl2.text = ""
+             biometricSwitchBtn2.isHidden = true
+             biometricIcon.isHidden = true
+ //            displayBiometricSelection(imageName: "")
+ //            displayRememberMeSelection()
+         }
+         
+         //preset biometric and remember swiftch based option biometric from setting
+         //let isKeyChainInUse = isKeyPresentInUserDefaults(key: "isKeyChainInUse")
+         
+         let checkEnableBiometricNextLogin = isKeyPresentInUserDefaults(key: "isEnablebiometricNextLogin")
+         if checkEnableBiometricNextLogin == true {
+             
+             print("checkEnableBiometricNextLogin == true")
+             let isEnableBiometricNextLogin =
+                 KeychainWrapper.standard.set(true, forKey: "isEnablebiometricNextLogin")
+             if isEnableBiometricNextLogin == true {
+                 print("isEnableBiometricNextLogin == true ")
+                 if self.isKeyChainInUse == true {
+                     biometricSwitchBtn2.isOn = true
+                 } else {
+                     biometricSwitchBtn2.isOn = false
+                 }
+                
+                 //rememberMeSwitch.isOn = true
+                 //rememberMeSwitch.isEnabled = false
+             }
+         }
+        
+   
+        
+         
+         var error: NSError?
+        if #available(iOS 13, *) {
+            print("this supported")
+            if context.canEvaluatePolicy(.deviceOwnerAuthenticationWithBiometrics, error: &error) {
+                //this is for success
+             print("this is for success")
+            }else{
+               //error.description for type error LAError.biometryLockout, .biometryNotEnrolled and other errors
+             print("error detaisl = \(LAError.biometryLockout) \(LAError.biometryNotEnrolled)")
+             print("this is for failure -")
+            }
+        }
+         
+    }
+    
     func CheckIfBiometricEnabled() {
         let context = LAContext()
         var error: NSError?
@@ -411,6 +464,15 @@ class LoginQRScanViewController: UIViewController, UITextFieldDelegate {
 
         }
 
+    }
+    
+    /*turn status bar to white color*/
+    override func viewWillAppear(_ animated: Bool) {
+        super.viewWillAppear(animated)
+        setNeedsStatusBarAppearanceUpdate()
+    }
+    override var preferredStatusBarStyle: UIStatusBarStyle {
+        .lightContent
     }
     
     @objc func keyboardWillShow(sender: NSNotification) {

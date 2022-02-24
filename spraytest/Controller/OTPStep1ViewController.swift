@@ -90,6 +90,15 @@ class OTPStep1ViewController: UIViewController {
         // Do any additional setup after loading the view.
         
     }
+    
+    /*turn status bar to white color*/
+    override func viewWillAppear(_ animated: Bool) {
+        super.viewWillAppear(animated)
+        setNeedsStatusBarAppearanceUpdate()
+    }
+    override var preferredStatusBarStyle: UIStatusBarStyle {
+        .lightContent
+    }
  
     func setNavigationBar() {
         var title: String = ""
@@ -133,9 +142,7 @@ class OTPStep1ViewController: UIViewController {
          self.view.frame.origin.y = 0 // Move view to original position
     }
     
-    override func viewWillAppear(_ animated: Bool) {
-        //setNavigationBar()
-    }
+   
     @IBAction func privacyPolicyBtnPressed(_ sender: Any) {
         launchPrivacyPolicyTermsConditions()
     }

@@ -693,7 +693,7 @@ class ProfileViewController: UIViewController,UITextFieldDelegate, UIImagePicker
                switch result {
                case .success(let avatardata):
                 print("Avatar update was successful - \(newAvatarImage)")
-                   self.refreshProfileImageDelegate?.profileImage(avatar: avatardata.avatar!, isRefresh: true)
+                   //self.refreshProfileImageDelegate?.profileImage(avatar: avatardata.avatar!, isRefresh: true)
                    
                    self.isRefresh = true
                    self.defaults.set(avatardata.firstName, forKey: "userDisplayName")

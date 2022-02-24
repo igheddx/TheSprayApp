@@ -10,6 +10,9 @@ import UIKit
 import AVFoundation
 class QRScanner2ViewController: UIViewController, UINavigationBarDelegate,  UITabBarControllerDelegate {
     
+    
+    @IBOutlet weak var btnClose: UIButton!
+    
     var counter: Int = 0
     var completionAction: String = ""
     var completionAction2: String = ""
@@ -62,6 +65,8 @@ class QRScanner2ViewController: UIViewController, UINavigationBarDelegate,  UITa
     override func viewDidLoad() {
         super.viewDidLoad()
         getAvailablePaymentData()
+        
+        btnClose.setTitle("", for: .normal)
         //print("BRIAN TAB ID VIEW DID LOAD = \(tabBarController!.selectedIndex )")
         //print("completeion action ====== \(completionAction)")
             //tabBarController?.delegate = self
@@ -73,6 +78,9 @@ class QRScanner2ViewController: UIViewController, UINavigationBarDelegate,  UITa
             }
           }
         //addNavigationBar()
+        
+        //setstatusbarbgcolor.setBackground()
+        //setNavigationBar()
         
         for myprofile in myProfileData {
             firstname = myprofile.firstName
@@ -87,7 +95,7 @@ class QRScanner2ViewController: UIViewController, UINavigationBarDelegate,  UITa
         }
         
         var i: Int = 0
-        self.navigationController?.navigationBar.topItem?.title = "Scan QR Code"
+        //self.navigationController?.navigationBar.topItem?.title = "Scan QR Code"
         //self.navigationController?.navigationBar.backgroundColor = .red
         //setNavigationBar()
         // Get the back-facing camera for capturing videos
@@ -125,7 +133,7 @@ class QRScanner2ViewController: UIViewController, UINavigationBarDelegate,  UITa
             
             // Move the message label and top bar to the front
             //view.bringSubviewToFront(messageLabel)
-            //view.bringSubviewToFront(topBar)// comment out for now
+            view.bringSubviewToFront(topBar)// comment out for now
             
             // Initialize QR Code Frame to highlight the QR Code
             qrCodeFrameView = UIView()
@@ -143,8 +151,102 @@ class QRScanner2ViewController: UIViewController, UINavigationBarDelegate,  UITa
             return
         }
     }
-
- 
+    override func viewWillLayoutSubviews() {
+//          let width = self.view.frame.width
+//          let navigationBar: UINavigationBar = UINavigationBar(frame: CGRect(x: 0, y: 0, width: width, height: 44))
+//          self.view.addSubview(navigationBar);
+//          let navigationItem = UINavigationItem(title: "Navigation bar")
+//          let doneBtn = UIBarButtonItem(barButtonSystemItem: UIBarButtonItem.SystemItem.done, target: nil, action: #selector(selectorX))
+//          navigationItem.rightBarButtonItem = doneBtn
+//          navigationBar.setItems([navigationItem], animated: false)
+    }
+    
+    
+    
+    @objc func selectorX() { }
+    
+    
+    @IBAction func closeWindow(_ sender: Any) {
+        
+        print("Home screen was called - after QR code")
+        let mainStoryBoard: UIStoryboard = UIStoryboard(name: "Main", bundle: nil)
+        //let nextVC: HomeViewController =  mainStoryBoard.instantiateViewController(withIdentifier: "HomeViewController" ) as! HomeViewController
+        
+        
+        
+        /*
+         commented this out on 10/9 */
+         let nextVC: MenuTabViewController =  mainStoryBoard.instantiateViewController(withIdentifier: "MenuTabViewController" ) as! MenuTabViewController
+        
+        
+        //innerPage.lbldesc = "We made its"
+        nextVC.profileId = profileId
+        //nextVC.ownerId = ownerId
+        nextVC.token = token
+        nextVC.encryptedAPIKey = encryptedAPIKey
+        nextVC.myProfileData = myProfileData
+        //nextVC.refreshscreendelegate = self
+        //nextVC.refreshscreendelegate = self
+        
+        /*comment this out for now 9/2*/
+        nextVC.modalPresentationStyle = .fullScreen
+        self.present(nextVC, animated:true, completion:nil)
+    }
+    
+    
+    func setNavigationBar() {
+//        print("I was called")
+//        let screenSize: CGRect = UIScreen.main.bounds
+//        let navBar = UINavigationBar(frame: CGRect(x: 0, y: 35, width: screenSize.width, height: 44))
+//        let navItem = UINavigationItem(title: "")
+//        let image = UIImage(named: "closeicon")!.withRenderingMode(.alwaysOriginal)
+//        let doneItem = UIBarButtonItem(image: image, style: .plain, target: nil, action: #selector(done))
+//           navItem.leftBarButtonItem = doneItem
+//           navBar.setItems([navItem], animated: false)
+//           self.view.addSubview(navBar)
+        
+        
+        print("I was called")
+//        let screenSize: CGRect = UIScreen.main.bounds
+//        let navBar = UINavigationBar(frame: CGRect(x: 0, y: 35, width: screenSize.width, height: 44))
+//        let navItem = UINavigationItem(title: "")
+//        let image = UIImage(named: "closeicon")!.withRenderingMode(.alwaysOriginal)
+//        let doneItem = UIBarButtonItem(image: image, style: .plain, target: nil, action: #selector(done))
+//           navItem.leftBarButtonItem = doneItem
+//           navBar.setItems([navItem], animated: false)
+//           self.view.addSubview(navBar)
+        
+        
+        print("I was called")
+        let screenSize: CGRect = UIScreen.main.bounds
+        let navBar = UINavigationBar(frame: CGRect(x: 0, y: 35, width: screenSize.width, height: 44))
+        let navItem = UINavigationItem(title: "Password Reset")
+        //let navItem2 = UINavigationItem(title: "Step 1 of 3")
+        
+       
+        //let item =  UIBarButtonItem(customView: customView)
+//        rbar.setTitleTextAttributes([NSAttributedString.Key.foregroundColor : UIColor.white], for: .normal)
+        //navigationItem.rightBarButtonItems = [rbar]
+        
+        let image = UIImage(named: "closeicon")!.withRenderingMode(.alwaysOriginal)
+        //let doneItem2 = UIBarButtonItem(barButtonSystemItem: , style: .plain, target: nil, action: #selector(done))
+        let doneItem = UIBarButtonItem(image: UIImage(systemName: "xmark") , style: .plain, target: nil, action: #selector(done))
+       // let doneItem2 = UIBarButtonItem(systemItem: .close, primaryAction: closeAction, menu: nil)
+        //navItem.rightBarButtonItem  = doneItem2
+        
+        let rbar = UIBarButtonItem(title: "Step 1 of 3", style: UIBarButtonItem.Style.plain, target: self, action: nil)
+        
+        rbar.setTitleTextAttributes([NSAttributedString.Key.foregroundColor : UIColor.white], for: .normal)
+        
+        //navItem.setTitleTextAttributes([NSAttributedString.Key.foregroundColor : UIColor.white], for: .normal)
+        
+        navItem.leftBarButtonItem = doneItem
+    
+        navItem.rightBarButtonItem  = rbar
+           navBar.setItems([navItem], animated: false)
+           self.view.addSubview(navBar)
+    }
+   
     func addNavigationBar() {
          let height: CGFloat = 40
          var statusBarHeight: CGFloat = 0
@@ -170,6 +272,7 @@ class QRScanner2ViewController: UIViewController, UINavigationBarDelegate,  UITa
          self.view?.frame = CGRect(x: 0, y: height, width: UIScreen.main.bounds.width, height: (UIScreen.main.bounds.height - height))
      }
 
+    
      @objc func dismissViewController() {
          
      }
@@ -204,9 +307,14 @@ class QRScanner2ViewController: UIViewController, UINavigationBarDelegate,  UITa
         print("Selected view controller")
     }
     
+    /*turn status bar to white color*/
+    override var preferredStatusBarStyle: UIStatusBarStyle {
+        .lightContent
+    }
     
     override func viewWillAppear(_ animated: Bool) {
         super.viewWillAppear(animated)
+        setNeedsStatusBarAppearanceUpdate()
         addNavigationBar()
         if (captureSession.isRunning == false) {
             captureSession.startRunning()
@@ -501,7 +609,7 @@ class QRScanner2ViewController: UIViewController, UINavigationBarDelegate,  UITa
        //self.navigationController?.pushViewController(nextVC , animated: true)
         nextVC.modalPresentationStyle = .fullScreen
         
-        self.present(nextVC, animated:true, completion:nil)
+        self.present(nextVC, animated:false, completion:nil)
         
         //dismiss(animated: true, completion: nil)
         
@@ -509,26 +617,26 @@ class QRScanner2ViewController: UIViewController, UINavigationBarDelegate,  UITa
         
     }
     
-    func setNavigationBar() {
-        print("I was called")
-        let screenSize: CGRect = UIScreen.main.bounds
-        let navBar = UINavigationBar(frame: CGRect(x: 0, y: 35, width: screenSize.width, height: 44))
-        let navItem = UINavigationItem(title: "")
-        let image = UIImage(named: "closeicon")!.withRenderingMode(.alwaysOriginal)
-        
-        //self.navigationController?.navigationBar.topItem?.title = "Your Title"
-
-     
-        
-        //let NavTitle = navBar.topItem?.title = "Scan"
-        
-        //self.navigationController?.navigationBar.topItem?.title = "Scan"
-        navItem.title = "Scan QR Code"
-        //let doneItem = UIBarButtonItem(image: image, style: .plain, target: nil, action: #selector(done))
-          // navItem.leftBarButtonItem = doneItem
-        navBar.setItems([navItem], animated: false)
-           self.view.addSubview(navBar)
-    }
+//    func setNavigationBar() {
+//        print("I was called")
+//        let screenSize: CGRect = UIScreen.main.bounds
+//        let navBar = UINavigationBar(frame: CGRect(x: 0, y: 35, width: screenSize.width, height: 44))
+//        let navItem = UINavigationItem(title: "")
+//        let image = UIImage(named: "closeicon")!.withRenderingMode(.alwaysOriginal)
+//        
+//        //self.navigationController?.navigationBar.topItem?.title = "Your Title"
+//
+//     
+//        
+//        //let NavTitle = navBar.topItem?.title = "Scan"
+//        
+//        //self.navigationController?.navigationBar.topItem?.title = "Scan"
+//        navItem.title = "Scan QR Code"
+//        //let doneItem = UIBarButtonItem(image: image, style: .plain, target: nil, action: #selector(done))
+//          // navItem.leftBarButtonItem = doneItem
+//        navBar.setItems([navItem], animated: false)
+//           self.view.addSubview(navBar)
+//    }
     
     //returns user to login when back button is pressed
     @objc func done() {
@@ -567,11 +675,13 @@ class QRScanner2ViewController: UIViewController, UINavigationBarDelegate,  UITa
                     print("metadataObj.stringValue = \(metadataObj.stringValue)")
                     counter = counter + 1
                     if counter == 1 {
+                        print("I CALLED FOUND ME - \(counter)")
                         found(code: metadataObj.stringValue!)
                         metadataObj.stringValue
                         captureSession.stopRunning()
                     } else {
                         counter = 0
+                        print("I CALLED FOUND THEM - \(counter)")
                     }
                     print("I CALLED FOUND - \(counter)")
                     

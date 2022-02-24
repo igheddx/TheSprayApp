@@ -142,6 +142,7 @@ class HomeViewController: UIViewController, UITextFieldDelegate {
     override func viewDidLoad() {
         super.viewDidLoad()
         createSpinnerView()
+        self.tabBarController?.tabBar.isHidden = false
         //statusBarEnterLightBackground()
         //print("BRIAN TAB ID VIEW DID LOAD = \(tabBarController!.selectedIndex )")
         print("paymentClientToken \(paymentClientToken)")
@@ -416,10 +417,15 @@ class HomeViewController: UIViewController, UITextFieldDelegate {
 //        }
 //        
         //uncommented this so that getMyEvents is not called on initial load of screen
-        //check if screen should be refreshed
-        if defaults.bool(forKey: "isRefreshHomeVC") == true {
+        //check if screen should be refreshed - if user complete onboarding the refresh homescreen
+        let isOnboardCustomerRefresh = defaults.bool(forKey: "isOnboardCustomerRefresh")
+        let isRefreshHomeVC = defaults.bool(forKey: "isRefreshHomeVC")
+        
+        
+        if isRefreshHomeVC == true || isOnboardCustomerRefresh == true {
             isRefreshData = true
             defaults.set(false, forKey: "isRefreshHomeVC") //reset to false
+            defaults.set(false, forKey: "isOnboardCustomerRefresh")
         }
         if isRefreshData == true {
             print("isRefreshData Did Appear 1 = \(isRefreshData)")
@@ -483,7 +489,7 @@ class HomeViewController: UIViewController, UITextFieldDelegate {
     override func viewWillAppear(_ animated: Bool) {
            super.viewWillAppear(animated)
        
-        
+        self.tabBarController?.tabBar.isHidden = true
         if shadowImageView == nil {
             shadowImageView = findShadowImage(under: navigationController!.navigationBar)
         }
@@ -714,7 +720,7 @@ class HomeViewController: UIViewController, UITextFieldDelegate {
                 userDisplayName = UserDefaults.standard.string(forKey: "userDisplayName")!
                 displayName = userDisplayName //name.firstName
                 
-                print("I am inside myProfile loop")
+                print("I am inside myProfile loop --- \(displayName )")
                 if let avatarStr1 = name.avatar {
                     avatarStr = avatarStr1
                     
@@ -1600,6 +1606,7 @@ class HomeViewController: UIViewController, UITextFieldDelegate {
         return getEventPaymentMethod()
     }
     func getMyEvents(){
+        checkOnboardingStatus() /*check if user is verified*/
         
         print("pendingPayoutAmt2 = \(pendingPayoutAmt2)" )
         print("outstandingTransferAmt = \(outstandingTransferAmt)")
@@ -1651,7 +1658,7 @@ class HomeViewController: UIViewController, UITextFieldDelegate {
          only show this car if the user is not verified with Stripe
          */
         if isAccountConnected == false {
-        let dataCollection00 = EventProperty(eventId: 0, ownerId: 0, name: "", dateTime: "", address1: "", address2: "", city: "", zipCode: "", country: "", state: "", eventState: 1, eventCode: "", isActive: true, eventType: 1, isRsvprequired: true, isSingleReceiver: false, isForBusiness: false, defaultEventPaymentMethod: 0, defaultEventPaymentCustomName: "", isAttending: false, dataCategory: "info2", hasPaymentMethod: false, outstandingTransferAmt1: outstandingTransferAmt, pendingPayoutAmt1: pendingPayoutAmt2, totalGiftedAmt1: self.totalGiftedAmt, totalReceivedAmt1: totalGiftReceivedAmt, currency1: currencyCode, paymentCustomerId1: paymentCustomerId, paymentConnectedActId1: paymentCustomerId)
+            let dataCollection00 = EventProperty(eventId: 0, ownerId: 0, name: "", dateTime: "", address1: "", address2: "", city: "", zipCode: "", country: "", state: "", eventState: 1, eventCode: "", isActive: true, eventType: 1, isRsvprequired: true, isSingleReceiver: false, isForBusiness: false, defaultEventPaymentMethod: 0, defaultEventPaymentCustomName: "", isAttending: false, dataCategory: "info2", hasPaymentMethod: false, outstandingTransferAmt1: outstandingTransferAmt, pendingPayoutAmt1: pendingPayoutAmt2, totalGiftedAmt1: self.totalGiftedAmt, totalReceivedAmt1: totalGiftReceivedAmt, currency1: currencyCode, paymentCustomerId1: paymentCustomerId, paymentConnectedActId1: paymentCustomerId)
             homescreeneventdata.append(dataCollection00)
             
         }
@@ -2627,6 +2634,107 @@ extension HomeViewController: UITableViewDataSource, UITableViewDelegate {
                    
         self.navigationController?.pushViewController(nextVC , animated: true)
     }
+    
+    //this function is used to determine if account is verified or connected
+    func checkOnboardingStatus() {
+        var myName: String = ""
+        var myLastName: String = ""
+        var myusername: String = ""
+        var myEmail: String = ""
+        var myPhone: String = ""
+        var myAvatar: String?
+        var myPaymentCustomerId: String?
+        var myPaymentConnectedActId: String?
+        var myReturnUrl: String = ""
+        var myRefreshUrl: String = ""
+        var myProfileId: Int64 = 0
+ 
+        for myprofile in myProfileData {
+            myProfileId = myprofile.profileId
+            myName = myprofile.firstName
+            myLastName = myprofile.lastName
+            myusername = myprofile.email
+            myEmail = myprofile.email
+            myPhone = myprofile.phone
+            myAvatar = myprofile.avatar
+            myPaymentCustomerId = myprofile.paymentCustomerId
+            myPaymentConnectedActId = myprofile.paymentConnectedActId
+        }
+        
+        myReturnUrl = "https://projectxclientapp.azurewebsites.net/stripe/Index?profileid=\(myProfileId)&status=success&token=\(token!)"
+        myRefreshUrl = "https://projectxclientapp.azurewebsites.net/stripe/Index?profileid=\(myProfileId)&status=failed&token=\(token!)"
+        
+        let onboardingProfile = ProfileOnboarding(token: token!, profileId: myProfileId, firstName: myName, lastName: myLastName, userName: myusername, email: myEmail, phone: myPhone, avatar: myAvatar, paymentCustomerId: myPaymentCustomerId, paymentConnectedActId: myPaymentConnectedActId, success: true, returnUrl: myReturnUrl, refreshUrl: myRefreshUrl)
+       
+        let request = PostRequest(path: "/api/profile/addaccount", model: onboardingProfile, token: token!, apiKey: encryptedAPIKey, deviceId: "")
+        Network.shared.send(request) { [self] (result: Result<Data, Error>) in
+            switch result {
+            case .success(let urldata):
+
+                //let m = URL(string: String(data: urldata, encoding: .utf8) ?? "*")
+                let redirectUrl = String(data: urldata, encoding: .utf8) ?? "*"
+     
+                let redirectURL2 = redirectUrl.replacingOccurrences(of: " ", with: "", options: NSString.CompareOptions.literal, range:nil)
+              
+                let jsonData = redirectURL2.data(using: .utf8)!
+                let connectedaccount: ConnectedAccount = try! JSONDecoder().decode(ConnectedAccount.self, from: jsonData)
+                
+               // print("MY URL IS \(connectedaccount.url!)")
+                print("IS ACCOUNT CONNECTED Login \(connectedaccount.isAccountConnected)")
+                
+                UserDefaults.standard.set(connectedaccount.isAccountConnected, forKey: "isAccountConnected")
+                //self.performSegue(withIdentifier: "nextVC", sender: nil)
+                //break
+                print("I am verified - \(connectedaccount.isAccountConnected)")
+
+            case .failure(let error):
+                UserDefaults.standard.set(false, forKey: "isAccountConnected")
+                self.theAlertView(alertType: "GenericError", message: error.localizedDescription + " - /api/profile/addaccount ")
+                print(" DOMINIC H IGHEDOSA 1 ERROR \(error.localizedDescription)")
+            }
+        }
+    }
+    
+    func theAlertView(alertType: String, message: String){
+        var alertTitle: String = ""
+        var alertMessage: String = ""
+        if alertType == "IncorrecUserNamePassword" {
+            alertTitle = "Login Error"
+            alertMessage = "You entered an invalid login ID or Password 1. \n"
+            
+            
+            
+        } else if alertType == "MissingFields" {
+            alertTitle = "Login Error"
+            alertMessage = "You entered an invalid login ID or Password 2. \n"
+        } else if alertType == "InitializeError" {
+            alertTitle = "Login Error"
+            alertMessage = "Something went wrong with the initialization. Please try again later. \n \(message)"
+        } else if alertType == "GenericError" {
+            alertTitle = "Error"
+            alertMessage = "Something went wrong with the initialization. Please try again later. \n \(message)"
+        }  else if alertType == "GenericError2" {
+            alertTitle = "Error"
+            alertMessage = message
+        }
+       
+        
+        
+//        self.loginButton.isEnabled = true
+//        self.loginButton.setTitle("Sign In", for: .normal)
+//        self.usernameTextField.isEnabled = true
+//        self.passwordTextField.isEnabled = true
+//        //self.loginButton.loadIndicator(false)
+//        self.loginButton.loadIndicator(false)
+        
+        let alert2 = UIAlertController(title: alertTitle, message: alertMessage, preferredStyle: .alert)
+
+        alert2.addAction(UIAlertAction(title: "Close", style: .default, handler: nil))
+        //alert2.addAction(UIAlertAction(title: "No", style: .cancel, handler: nil))
+        self.present(alert2, animated: true)
+    }
+    
+    
     
     func onboardCustomer() {
         LoadingStart(message: "Loading...")

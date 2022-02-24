@@ -115,6 +115,17 @@ class CreateAccountQRScanViewController:  UIViewController, UINavigationBarDeleg
 
         
     }
+    
+    /*turn status bar to white color*/
+    override func viewWillAppear(_ animated: Bool) {
+        super.viewWillAppear(animated)
+        setNeedsStatusBarAppearanceUpdate()
+    }
+    override var preferredStatusBarStyle: UIStatusBarStyle {
+        .lightContent
+    }
+    
+    
     override func viewDidAppear(_ animated: Bool) {
         AppUtility.lockOrientation(.portrait)
     }

@@ -38,7 +38,7 @@ class MenuTabViewController: UITabBarController, UITabBarControllerDelegate {
         for viewController in viewControllers {
             if let menuNavigationController = viewController as? MenuNavigationController {
                 print("Tab Bar A")
-                if let menuViewController = menuNavigationController.viewControllers.first as? MenuViewController {
+                if let menuViewController = menuNavigationController.viewControllers.first as? Menu2ViewController {
                     print("Tab Bar B")
                     menuViewController.profileId = profileId
                     menuViewController.token = token
@@ -60,7 +60,7 @@ class MenuTabViewController: UITabBarController, UITabBarControllerDelegate {
     //                    loginViewController.profileId = profileId
     //                    loginViewController.token = token
                     print("Tab Bar E")
-                } else if let QRViewController = menuTabViewController.viewControllers?.first as? QRScanner2ViewController {
+                } else if let QRViewController = menuTabViewController.viewControllers?.first as? QRScanner3ViewController {
                    // print("my completion ACT  \()")
                     print("Tab Bar F")
                     QRViewController.completionAction = "postloginscan"
@@ -87,7 +87,7 @@ class MenuTabViewController: UITabBarController, UITabBarControllerDelegate {
                         homeViewController.stripeOnboardingMessage = stripeOnboardingMessage
                         homeViewController.encryptedAPIKey = encryptedAPIKey
                         homeViewController.encryptedDeviceId = encryptedDeviceId
-                    }   else if let QRViewController = homeNavigationController.viewControllers.first as? QRScanner2ViewController {
+                    }   else if let QRViewController = homeNavigationController.viewControllers.first as? QRScanner3ViewController {
                         print("Tab Bar H")
                         QRViewController.completionAction = "postloginscan"
                         QRViewController.profileId = profileId!
@@ -104,7 +104,7 @@ class MenuTabViewController: UITabBarController, UITabBarControllerDelegate {
     for viewController in viewControllers {
         print("Tab Bar CCC")
      
-        if let QR = viewController as? QRScanner2ViewController{
+        if let QR = viewController as? QRScanner3ViewController{
             
           // print("my completion ACT  \()")
             print("Tab Bar FFF = \(paymentClientToken)")
@@ -143,7 +143,7 @@ class MenuTabViewController: UITabBarController, UITabBarControllerDelegate {
                     homeViewController.stripeOnboardingMessage = stripeOnboardingMessage
                     homeViewController.encryptedAPIKey = encryptedAPIKey
                     homeViewController.encryptedDeviceId = encryptedDeviceId
-                }   else if let QRViewController = homeNavigationController.viewControllers.first as? QRScanner2ViewController {
+                }   else if let QRViewController = homeNavigationController.viewControllers.first as? QRScanner3ViewController {
                     print("Tab Bar K")
                     QRViewController.completionAction = "postloginscan"
                     QRViewController.profileId = profileId!
@@ -178,7 +178,7 @@ class MenuTabViewController: UITabBarController, UITabBarControllerDelegate {
         //use this to call join event scannerViewController
         for viewController in viewControllers {
             if let dashboardNavigationController = viewController as? DashboardNavigationViewController {
-                if let dashboardViewController = dashboardNavigationController.viewControllers.first as? QRScanner2ViewController {
+                if let dashboardViewController = dashboardNavigationController.viewControllers.first as? QRScanner3ViewController {
                     
                     print("CALLED QRScanner2ViewController")
                     dashboardViewController.completionAction = "postloginscan"
@@ -201,7 +201,7 @@ class MenuTabViewController: UITabBarController, UITabBarControllerDelegate {
         for viewController in viewControllers {
             if let menuTabViewController = viewController as? MenuTabViewController {
                 print("Tab Bar M")
-                if let scanViewController = menuTabViewController.viewControllers?.first as? QRScanner2ViewController {
+                if let scanViewController = menuTabViewController.viewControllers?.first as? QRScanner3ViewController {
                     print("Tab Bar N")
     //                    loginViewController.profileId = profileId
     //                    loginViewController.token = token

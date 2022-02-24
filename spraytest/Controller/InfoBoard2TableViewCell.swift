@@ -228,6 +228,7 @@ class InfoBoard2TableViewCell: UITableViewCell {
 //
     
     @IBAction func customerOnboardingBtnPressed(_ sender: Any) {
+        defaults.set(true, forKey: "isOnboardCustomerRefresh")
         if(self.customCellDelegate != nil){ //Just to be safe.
             self.customCellDelegate?.infoBoard(completionAction: "onboardcustomer")
         }

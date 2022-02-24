@@ -91,27 +91,27 @@ class InfoBoardNewsUpdatesTableViewCell: UITableViewCell {
         //cell2.layer.shadowPath = UIBezierPath(roundedRect: sprayCardView.bounds, cornerRadius: cell2.contentView.layer.cornerRadius).cgPath
         
         //spraytimer.startTimer()
-        print("news image = \(newsImage)")
+       // print("news image = \(newsImage)")
     }
     
     /*function to displays image every 3 seconds*/
     @objc func fireTimer() {
-        print("Timer fired!")
+       // print("Timer fired!")
         
         count += 1
         countToExitTimer += 1
         
         if count == 1 {
-            print("image 1")
+            //print("image 1")
             newsimage.image = UIImage(named: "newsimage1")
             newsLabel.text = "Better to give than to receive..."
         } else if count == 2 {
-            print("image 2")
+            //print("image 2")
             newsimage.image = UIImage(named: "newsimage2")
             newsLabel.text = "Dancing in the street..."
        
         } else if count == 3 {
-            print("image 2")
+            //print("image 2")
             newsimage.image = UIImage(named: "newsimage3")
             newsLabel.text = "Show your appreciation, spray your friends..."
             

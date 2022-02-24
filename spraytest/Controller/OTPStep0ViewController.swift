@@ -67,6 +67,14 @@ class OTPStep0ViewController: UIViewController, UITextFieldDelegate {
         
     }
     
+    /*turn status bar to white color*/
+    override func viewWillAppear(_ animated: Bool) {
+        super.viewWillAppear(animated)
+        setNeedsStatusBarAppearanceUpdate()
+    }
+    override var preferredStatusBarStyle: UIStatusBarStyle {
+        .lightContent
+    }
 
     func verifyEmail(email: String) {
         let request = Request(path: "/api/Profile/phonecheck/\(email)", token: "", apiKey: encryptedAPIKey)

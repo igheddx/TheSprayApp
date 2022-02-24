@@ -127,6 +127,15 @@ class OTPStep2ViewController: UIViewController {
 //         self.view.frame.origin.y = 0 // Move view to original position
 //    }
 //
+    /*turn status bar to white color*/
+    override func viewWillAppear(_ animated: Bool) {
+        super.viewWillAppear(animated)
+        setNeedsStatusBarAppearanceUpdate()
+    }
+    override var preferredStatusBarStyle: UIStatusBarStyle {
+        .lightContent
+    }
+    
     func setNavigationBar() {
         print("I was called")
 

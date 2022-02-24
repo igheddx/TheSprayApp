@@ -1148,16 +1148,16 @@ class GoSprayViewController: UIViewController,  STPAddCardViewControllerDelegate
             let currencyData2 = CurrencyDenom(amount: 5, value: "5.00", currencyImage: "5dollars")
             currencydenom.append(currencyData2)
             
-            let currencyData3 = CurrencyDenom(amount: 10, value: "10.00", currencyImage: "10dollarSide1")
+            let currencyData3 = CurrencyDenom(amount: 10, value: "10.00", currencyImage: "10dollars")
             currencydenom.append(currencyData3)
             
-            let currencyData4 = CurrencyDenom(amount: 20, value: "20.00", currencyImage: "20dollarSide1")
+            let currencyData4 = CurrencyDenom(amount: 20, value: "20.00", currencyImage: "20dollars")
             currencydenom.append(currencyData4)
             
-            let currencyData5 = CurrencyDenom(amount: 50, value: "50.00", currencyImage: "50dollarSide1")
+            let currencyData5 = CurrencyDenom(amount: 50, value: "50.00", currencyImage: "50dollars")
             currencydenom.append(currencyData5)
             
-            let currencyData6 = CurrencyDenom(amount: 100, value: "100.00", currencyImage: "100dollarSide1")
+            let currencyData6 = CurrencyDenom(amount: 100, value: "100.00", currencyImage: "100dollars")
             currencydenom.append(currencyData6)
         } else if currencyCode == "ngn" {
             let currencyData1 = CurrencyDenom(amount: 5, value: "5.00", currencyImage: "5naira")
@@ -1212,16 +1212,16 @@ class GoSprayViewController: UIViewController,  STPAddCardViewControllerDelegate
         let currencyData2 = CurrencyDenom(amount: 5, value: "$5.00", currencyImage: "5dollars")
         currencydenom.append(currencyData2)
         
-        let currencyData3 = CurrencyDenom(amount: 10, value: "$10.00", currencyImage: "10dollarSide1")
+        let currencyData3 = CurrencyDenom(amount: 10, value: "$10.00", currencyImage: "10dollars")
         currencydenom.append(currencyData3)
         
-        let currencyData4 = CurrencyDenom(amount: 20, value: "$20.00", currencyImage: "20dollarSide1")
+        let currencyData4 = CurrencyDenom(amount: 20, value: "$20.00", currencyImage: "20dollars")
         currencydenom.append(currencyData4)
         
-        let currencyData5 = CurrencyDenom(amount: 50, value: "$50.00", currencyImage: "50dollarSide1")
+        let currencyData5 = CurrencyDenom(amount: 50, value: "$50.00", currencyImage: "50dollars")
         currencydenom.append(currencyData5)
         
-        let currencyData6 = CurrencyDenom(amount: 100, value: "$100.00", currencyImage: "100dollarSide1")
+        let currencyData6 = CurrencyDenom(amount: 100, value: "$100.00", currencyImage: "100dollars")
         currencydenom.append(currencyData6)
     }
     
@@ -1897,7 +1897,7 @@ class GoSprayViewController: UIViewController,  STPAddCardViewControllerDelegate
         
         /*comment this out for now 9/2*/
         nextVC.modalPresentationStyle = .fullScreen
-        self.present(nextVC, animated:true, completion:nil)
+        self.present(nextVC, animated:false, completion:nil)
         //self.navigationController?.pushViewController(nextVC , animated: true)
          //dismiss(animated: true, completion: nil)
         

@@ -387,9 +387,13 @@ class MyCustomButton : UIButton{
             self.alpha = 0.7
             showSpinning()
         } else {
-            activityIndicator.stopAnimating()
-            self.isEnabled = true
-            self.alpha = 1.0
+            //if activityIndicator.stopAnimating() != nil  {
+                activityIndicator.stopAnimating()
+                self.isEnabled = true
+                self.alpha = 1.0
+              //return
+           // }
+            
         }
     }
 

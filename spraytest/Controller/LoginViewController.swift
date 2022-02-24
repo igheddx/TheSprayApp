@@ -96,6 +96,19 @@ class LoginViewController: UIViewController, UITextFieldDelegate {
     override func viewDidLoad() {
         super.viewDidLoad()
         
+        //KeychainWrapper.standard.set(false, forKey: "isKeyChainInUse")
+        
+        //KeychainWrapper.standard.set(true, forKey: "isKeyChainInUse")
+        if let isKeyChainInUse = KeychainWrapper.standard.bool(forKey: "isKeyChainInUse") {
+            self.isKeyChainInUse = isKeyChainInUse
+        } else {
+            self.isKeyChainInUse = false
+        }
+        //self.isKeyChainInUse = KeychainWrapper.standard.bool(forKey: "isKeyChainInUse")!
+        
+        print("self.isKeyChainInUse \(self.isKeyChainInUse)")
+        print("View did load isEnablebiometricNextLogin = \(isKeyPresentInUserDefaults(key: "isEnablebiometricNextLogin"))")
+        
         let countries = NSLocale.isoCountryCodes.map { (code:String) -> String in
             let id = NSLocale.localeIdentifier(fromComponents: [NSLocale.Key.countryCode.rawValue: code])
             return NSLocale(localeIdentifier: "en_US").displayName(forKey: NSLocale.Key.identifier, value: id) ?? "Country not found for code: \(code)"
@@ -156,7 +169,7 @@ class LoginViewController: UIViewController, UITextFieldDelegate {
 
         
         appInitilialization()
-
+        initializeBiometric()
         print("my keychain user = \(KeychainWrapper.standard.string(forKey: "usernameKeyChain"))")
         print("my keychain user = \(KeychainWrapper.standard.string(forKey: "passwordKeyChain"))")
    
@@ -166,114 +179,7 @@ class LoginViewController: UIViewController, UITextFieldDelegate {
         encryptedAPIKey = encryptdecrypt.encryptDecryptAPIKey(type: "", value: "", action: "encrypt") //encryptData(value: apiKeyValue)
 
        
-       print("encryptedAPIKey=\(encryptedAPIKey)")
-            
-        let context = LAContext()
-        CheckIfBiometricEnabled()
-        if isBiometricEnabled == true {
-          
-            //launch auto biometric if not logout and keychainInUse = true
-            let isKeyChainInUse = isKeyPresentInUserDefaults(key: "isKeyChainInUse")
-            
-            if ( context.biometryType == .touchID ) {
-                 print("touch Id enabled")
-                if isKeyChainInUse == true {
-                    biometricLbl2.text = "Touch ID is Enabled"
-                    biometricSwitchBtn2.isHidden = true
-                } else {
-                    biometricLbl2.text = "Enable Touch ID"
-                    biometricSwitchBtn2.isHidden = false
-                    biometricSwitchBtn2.isOn = false
-                }
-                
-                biometricIcon.image = UIImage(named: "touchid_icon")
-                //displayBiometricSelection(imageName: "touchid_icon")
-            } else if  ( context.biometryType == .faceID) {
-                if isKeyChainInUse == true {
-                    biometricLbl2.text = "Face ID is Enabled"
-                    biometricSwitchBtn2.isHidden = true
-                } else  {
-                    biometricLbl2.text = "Enable Face ID"
-                    biometricSwitchBtn2.isHidden = false
-                    biometricSwitchBtn2.isOn = false
-                }
-                
-                biometricIcon.image = UIImage(named: "faceid_icon")
-                //displayBiometricSelection(imageName: "faceid_icon")
-                print("face Id is enabled")
-            } else {
-                print("stone age")
-                biometricLbl2.text = ""
-                biometricSwitchBtn2.isHidden = true
-                biometricIcon.isHidden = true
-            }
-            
-            
-            if isKeyChainInUse == true && logout == false {
-                
-               
-                self.isKeyChainInUse = KeychainWrapper.standard.bool(forKey: "isKeyChainInUse")!
-                print("iskeychaininuse \(self.isKeyChainInUse )")
-                if (self.isKeyChainInUse  == true) {
-                    let usernamekeychainToDisplay = KeychainWrapper.standard.string(forKey: "usernameKeyChain")
-                    let username =  KeychainWrapper.standard.string(forKey: "usernameKeyChain")
-                    let password =  KeychainWrapper.standard.string(forKey: "passwordKeyChain")
-                    
-                    print("USERNAME =\(username)")
-                    print("USERNAME =\(password)")
-                    
-                    let value = redactUsername(username: usernamekeychainToDisplay!)
-                    print("value =\(value)")
-                    usernameTextField.text = redactUsername(username: usernamekeychainToDisplay!)
-                    usernameTextField.isEnabled = false
-                    processEnableBiometric()
-                }
-//            } else  {
-//                biometricLbl2.text = "Enable Biometric"
-//                biometricSwitchBtn2.isHidden = false
-//                biometricSwitchBtn2.isOn = false
-            }
-        
-        
-        } else  {
-//            biometricLbl.text = "Enable Biometric"
-//            biometricSwitchBtn2.isHidden = false
-//            biometricSwitchBtn2.isOn = false
-            //don't show it if it is not enabled
-            biometricLbl2.text = ""
-            biometricSwitchBtn2.isHidden = true
-            biometricIcon.isHidden = true
-//            displayBiometricSelection(imageName: "")
-//            displayRememberMeSelection()
-        }
-        
-        //preset biometric and remember swiftch based option biometric from setting
-        //let isKeyChainInUse = isKeyPresentInUserDefaults(key: "isKeyChainInUse")
-        
-        let checkEnableBiometricNextLogin = isKeyPresentInUserDefaults(key: "isEnablebiometricNextLogin")
-        if checkEnableBiometricNextLogin == true {
-            let isEnableBiometricNextLogin =
-                KeychainWrapper.standard.set(true, forKey: "isEnablebiometricNextLogin")
-            if isEnableBiometricNextLogin == true {
-                biometricSwitchBtn.isOn = true
-                rememberMeSwitch.isOn = true
-                rememberMeSwitch.isEnabled = false
-            }
-        }
-        
-        var error: NSError?
-       if #available(iOS 13, *) {
-           print("this supported")
-           if context.canEvaluatePolicy(.deviceOwnerAuthenticationWithBiometrics, error: &error) {
-               //this is for success
-            print("this is for success")
-           }else{
-              //error.description for type error LAError.biometryLockout, .biometryNotEnrolled and other errors
-            print("error detaisl = \(LAError.biometryLockout) \(LAError.biometryNotEnrolled)")
-            print("this is for failure -")
-           }
-       }
-        
+      
         NotificationCenter.default.addObserver(self, selector: #selector(keyboardWillShow(sender:)), name: UIResponder.keyboardWillShowNotification, object: nil);
 
         NotificationCenter.default.addObserver(self, selector: #selector(keyboardWillHide(sender:)), name: UIResponder.keyboardWillHideNotification, object: nil);
@@ -305,6 +211,33 @@ class LoginViewController: UIViewController, UITextFieldDelegate {
         } else {
             print("LOGOUT = FALSE ")
         }
+    }
+    
+    
+    override func viewWillAppear(_ animated: Bool) {
+     
+    }
+    override func viewDidAppear(_ animated: Bool) {
+        
+        print("viewDidAppear")
+        navigationItem.hidesBackButton = true
+        if logout == true {
+            //initializeBiometric()
+            logoutCleanUp()
+        }
+        
+        NotificationCenter.default.addObserver(self, selector: #selector(keyboardWillShow(sender:)), name: UIResponder.keyboardWillShowNotification, object: nil);
+
+        NotificationCenter.default.addObserver(self, selector: #selector(keyboardWillHide(sender:)), name: UIResponder.keyboardWillHideNotification, object: nil);
+        
+        AppUtility.lockOrientation(.portrait)
+
+    }
+    
+    override func viewWillDisappear(_ animated: Bool) {
+        super.viewWillDisappear(animated)
+        
+        AppUtility.lockOrientation(.all)
     }
     
     func  calledByTimer() {
@@ -382,7 +315,157 @@ class LoginViewController: UIViewController, UITextFieldDelegate {
 
     }
     
-    
+    //check and username when biometric
+    func initializeBiometric() {
+        print("encryptedAPIKey=\(encryptedAPIKey)")
+             
+        let context = LAContext()
+        CheckIfBiometricEnabled()
+        if isBiometricEnabled == true {
+            print("Dominic - \(KeychainWrapper.standard.bool(forKey: "isKeyChainInuse"))")
+             //launch auto biometric if not logout and keychainInUse = true
+            //KeychainWrapper.standard.set(false, forKey: "isKeyChainInUse")
+            let isKeyChainInUseInUserDefaults = isKeyPresentInUserDefaults(key: "isKeyChainInUse")
+            
+           
+//            if let  isKeyChainInUse = KeychainWrapper.standard.bool(forKey: "isKeyChainInuse") {
+//                self.isKeyChainInUse = isKeyChainInUse
+//                print("Dominic 2 \(self.isKeyChainInUse)")
+//            } else  {
+//                isKeyChainInUse = false
+//
+//                print("Dominic 1 \(isKeyChainInUse)")
+//            }
+            
+            //let isKeyChainInUse = KeychainWrapper.standard.bool(forKey: "isKeyChainInuse")!
+            
+             print("Dominic isKeyChainInUse = \(isKeyPresentInUserDefaults(key: "isKeyChainInUse"))")
+             if ( context.biometryType == .touchID ) {
+                  print("touch Id enabled")
+                 if isKeyChainInUseInUserDefaults == true {
+                     if isKeyChainInUse == true {
+                         biometricLbl2.text = "Touch ID is Enabled"
+                         biometricSwitchBtn2.isHidden = true
+                     } else {
+                         biometricLbl2.text = "Enable Touch ID"
+                         biometricSwitchBtn2.isHidden = false
+                         biometricSwitchBtn2.isOn = false
+                     }
+                    
+                 } else {
+                     biometricLbl2.text = "Enable Touch ID"
+                     biometricSwitchBtn2.isHidden = false
+                     biometricSwitchBtn2.isOn = false
+                 }
+                 
+                 biometricIcon.image = UIImage(named: "touchid_icon")
+                 //displayBiometricSelection(imageName: "touchid_icon")
+             } else if  ( context.biometryType == .faceID) {
+                 if isKeyChainInUseInUserDefaults == true {
+                     if isKeyChainInUse == true {
+                         biometricLbl2.text = "Face ID is Enabled"
+                         biometricSwitchBtn2.isHidden = true
+                     } else {
+                         biometricLbl2.text = "Enable Face ID"
+                         biometricSwitchBtn2.isHidden = false
+                         biometricSwitchBtn2.isOn = false
+                     }
+                         
+                     
+                 } else  {
+                     biometricLbl2.text = "Enable Face ID"
+                     biometricSwitchBtn2.isHidden = false
+                     biometricSwitchBtn2.isOn = false
+                 }
+                 
+                 biometricIcon.image = UIImage(named: "faceid_icon")
+                 //displayBiometricSelection(imageName: "faceid_icon")
+                 print("face Id is enabled")
+             } else {
+                 print("stone age")
+                 biometricLbl2.text = ""
+                 biometricSwitchBtn2.isHidden = true
+                 biometricIcon.isHidden = true
+             }
+             
+             
+             if isKeyChainInUseInUserDefaults == true  {
+                 
+                print("boogie \(KeychainWrapper.standard.string(forKey: "usernameKeyChain"))")
+                 self.isKeyChainInUse = KeychainWrapper.standard.bool(forKey: "isKeyChainInUse")!
+                 print("iskeychaininuse ~~~~ \(self.isKeyChainInUse )")
+                 if (self.isKeyChainInUse  == true) {
+                     let usernamekeychainToDisplay = KeychainWrapper.standard.string(forKey: "usernameKeyChain")
+                     let username =  KeychainWrapper.standard.string(forKey: "usernameKeyChain")
+                     let password =  KeychainWrapper.standard.string(forKey: "passwordKeyChain")
+                     
+                     print("USERNAME =\(username)")
+                     print("USERNAME =\(password)")
+                     
+                     let value = redactUsername(username: usernamekeychainToDisplay!)
+                     print("value =\(value)")
+                     usernameTextField.text = redactUsername(username: usernamekeychainToDisplay!)
+                     usernameTextField.isEnabled = false
+                     processEnableBiometric()
+                 }
+ //            } else  {
+ //                biometricLbl2.text = "Enable Biometric"
+ //                biometricSwitchBtn2.isHidden = false
+ //                biometricSwitchBtn2.isOn = false
+             }
+         
+         
+         } else  {
+ //            biometricLbl.text = "Enable Biometric"
+ //            biometricSwitchBtn2.isHidden = false
+ //            biometricSwitchBtn2.isOn = false
+             //don't show it if it is not enabled
+             biometricLbl2.text = ""
+             biometricSwitchBtn2.isHidden = true
+             biometricIcon.isHidden = true
+ //            displayBiometricSelection(imageName: "")
+ //            displayRememberMeSelection()
+         }
+         
+         //preset biometric and remember swiftch based option biometric from setting
+         //let isKeyChainInUse = isKeyPresentInUserDefaults(key: "isKeyChainInUse")
+         
+         let checkEnableBiometricNextLogin = isKeyPresentInUserDefaults(key: "isEnablebiometricNextLogin")
+         if checkEnableBiometricNextLogin == true {
+             
+             print("checkEnableBiometricNextLogin == true")
+             let isEnableBiometricNextLogin =
+                 KeychainWrapper.standard.set(true, forKey: "isEnablebiometricNextLogin")
+             if isEnableBiometricNextLogin == true {
+                 
+                 if self.isKeyChainInUse == true {
+                     print("isEnableBiometricNextLogin == true ")
+                     biometricSwitchBtn.isOn = true
+                     rememberMeSwitch.isOn = true
+                     rememberMeSwitch.isEnabled = false
+                 } else {
+                     biometricSwitchBtn.isOn = false
+                     rememberMeSwitch.isOn = false
+                     rememberMeSwitch.isEnabled = true
+                 }
+                 
+             }
+         }
+         
+         var error: NSError?
+        if #available(iOS 13, *) {
+            print("this supported")
+            if context.canEvaluatePolicy(.deviceOwnerAuthenticationWithBiometrics, error: &error) {
+                //this is for success
+             print("this is for success")
+            }else{
+               //error.description for type error LAError.biometryLockout, .biometryNotEnrolled and other errors
+             print("error detaisl = \(LAError.biometryLockout) \(LAError.biometryNotEnrolled)")
+             print("this is for failure -")
+            }
+        }
+         
+    }
     func displayRememberMeSelection(){
         rememberMeLbl.textAlignment = NSTextAlignment.center
         rememberMeLbl.lineBreakMode = NSLineBreakMode.byWordWrapping
@@ -560,28 +643,6 @@ class LoginViewController: UIViewController, UITextFieldDelegate {
         cleanUserDefaults()
     }
 
-    override func viewWillAppear(_ animated: Bool) {
-     
-    }
-    override func viewDidAppear(_ animated: Bool) {
-        navigationItem.hidesBackButton = true
-        if logout == true {
-            logoutCleanUp()
-        }
-        
-        NotificationCenter.default.addObserver(self, selector: #selector(keyboardWillShow(sender:)), name: UIResponder.keyboardWillShowNotification, object: nil);
-
-        NotificationCenter.default.addObserver(self, selector: #selector(keyboardWillHide(sender:)), name: UIResponder.keyboardWillHideNotification, object: nil);
-        
-        AppUtility.lockOrientation(.portrait)
-
-    }
-    
-    override func viewWillDisappear(_ animated: Bool) {
-        super.viewWillDisappear(animated)
-        
-        AppUtility.lockOrientation(.all)
-    }
     
     func check2EnableLoginButtonField() {
        
@@ -776,7 +837,7 @@ class LoginViewController: UIViewController, UITextFieldDelegate {
 //        nextVC.token = token!
 //        nextVC.encryptedAPIKey = encryptedAPIKey
 //
-        self.navigationController?.pushViewController(nextVC , animated: true)
+        self.navigationController?.pushViewController(nextVC , animated: false)
         
     }
     
@@ -789,9 +850,20 @@ class LoginViewController: UIViewController, UITextFieldDelegate {
     }
     
     func storeCredentialInKeyChain() {
+        /*clear varilabes*/
+//        KeychainWrapper.standard.removeObject(forKey: "usernameKeyChain")
+//        KeychainWrapper.standard.removeObject(forKey: "passwordKeyChain")
+        //KeychainWrapper.standard.removeObject(forKey: "isKeyChainInUse")
+        
+        /*reset variable*/
         KeychainWrapper.standard.set(usernameTextField.text!, forKey: "usernameKeyChain")
         KeychainWrapper.standard.set(passwordTextField.text!, forKey: "passwordKeyChain")
-        KeychainWrapper.standard.set(true, forKey: "isKeyChainInUse")
+        
+        /*only set to true if biometric switch button is enabled*/
+        if biometricSwitchBtn2.isOn == true {
+            KeychainWrapper.standard.set(true, forKey: "isKeyChainInUse")
+        }
+        
         //(true, forKey: "isKeyChainInUse")
     }
     
@@ -853,7 +925,7 @@ class LoginViewController: UIViewController, UITextFieldDelegate {
 //        }
         if username != nil {
           //Key exists
-            print("key chain exist")
+            print("key chain exist = password \(password)")
             proceedWithBiometricAuthentication = true
         }
         if proceedWithBiometricAuthentication == false {
@@ -1045,6 +1117,7 @@ class LoginViewController: UIViewController, UITextFieldDelegate {
     }
     @IBAction func loginButtonPressed(_ sender: Any)  {
         
+        print("loginButtonPressed")
         guard let  username = usernameTextField.text else {
             return
         }
@@ -1060,6 +1133,7 @@ class LoginViewController: UIViewController, UITextFieldDelegate {
 //            emailErrorLabel.text = "Incorrect Email"
 //            loadingLabel.text = "Incorrect Email"
             let message = "Please correct email address format"
+            
             //displayAlertMessage(displayMessage: message, textField: eventNameTextField)
             self.theAlertView(alertType: "GenericError2", message: message)
          return
@@ -1139,6 +1213,7 @@ class LoginViewController: UIViewController, UITextFieldDelegate {
             //}
             
         } else {
+            print("MissingFields")
             theAlertView(alertType: "MissingFields", message: "")
         }
     }
@@ -1172,7 +1247,11 @@ class LoginViewController: UIViewController, UITextFieldDelegate {
                         var encryptdecrypt = EncryptDecrpyt()
                         encryptedAPIKeyUserName = encryptdecrypt.encryptDecryptAPIKey(type: "username", value: username, action: "encrypt")
 
-                       
+                        /*store password in keychain*/
+                        //self.storeCredentialInKeyChain()
+                        KeychainWrapper.standard.set(username, forKey: "usernameKeyChain")
+                        KeychainWrapper.standard.set(password, forKey: "passwordKeyChain")
+                        
                         //call payment initialization
                         self.initializePayment(token: authUser.token!, profileId: authUser.profileId!, firstName: authUser.firstName!, lastName: authUser.lastName!, userName: authUser.email!, email: authUser.email!, phone: "")
 
@@ -1331,23 +1410,28 @@ class LoginViewController: UIViewController, UITextFieldDelegate {
     
     
     func theAlertView(alertType: String, message: String){
+        print("I was called")
         var alertTitle: String = ""
         var alertMessage: String = ""
+        var actionOnLoadingIndicator: Bool = false
         if alertType == "IncorrecUserNamePassword" {
             alertTitle = "Login Error"
-            alertMessage = "You entered an invalid login ID or Password 1. \n"
-            
+            alertMessage = "You entered an invalid login ID or Password. \n"
+            actionOnLoadingIndicator = true
             
             
         } else if alertType == "MissingFields" {
             alertTitle = "Login Error"
-            alertMessage = "You entered an invalid login ID or Password 2. \n"
+            alertMessage = "You entered an invalid login ID or Password. \n"
+            actionOnLoadingIndicator = true
         } else if alertType == "InitializeError" {
             alertTitle = "Login Error"
             alertMessage = "Something went wrong with the initialization. Please try again later. \n \(message)"
+            actionOnLoadingIndicator = true
         } else if alertType == "GenericError" {
             alertTitle = "Error"
             alertMessage = "Something went wrong with the initialization. Please try again later. \n \(message)"
+            actionOnLoadingIndicator = true
         }  else if alertType == "GenericError2" {
             alertTitle = "Error"
             alertMessage = message
@@ -1359,8 +1443,12 @@ class LoginViewController: UIViewController, UITextFieldDelegate {
         self.loginButton.setTitle("Sign In", for: .normal)
         self.usernameTextField.isEnabled = true
         self.passwordTextField.isEnabled = true
+        if actionOnLoadingIndicator == true {
+            self.loginButton.loadIndicator(false)
+            actionOnLoadingIndicator = false
+        }
         //self.loginButton.loadIndicator(false)
-        self.loginButton.loadIndicator(false)
+        //self.loginButton.loadIndicator(false)
         
         let alert2 = UIAlertController(title: alertTitle, message: alertMessage, preferredStyle: .alert)
 
@@ -1377,14 +1465,14 @@ class LoginViewController: UIViewController, UITextFieldDelegate {
         //let nextVC = storyboard?.instantiateViewController(withIdentifier: "OTPStep0ViewController") as! OTPStep0ViewController
         let nextVC = storyboard?.instantiateViewController(withIdentifier: "CreateAccountViewController") as! CreateAccountViewController
         //nextVC.action = "createAccount"
-        self.navigationController?.pushViewController(nextVC , animated: true)
+        self.navigationController?.pushViewController(nextVC , animated: false)
     }
 
     
     @IBAction func forgetPassword(_ sender: Any) {
         let nextVC = storyboard?.instantiateViewController(withIdentifier: "OTPStep0ViewController") as! OTPStep0ViewController
         nextVC.action = "forgotPassword"
-        self.navigationController?.pushViewController(nextVC , animated: true)
+        self.navigationController?.pushViewController(nextVC , animated: false)
     }
     
     /*may need to move this to initialization - app start once we figure it out
@@ -1393,6 +1481,7 @@ class LoginViewController: UIViewController, UITextFieldDelegate {
         UserDefaults.standard.removeObject(forKey: "isAccountConnected")
         defaults.set(false, forKey: "isContinueAutoReplenish") //when auto replish is enabled
         defaults.set(false, forKey: "isProfileImageChange")
+        defaults.set(false, forKey: "isOnboardCustomerRefresh")
         //defaults.set(false, forKey: "isRefreshHomeVC")
         UserDefaults.standard.removeObject(forKey: "userDisplayName")
         UserDefaults.standard.removeObject(forKey: "userProfileImage")

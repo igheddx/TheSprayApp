@@ -80,6 +80,8 @@ class DashboardViewController: UIViewController, ChartViewDelegate, UITableViewD
    
         navigationItem.largeTitleDisplayMode = .automatic
         navigationController?.navigationBar.prefersLargeTitles = true
+        
+       
         //pieChart.delegate = self
         
 //            eventNameLabel.text = eventName
@@ -103,6 +105,14 @@ class DashboardViewController: UIViewController, ChartViewDelegate, UITableViewD
         super.viewDidLayoutSubviews()
             
         
+    }
+    override func viewWillAppear(_ animated: Bool) {
+        if self.tabBarController?.tabBar.isHidden == false {
+            print("Link - tabbar should be back 2")
+            self.tabBarController?.tabBar.isHidden = true
+        } else {
+            print("Link - bad  2")
+        }
     }
     
     func getMyEvents(){
